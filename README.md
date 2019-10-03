@@ -9,7 +9,7 @@ Open properties (right click _ff8_demaster_ and click properties) and change `Pl
 Open properties (right click _ff8_demaster_ and click properties) and change `Windows SDK Version` to something you have installed.
 
 `Error	MSB3191	Unable to create directory "D:\FINAL FANTASY VIII REMASTERED\".`<br/>
-Open properties (right click _ff8_demaster_ and click properties) and change `Output Directory` to something your _FINAL FANTASY VIII Remastered_ folder.<br/>
+Open properties (right click _ff8_demaster_ and click properties) and change `Output Directory` to your _FINAL FANTASY VIII Remastered_ folder.<br/>
 Default steam install: `C:\Program Files (x86)\Steam\steamapps\common\FINAL FANTASY VIII Remastered`
 
 
