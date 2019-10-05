@@ -75,6 +75,7 @@ DWORD DIRECT_IO_EXPORT_DIR_LEN;
 
 DWORD IO_backAddress = 0;
 DWORD IO_backAddress2 = 0;
+DWORD IO_backAddress3 = 0;
 DWORD filePathBuffer, filePathStrlen;
 char IO_backlogFilePath[256];
 
@@ -124,7 +125,6 @@ void directIO_fopenReroute2()
 {
 	__asm
 	{
-
 		NOP //reconstruct stack notifier
 		POP EBX //see below
 		POP EBP //this is because Visual Studio doing it's shit
@@ -132,6 +132,47 @@ void directIO_fopenReroute2()
 		PUSH OFFSET rb //too much hustle to get original value based on calcs without using any regs
 		PUSH OFFSET IO_backlogFilePath
 		JMP IO_backAddress2
+	}
+}
+int loc00 = 0;
+FILE* fd;
+void directIO_fopenReroute3()
+{
+	__asm
+	{
+		NOP //reconstruct stack notifier
+		POP EBX
+		POP ECX
+		POP EBP
+
+
+		MOV EAX, ESI
+		MOV ECX, [EBP - 0x0C]
+		PUSH EAX
+		PUSH EBX
+		PUSH ECX
+		PUSH EDX
+	}
+	FILE* fd = fopen(IO_backlogFilePath, "rb");
+	fseek(fd, 0, 2); //back
+	loc00 = ftell(fd);
+	fclose(fd);
+
+	__asm
+	{
+		POP EDX
+		POP ECX
+		POP EBX
+		POP EAX
+
+		PUSH EBX
+		MOV EBX, [loc00]
+		ADD EAX, 0x10
+		MOV [EAX], EBX
+		SUB EAX, 0x10
+		POP EBX
+
+		JMP IO_backAddress3
 	}
 }
 
@@ -180,6 +221,16 @@ void ApplyDirectIO()
 	*fopenPatchMnemonic = 0x31;		//XOR EAX
 	*(fopenPatchMnemonic + 1) = 0xc0;	//	XOR EAX->EAX
 	*(fopenPatchMnemonic + 2) = 0x90;	//NOP
+
+	//Now we need to fix fd struct filelen for modifications of RAW files
+	//see fopen_archivePrepareSeek- we need to update struct before return
+	//EAX contains struct for FD open archive
+	fopenPatchMnemonic = IMAGE_BASE + 0x15D42B7; //MOV EAX, ESI; MOV ECX, [EBP-0ch]   [//8BC6 8B4DF4]
+	IO_backAddress3 = fopenPatchMnemonic + 5;
+	modPage(fopenPatchMnemonic, 5); //JMP
+	jmpParam = (DWORD)directIO_fopenReroute3 - (DWORD)fopenPatchMnemonic - 5;
+	*fopenPatchMnemonic = 0xE9; //JMP [DW]
+	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
 }
 
 #pragma endregion
