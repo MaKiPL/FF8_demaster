@@ -235,6 +235,20 @@ void ApplyDirectIO()
 
 #pragma endregion
 
+#pragma region TextureUpscaleMod
+
+const int battleTextureUpscale = 0x600; //768 [600=2048]
+
+void ApplyTextureUpscaleMod()
+{
+	int mnemonicPatchPlace = IMAGE_BASE + 0x15AABAB;
+	modPage(mnemonicPatchPlace, 5);
+	BYTE* b = mnemonicPatchPlace;
+	*b = 0xB9; //MOV ECX
+	*(DWORD*)(b + 1) = battleTextureUpscale;
+}
+#pragma endregion
+
 
 
 BOOL WINAPI DllMain(
@@ -257,6 +271,7 @@ BOOL WINAPI DllMain(
 	//LET'S GET THE HACKING DONE
 	ApplyUVPatch();
 	ApplyDirectIO();
+	ApplyTextureUpscaleMod();
 
 
 	//HACKING DONE, WE CAN GTFO
