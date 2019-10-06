@@ -79,15 +79,10 @@ DWORD IO_backAddress3 = 0;
 DWORD filePathBuffer, filePathStrlen;
 char IO_backlogFilePath[256];
 
-void directIO_fopenReroute()
+__declspec(naked) void directIO_fopenReroute()
 {
 	__asm
 	{
-
-		NOP //reconstruct stack notifier
-		POP EBX //see below
-		POP EBP //this is because Visual Studio doing it's shit
-
 		//let's save our regs, because VS compiler will probably destroy them
 		PUSH EAX
 		PUSH EBX
@@ -121,14 +116,10 @@ void directIO_fopenReroute()
 
 const char rb[] = "rb";
 
-void directIO_fopenReroute2()
+__declspec(naked) void directIO_fopenReroute2()
 {
 	__asm
 	{
-		NOP //reconstruct stack notifier
-		POP EBX //see below
-		POP EBP //this is because Visual Studio doing it's shit
-
 		PUSH OFFSET rb //too much hustle to get original value based on calcs without using any regs
 		PUSH OFFSET IO_backlogFilePath
 		JMP IO_backAddress2
@@ -136,16 +127,10 @@ void directIO_fopenReroute2()
 }
 int loc00 = 0;
 FILE* fd;
-void directIO_fopenReroute3()
+__declspec(naked) void directIO_fopenReroute3()
 {
 	__asm
 	{
-		NOP //reconstruct stack notifier
-		POP EBX
-		POP ECX
-		POP EBP
-
-
 		MOV EAX, ESI
 		MOV ECX, [EBP - 0x0C]
 		PUSH EAX
@@ -153,7 +138,7 @@ void directIO_fopenReroute3()
 		PUSH ECX
 		PUSH EDX
 	}
-	FILE* fd = fopen(IO_backlogFilePath, "rb");
+	fd = fopen(IO_backlogFilePath, "rb");
 	fseek(fd, 0, 2); //back
 	loc00 = ftell(fd);
 	fclose(fd);
@@ -237,7 +222,7 @@ void ApplyDirectIO()
 
 #pragma region TextureUpscaleMod
 
-const int battleTextureUpscale = 0x600; //768 [600=2048]
+const int battleTextureUpscale = 0x300; //768 [600=2048]
 
 void ApplyTextureUpscaleMod()
 {
@@ -246,6 +231,12 @@ void ApplyTextureUpscaleMod()
 	BYTE* b = mnemonicPatchPlace;
 	*b = 0xB9; //MOV ECX
 	*(DWORD*)(b + 1) = battleTextureUpscale;
+}
+
+//HEAVY!!
+void ReplaceTextureFunction()
+{
+	int textureFunction = IMAGE_BASE + 0x15A9920;
 }
 #pragma endregion
 
@@ -272,6 +263,7 @@ BOOL WINAPI DllMain(
 	ApplyUVPatch();
 	ApplyDirectIO();
 	ApplyTextureUpscaleMod();
+	ReplaceTextureFunction();
 
 
 	//HACKING DONE, WE CAN GTFO
