@@ -233,10 +233,37 @@ void ApplyTextureUpscaleMod()
 	*(DWORD*)(b + 1) = battleTextureUpscale;
 }
 
-//HEAVY!!
+
+
+DWORD* _thisFF8 = 0; //__thiscall, so this is ECX
+DWORD tex_returnAddress = 0;
+
+__declspec(naked) void LoadGameTexture(DWORD* tex_struct, DWORD parm1)
+{
+	__asm
+	{
+		MOV _thisFF8, ECX //get this::
+	}
+
+
+
+	//out- get back to end
+	__asm
+	{
+		JMP tex_returnAddress;
+	}
+	
+}
+
+//replace LoadGameTexture first mnemonic to JMP and calculate the out value
 void ReplaceTextureFunction()
 {
 	int textureFunction = IMAGE_BASE + 0x15A9920;
+	tex_returnAddress = IMAGE_BASE + 0x15AA3EB;
+	modPage(textureFunction, 5);
+	*(BYTE*)(textureFunction) = 0xE9;
+	DWORD jmpparm = (DWORD)LoadGameTexture - textureFunction - 5;
+	*(DWORD*)(textureFunction + 1) = jmpparm;
 }
 #pragma endregion
 
