@@ -238,14 +238,80 @@ void ApplyTextureUpscaleMod()
 DWORD* _thisFF8 = 0; //__thiscall, so this is ECX
 DWORD tex_returnAddress = 0;
 
-__declspec(naked) void LoadGameTexture(DWORD* tex_struct, DWORD parm1)
+//tex_struct is some way of texturing structure that is quite huge
+//parm1 is unknown, maybe pointer?
+
+enum languages
+{
+	English,
+	French,
+	German,
+	Italian,
+	Spanish,
+	Japanese
+};
+enum languages currentLanguage = English;
+DWORD test;
+
+UINT width;
+UINT height;
+char ArgList[4];
+int texMode;
+char texPath[256];
+char* langIdentifier = "EN";
+
+DWORD* tex_struct; //arg+4
+DWORD parm1; //arg+8
+
+__declspec(naked) void LoadGameTexture()
 {
 	__asm
 	{
-		MOV _thisFF8, ECX //get this::
+		MOV _thisFF8, ECX //get this:: //FF8 should be always the same for session
+		ADD ESP, 4
+		POP EAX
+		MOV tex_struct, EAX //this is naked, so EBP shit I'll be doing manually here
+		POP EAX
+		MOV parm1, EAX
+		XOR EAX, EAX
+		SUB ESP, 0x0C //now get back to ESP which would point to CALLE+5 (RET)
 	}
+	*(DWORD*)ArgList = parm1;
+	width = (UINT)(tex_struct + 47);
+	if (tex_struct[63] == 1)
+	{
+		height = parm1 + (tex_struct[48] << 8);
+	}
+	currentLanguage = *(_thisFF8 + 0x3F);
 
+	texMode = tex_struct[48];
 
+	memset(texPath, 0, 256); //clear path
+	strcat(texPath, "textures\\");
+	if (*(tex_struct + 47) == 1)
+	{
+		switch (currentLanguage)
+		{
+		case English:
+			langIdentifier = "EN";
+			break;
+		case French:
+			langIdentifier = "FR";
+			break;
+		case German:
+			langIdentifier = "DE";
+			break;
+		case Italian:
+			langIdentifier = "IT";
+			break;
+		case Spanish:
+			langIdentifier = "ES";
+			break;
+		case Japanese:
+			langIdentifier = "JP";
+			break;
+		}
+	}
 
 	//out- get back to end
 	__asm
