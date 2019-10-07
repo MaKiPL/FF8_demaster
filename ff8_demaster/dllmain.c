@@ -280,6 +280,7 @@ byte* texture_buffer_open;
 unsigned char* rgbBuffer;
 void* textureRepTable;
 UINT v27;
+char* tex_getFileOpening;
 
 __declspec(naked) void LoadGameTexture()
 {
@@ -724,7 +725,48 @@ __declspec(naked) void LoadGameTexture()
 	{
 		if (tex_struct[51] < 0x41 || tex_struct[51] > 0x4E)
 		{
-			strcat(texPath, "squarelogo\\square.lzs_0");
+			if (tex_struct[51] == 0x3F)
+			{
+				__asm
+				{
+					MOV EAX, OFFSET IMAGE_BASE
+					MOV EAX, [EAX]
+					ADD EAX, 0x15376B9 //tex_getFileOpening(int)
+
+					MOV ECX, 0x3F
+					CALL EAX
+					MOV tex_getFileOpening, EAX
+				}
+
+				strcat(texPath, "squarelogo\\");
+				strcat(texPath, tex_getFileOpening);
+				strcat(texPath, "_");
+				sprintf(tex_paletteIndex, "%u", tex_struct[50]);
+				strcat(texPath, tex_paletteIndex);
+			}
+			else
+			{
+				; //is this even used?
+			}
+		}
+		else //else opening names
+		{
+			__asm
+			{
+				MOV EAX, OFFSET IMAGE_BASE
+				MOV EAX, [EAX]
+				ADD EAX, 0x15376B9 //tex_getFileOpening(int)
+
+				MOV ECX, tex_struct[48] - 13
+				CALL EAX
+				MOV tex_getFileOpening, EAX
+			}
+
+			strcat(texPath, "opening\\");
+			strcat(texPath, tex_getFileOpening);
+			strcat(texPath, "_");
+			sprintf(tex_paletteIndex, "%u", tex_struct[50]);
+			strcat(texPath, tex_paletteIndex);
 		}
 	}
 
