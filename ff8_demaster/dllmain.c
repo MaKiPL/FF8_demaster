@@ -1,5 +1,7 @@
 ﻿#include <stdio.h>
 #include <Windows.h>
+#include "SOIL.h"
+#include <gl/GL.h>
 
 #define EXPORT __declspec(dllexport)
 #pragma warning(disable:4996)
@@ -253,15 +255,29 @@ enum languages
 enum languages currentLanguage = English;
 DWORD test;
 
+char* archiveMockup = "main.zzz";
+
 UINT width;
 UINT height;
-char ArgList[4];
+char tex_paletteIndex[4];
 int texMode;
 char texPath[256];
 char* langIdentifier = "EN";
+int textureIndex = -1;
+int v147;
+DWORD attr;
 
 DWORD* tex_struct; //arg+4
 DWORD parm1; //arg+8
+
+DWORD OPENGL_HANDLE;
+DWORD OPENGL_METHOD;
+UINT OPENGL_TEXTURES;
+
+byte* texture_buffer_open;
+unsigned char* rgbBuffer;
+void* textureRepTable;
+UINT v27;
 
 __declspec(naked) void LoadGameTexture()
 {
@@ -275,8 +291,10 @@ __declspec(naked) void LoadGameTexture()
 		MOV parm1, EAX
 		XOR EAX, EAX
 		SUB ESP, 0x0C //now get back to ESP which would point to CALLE+5 (RET)
+
+		PUSH ESI
 	}
-	*(DWORD*)ArgList = parm1;
+	*(DWORD*)tex_paletteIndex = parm1;
 	width = (UINT)(tex_struct + 47);
 	if (tex_struct[63] == 1)
 	{
@@ -285,8 +303,10 @@ __declspec(naked) void LoadGameTexture()
 	currentLanguage = *(_thisFF8 + 0x3F);
 
 	texMode = tex_struct[48];
+	v147 = 0;
 
 	memset(texPath, 0, 256); //clear path
+	strcat(texPath, DIRECT_IO_EXPORT_DIR);
 	strcat(texPath, "textures\\");
 	if (*(tex_struct + 47) == 1)
 	{
@@ -312,6 +332,146 @@ __declspec(naked) void LoadGameTexture()
 			break;
 		}
 	}
+	textureIndex = -1;
+
+	switch (texMode) //224
+	{
+		case 1:
+		default:
+		{
+			textureIndex = 0;
+			if (*(DWORD*)tex_paletteIndex > 7)
+			{
+				//missing pallete for sysfld.tex
+				sprintf(tex_paletteIndex, "%i", *((DWORD*)tex_paletteIndex));
+				strcat(texPath, "hires\\sysfld0");
+				strcat(texPath, tex_paletteIndex);
+				strcat(texPath, ".tex\\7"); //because wrong parameter, so should always read the white text
+				v147 = 2; //not sure about this one
+			}
+			else
+			{
+				sprintf(tex_paletteIndex, "%i", *((DWORD*)tex_paletteIndex));
+				strcat(texPath, "hires\\sysfld0");
+				strcat(texPath, tex_paletteIndex);
+				strcat(texPath, ".tex\\"); //because wrong parameter, so should always read the white text
+				sprintf(tex_paletteIndex, "%u", textureIndex);
+				strcat(texPath, tex_paletteIndex);
+				v147 = 1;
+				break;
+			}
+		}
+		//case 2:
+		//{
+		//	if (textureIndex == -1)
+		//		textureIndex = 0;
+		//	if (*(DWORD*)tex_paletteIndex > 7)
+		//	{
+		//		//missing pallete for sysfld.tex
+		//		sprintf(tex_paletteIndex, "%i", *((DWORD*)tex_paletteIndex));
+		//		strcat(texPath, "hires\\sysfld0");
+		//	}
+		//	else
+		//	{
+		//		sprintf(tex_paletteIndex, "%i", *((DWORD*)tex_paletteIndex));
+		//	}
+
+		//}
+	}
+
+	strcat(texPath, ".png");
+	OutputDebugStringA(texPath);
+	OutputDebugStringA("\n");
+
+	glGenTextures(1, &OPENGL_TEXTURES);
+	glBindTexture(GL_TEXTURE_2D, OPENGL_TEXTURES);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+
+	if (height != 0)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 0x812F); //GL_CLAMP_TO_EDGE
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812F);
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	}
+
+	attr = GetFileAttributesA(texPath);
+	if (attr == INVALID_FILE_ATTRIBUTES)
+	{
+		memset(texPath, 0, 256);
+		strcat(texPath, "EXP\\textures\\null.png");
+	}
+	rgbBuffer = SOIL_load_image(texPath, &width, &height, 0, SOIL_LOAD_RGBA);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgbBuffer);
+	SOIL_free_image_data(rgbBuffer);
+
+	textureRepTable = calloc(52, sizeof(byte));
+	__asm
+	{
+		PUSH 0
+		PUSH 1
+		PUSH height
+		PUSH width
+		PUSH height
+		PUSH width
+		PUSH OPENGL_TEXTURES
+		MOV EAX, OFFSET IMAGE_BASE
+		MOV EAX, [EAX]
+		ADD EAX, 0x15BA402
+		MOV ECX, [textureRepTable]
+		CALL EAX
+	}
+
+	__asm
+	{
+		MOV ECX, [textureRepTable]
+		ADD ECX, 0x24
+		MOV BYTE PTR [ECX], 1
+
+		MOV ECX, [textureRepTable]
+		ADD ECX, 0x28
+		ADD ECX, 4
+		PUSH [ECX]
+		SUB ECX, 4
+		
+		MOV EAX, OFFSET IMAGE_BASE
+		MOV EAX, [EAX]
+		ADD EAX, 0x15BB62F
+		CALL EAX
+
+		MOV EAX, [textureRepTable]
+		ADD EAX, 0x28
+		ADD DWORD PTR [EAX+4], 0x24
+	}
+	//glTexture here
+	*(DWORD*)langIdentifier = textureRepTable;
+
+	__asm
+	{
+		MOV ESI, [textureRepTable]
+		ADD ESI, 8
+		MOV ECX, [_thisFF8]
+		ADD ECX, 0x650
+		PUSH ESI
+		MOV EAX, OFFSET IMAGE_BASE
+		MOV EAX, [EAX]
+		ADD EAX, 0x15ADB50
+		CALL EAX
+
+		MOV ECX, dword ptr [langIdentifier]
+		MOV [EAX], ECX
+		MOV ESI, [ESI]
+		MOV EAX, ESI
+
+		POP ESI
+	}
+
+	//OPENGL create tex and load here
 
 	//out- get back to end
 	__asm
@@ -330,6 +490,18 @@ void ReplaceTextureFunction()
 	*(BYTE*)(textureFunction) = 0xE9;
 	DWORD jmpparm = (DWORD)LoadGameTexture - textureFunction - 5;
 	*(DWORD*)(textureFunction + 1) = jmpparm;
+
+	////replace EH_prologues and epilogues
+	//textureFunction = IMAGE_BASE + 0x15BB79C;
+	//modPage(textureFunction, 5);
+	//*((DWORD*)textureFunction) = 0x90909090; //4 NOPs
+	//*((BYTE*)(textureFunction+4)) = 0x90; //4 NOPs
+
+	//textureFunction = IMAGE_BASE + 0x15BB7CB;
+	//modPage(textureFunction, 5);
+	//*((DWORD*)textureFunction) = 0x90909090; //4 NOPs
+	//*((BYTE*)(textureFunction + 4)) = 0x90; //4 NOPs
+
 }
 #pragma endregion
 
@@ -348,6 +520,8 @@ BOOL WINAPI DllMain(
 		return 0;
 
 	IMAGE_BASE = GetModuleHandleA("FFVIII_EFIGS");
+	OPENGL_HANDLE = GetModuleHandleA("OPENGL32");
+	
 
 	InitTest();
 
