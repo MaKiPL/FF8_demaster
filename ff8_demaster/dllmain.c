@@ -263,6 +263,8 @@ char tex_paletteIndex[4];
 int texMode;
 char texPath[256];
 char* langIdentifier = "EN";
+char* dinput = "_dinput";
+char* xinput = "_xinput";
 int textureIndex = -1;
 int v147;
 DWORD attr;
@@ -310,74 +312,424 @@ __declspec(naked) void LoadGameTexture()
 	strcat(texPath, "textures\\");
 	if (*(tex_struct + 47) == 1)
 	{
+		memset(langIdentifier, 0, 3);
 		switch (currentLanguage)
 		{
 		case English:
-			langIdentifier = "EN";
+			strcat(langIdentifier, "EN");
 			break;
 		case French:
-			langIdentifier = "FR";
+			strcat(langIdentifier, "FR");
 			break;
 		case German:
-			langIdentifier = "DE";
+			strcat(langIdentifier, "DE");
 			break;
 		case Italian:
-			langIdentifier = "IT";
+			strcat(langIdentifier, "IT");
 			break;
 		case Spanish:
-			langIdentifier = "ES";
+			strcat(langIdentifier, "ES");
 			break;
 		case Japanese:
-			langIdentifier = "JP";
+			strcat(langIdentifier, "JP");
 			break;
 		}
-	}
-	textureIndex = -1;
-
-	switch (texMode) //224
-	{
-		case 1:
-		default:
+		textureIndex = -1;
+		switch (texMode) //224
 		{
+		case 1: //zero sysfld
 			textureIndex = 0;
+		case 2: //non zero sysfld
+		{
+			if (textureIndex == -1)
+				textureIndex = 1;
 			if (*(DWORD*)tex_paletteIndex > 7)
 			{
 				//missing pallete for sysfld.tex
-				sprintf(tex_paletteIndex, "%i", *((DWORD*)tex_paletteIndex));
+				sprintf(tex_paletteIndex, "%i", textureIndex);
 				strcat(texPath, "hires\\sysfld0");
 				strcat(texPath, tex_paletteIndex);
-				strcat(texPath, ".tex\\7"); //because wrong parameter, so should always read the white text
-				v147 = 2; //not sure about this one
+				strcat(texPath, ".tex\\7");
 			}
 			else
 			{
-				sprintf(tex_paletteIndex, "%i", *((DWORD*)tex_paletteIndex));
+				sprintf(tex_paletteIndex, "%u", textureIndex);
 				strcat(texPath, "hires\\sysfld0");
 				strcat(texPath, tex_paletteIndex);
-				strcat(texPath, ".tex\\"); //because wrong parameter, so should always read the white text
-				sprintf(tex_paletteIndex, "%u", textureIndex);
+				strcat(texPath, ".tex\\");
+				sprintf(tex_paletteIndex, "%i", parm1);
 				strcat(texPath, tex_paletteIndex);
-				v147 = 1;
 				break;
 			}
 		}
-		//case 2:
-		//{
-		//	if (textureIndex == -1)
-		//		textureIndex = 0;
-		//	if (*(DWORD*)tex_paletteIndex > 7)
-		//	{
-		//		//missing pallete for sysfld.tex
-		//		sprintf(tex_paletteIndex, "%i", *((DWORD*)tex_paletteIndex));
-		//		strcat(texPath, "hires\\sysfld0");
-		//	}
-		//	else
-		//	{
-		//		sprintf(tex_paletteIndex, "%i", *((DWORD*)tex_paletteIndex));
-		//	}
+		case 3: //sysfnt00
+		{
+			if (*(DWORD*)tex_paletteIndex <= 7)
+			{
+				sprintf(tex_paletteIndex, "%u", *((DWORD*)tex_paletteIndex));
+				strcat(texPath, "hires\\sysfnt00.tex\\");
+				strcat(texPath, tex_paletteIndex);
+				strcat(texPath, "_hd");
+				break;
+			}
+			else
+			{
+				strcat(texPath, "hires\\sysfnt00.tex\\7_hd");
+				break;
+			}
+		}
+		case 4:
+			textureIndex = 0;
+			goto LABEL_65;
+		case 5:
+		LABEL_65:
+			if (textureIndex != -1)
+			{
+				goto LABEL_74;
+			}
+			textureIndex = 1;
+			goto LABEL_67;
+		case 6:
+			textureIndex = 2;
+			goto LABEL_76;
+		case 7:
+			textureIndex = 3;
+		LABEL_74:
+			if (textureIndex == 1 || textureIndex == 3)
+			{
+			LABEL_67:
+				strcat(texPath, "hires\\iconfl0");
+				sprintf(tex_paletteIndex, "%i", textureIndex);
+				strcat(texPath, tex_paletteIndex);
+				strcat(texPath, ".tex\\");
+				strcat(texPath, langIdentifier);
+				strcat(texPath, "\\");
+				sprintf(tex_paletteIndex, "%u", parm1);
+				strcat(texPath, tex_paletteIndex);
+				if (*(DWORD*)tex_paletteIndex == 4)
+				{
+					switch (_thisFF8[295])
+					{
+					case 1:
+						if (_thisFF8[294] == 2)
+						{
+							strcat(texPath, xinput);
+							break;
+						}
+						if (_thisFF8[294] == 3)
+						{
+							strcat(texPath, dinput);
+							break;
+						}
+						strcat(texPath, xinput);
+						break;
+					case 2:
+						strcat(texPath, xinput);
+						break;
+					case 3:
+						strcat(texPath, dinput);
+						break;
+					}
+				}
+			}
+			else
+			{
+			LABEL_76:
+				strcat(texPath, "hires\\iconfl0");
+				sprintf(tex_paletteIndex, "%i", textureIndex);
+				strcat(texPath, tex_paletteIndex);
+				strcat(texPath, ".tex\\");
+				strcat(texPath, langIdentifier);
+				strcat(texPath, "\\");
+				sprintf(tex_paletteIndex, "%u", parm1);
+				strcat(texPath, tex_paletteIndex);
+				break;
+			}
+			break;
 
-		//}
+		case 8:
+			textureIndex = 0;
+			goto LABEL_33;
+		case 9:
+		LABEL_33:
+			if (textureIndex != -1)
+				goto LABEL_39;
+			textureIndex = 1;
+			goto LABEL_35;
+		case 10:
+		LABEL_35:
+			if (textureIndex != -1)
+				goto LABEL_39;
+			textureIndex = 2;
+			goto LABEL_37;
+		case 11:
+		LABEL_37:
+			if (textureIndex == -1)
+				textureIndex = 3;
+		LABEL_39:
+			if (*(DWORD*)tex_paletteIndex > 7u)
+			{
+				strcat(texPath, "hires\\sysevn0");
+				sprintf(tex_paletteIndex, "%i", textureIndex);
+				strcat(texPath, tex_paletteIndex);
+				strcat(texPath, ".tex\\7");
+				break;
+			}
+			else
+			{
+				strcat(texPath, "hires\\sysevn0");
+				sprintf(tex_paletteIndex, "%i", textureIndex);
+				strcat(texPath, tex_paletteIndex);
+				strcat(texPath, ".tex\\");
+				sprintf(tex_paletteIndex, "%u", parm1);
+				strcat(texPath, tex_paletteIndex);
+				break;
+			}
+		case 12:
+			textureIndex = 0;
+			goto LABEL_43;
+		case 13:
+		LABEL_43:
+			if (textureIndex != -1)
+				goto LABEL_49;
+			textureIndex = 1;
+			goto LABEL_45;
+		case 14:
+		LABEL_45:
+			if (textureIndex != -1)
+				goto LABEL_49;
+			textureIndex = 2;
+			goto LABEL_47;
+		case 15:
+		LABEL_47:
+			if (textureIndex == -1)
+				textureIndex = 3;
+		LABEL_49:
+			if (*(DWORD*)tex_paletteIndex > 7u)
+			{
+				strcat(texPath, "hires\\sysodd0");
+				sprintf(tex_paletteIndex, "%i", textureIndex);
+				strcat(texPath, tex_paletteIndex);
+				strcat(texPath, ".tex\\7");
+				break;
+			}
+			else
+			{
+				strcat(texPath, "hires\\sysodd0");
+				sprintf(tex_paletteIndex, "%i", textureIndex);
+				strcat(texPath, tex_paletteIndex);
+				strcat(texPath, ".tex\\");
+				sprintf(tex_paletteIndex, "%u", parm1);
+				strcat(texPath, tex_paletteIndex);
+				break;
+			}
+		case 16:
+			if (*(DWORD*)tex_paletteIndex <= 7u)
+			{
+				strcat(texPath, "font8_even.tex\\");
+				sprintf(tex_paletteIndex, "%u", parm1);
+				strcat(texPath, tex_paletteIndex);
+				break;
+			}
+			else
+			{
+				strcat(texPath, "font8_even.tex\\0");
+				break;
+			}
+		case 17:
+			if (*(DWORD*)tex_paletteIndex > 7u)
+			{
+				strcat(texPath, "font8_odd.tex\\0");
+				break;
+			}
+			else
+			{
+				strcat(texPath, "font8_odd.tex\\");
+				sprintf(tex_paletteIndex, "%u", parm1);
+				strcat(texPath, tex_paletteIndex);
+				break;
+			}
+		case 18:
+		case 19:
+		case 20:
+		case 21:
+			OutputDebugStringA("something bla bla must be removed bla bla");
+			__asm
+			{
+				INT 3
+			}
+		case 22:
+			strcat(texPath, "FIELD.FS\\jp_add_font_hd\\");
+			sprintf(tex_paletteIndex, "%u", *(USHORT*)(IMAGE_BASE + 0x1768678));
+			strcat(texPath, tex_paletteIndex);
+			strcat(texPath, "_evn_");
+			sprintf(tex_paletteIndex, "%u", parm1 >> 1);
+			strcat(texPath, tex_paletteIndex);
+			break;
+		case 23:
+			strcat(texPath, "FIELD.FS\\jp_add_font_hd\\");
+			sprintf(tex_paletteIndex, "%u", *(USHORT*)(IMAGE_BASE + 0x1768678));
+			strcat(texPath, tex_paletteIndex);
+			strcat(texPath, "_odd_");
+			sprintf(tex_paletteIndex, "%u", parm1 >> 1);
+			strcat(texPath, tex_paletteIndex);
+			break;
+		case 24:
+			strcat(texPath, "hires\\face_b00.tex");
+			break;
+		case 25:
+			strcat(texPath, "hires\\face_b01.tex");
+			break;
+		case 26:
+			strcat(texPath, "hires\\gf_big00.tex");
+			break;
+		case 27:
+			strcat(texPath, "hires\\gf_big01.tex");
+			break;
+		case 28:
+			strcat(texPath, "start00.tex");
+			break;
+		case 29:
+			strcat(texPath, "start01.tex");
+			break;
+		case 30:
+			strcat(texPath, "icon.tex\\");
+			strcat(texPath, langIdentifier);
+			strcat(texPath, "\\");
+			sprintf(tex_paletteIndex, "%u", parm1);
+			strcat(texPath, tex_paletteIndex);
+
+
+			if (*(DWORD*)tex_paletteIndex == 4)
+			{
+				if (_thisFF8[295] != 1)
+				{
+					if (_thisFF8[295] == 2)
+					{
+						strcat(texPath, xinput);
+					}
+					else if (_thisFF8[295] == 3)
+					{
+						strcat(texPath, dinput);
+					}
+				}
+				if (_thisFF8[294] == 2)
+				{
+					strcat(texPath, xinput);
+				}
+				if (_thisFF8[294] == 3)
+				{
+					strcat(texPath, dinput);
+				}
+			}
+			break;
+		case 31:
+			strcat(texPath, "mc00.tex");
+			break;
+		case 32:
+			strcat(texPath, "mc01.tex");
+			break;
+		case 33:
+			strcat(texPath, "mc02.tex");
+			break;
+		case 34:
+			strcat(texPath, "mc03.tex");
+			break;
+		case 35:
+			strcat(texPath, "mc04.tex");
+			break;
+		case 36:
+			strcat(texPath, "mc05.tex");
+			if (_thisFF8[63] != 5)
+				strcat(texPath, "_EN");
+			break;
+		case 37:
+			strcat(texPath, "mc06.tex");
+			break;
+		case 38:
+			strcat(texPath, "mc07.tex");
+			break;
+		case 39:
+			strcat(texPath, "mc08.tex");
+			break;
+		case 40:
+			strcat(texPath, "mc09.tex");
+			break;
+		case 41:
+			strcat(texPath, "mag00.tex");
+			break;
+		case 42:
+			strcat(texPath, "mag01.tex");
+			break;
+		case 43:
+			strcat(texPath, "mag02.tex");
+			break;
+		case 44:
+			strcat(texPath, "mag03.tex");
+			break;
+		case 45:
+			strcat(texPath, "mag04.tex");
+			break;
+		case 46:
+			strcat(texPath, "mag05.tex");
+			break;
+		case 47:
+			strcat(texPath, "mag06.tex");
+			break;
+		case 48:
+			strcat(texPath, "mag07.tex");
+			break;
+		case 49:
+		case 50:
+		case 56:
+		case 57:
+		case 59:
+		case 60:
+			strcat(texPath, "null");
+		case 51:
+		case 52:
+		case 53:
+		case 54:
+		case 55:
+		case 58:
+			strcat(texPath, "mag");
+			sprintf(tex_paletteIndex, "%u", 0); //PLACEHOLDER- to reverse the v14 - 41;
+			strcat(texPath, "_");
+			strcat(texPath, langIdentifier);
+			break;
+		case 61:
+			strcat(texPath, "magita.tex");
+		}
 	}
+
+
+	//BELOW IS TEST SEGMENT - it means it's basically only conditions to display shit I want fastest way
+
+	if (tex_struct[48] > 0x19) //762
+	{
+		if (tex_struct[48] != 28)
+		{
+			if (tex_struct[48] == 35)
+			{
+
+			}
+		}
+	}
+	if (tex_struct[48] == 25)
+	{
+		//GOVER
+	}
+
+	if (tex_struct[48] - 13 == 0)
+	{
+		if (tex_struct[51] < 0x41 || tex_struct[51] > 0x4E)
+		{
+			strcat(texPath, "squarelogo\\square.lzs_0");
+		}
+	}
+
+	//END OF TEST SEGMENT
+	
 
 	strcat(texPath, ".png");
 	OutputDebugStringA(texPath);
