@@ -282,6 +282,9 @@ void* textureRepTable;
 UINT v27;
 char* tex_getFileOpening;
 
+DWORD* v4;
+int v131;
+
 __declspec(naked) void LoadGameTexture()
 {
 	__asm
@@ -299,9 +302,25 @@ __declspec(naked) void LoadGameTexture()
 	}
 	*(DWORD*)tex_paletteIndex = parm1;
 	width = (UINT)(tex_struct + 47);
+	v4 = tex_struct + 47;
 	if (tex_struct[63] == 1)
 	{
 		height = parm1 + (tex_struct[48] << 8);
+		__asm
+		{
+			MOV ECX, _thisFF8 //this
+			ADD ECX, 0x684
+			//MOV ECX, [ECX]
+			LEA EAX, height
+			PUSH EAX
+			LEA EAX, langIdentifier
+			PUSH EAX
+			MOV EAX, OFFSET IMAGE_BASE
+			MOV EAX, [EAX]
+			ADD EAX, 0x15AE068
+			CALL EAX
+
+		}
 	}
 	currentLanguage = *(_thisFF8 + 0x3F);
 
@@ -777,6 +796,7 @@ __declspec(naked) void LoadGameTexture()
 	OutputDebugStringA(texPath);
 	OutputDebugStringA("\n");
 
+	//CREATEGLTEXTURE START
 	glGenTextures(1, &OPENGL_TEXTURES);
 	glBindTexture(GL_TEXTURE_2D, OPENGL_TEXTURES);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -816,7 +836,7 @@ __declspec(naked) void LoadGameTexture()
 		PUSH OPENGL_TEXTURES
 		MOV EAX, OFFSET IMAGE_BASE
 		MOV EAX, [EAX]
-		ADD EAX, 0x15BA402
+		ADD EAX, 0x15BA402 //sets default to struct
 		MOV ECX, [textureRepTable]
 		CALL EAX
 	}
@@ -835,7 +855,7 @@ __declspec(naked) void LoadGameTexture()
 		
 		MOV EAX, OFFSET IMAGE_BASE
 		MOV EAX, [EAX]
-		ADD EAX, 0x15BB62F
+		ADD EAX, 0x15BB62F //settextpointer -> vector<T>
 		CALL EAX
 
 		MOV EAX, [textureRepTable]
@@ -845,25 +865,53 @@ __declspec(naked) void LoadGameTexture()
 	//glTexture here
 	*(DWORD*)langIdentifier = textureRepTable;
 
-	__asm
-	{
-		MOV ESI, [textureRepTable]
-		ADD ESI, 8
-		MOV ECX, [_thisFF8]
-		ADD ECX, 0x650
-		PUSH ESI
-		MOV EAX, OFFSET IMAGE_BASE
-		MOV EAX, [EAX]
-		ADD EAX, 0x15ADB50
-		CALL EAX
+	//CREATEGLTEXTURE END
 
-		MOV ECX, dword ptr [langIdentifier]
-		MOV [EAX], ECX
-		MOV ESI, [ESI]
-		MOV EAX, ESI
+	//This one below crashes IDK why, same function, same parse and shit, looks like the v131 should point to some more data or it's some sort of struct idk
+	//if (v4[16] == 1)
+	//{
+	//		v131 = parm1 + (v4[1] << 8);
+	//	__asm
+	//	{
+	//		MOV ECX, _thisFF8
+	//		ADD ECX, 0x684 // 417
 
-		POP ESI
-	}
+	//		LEA EAX, v131
+	//		PUSH EAX
+
+	//		MOV EAX, OFFSET IMAGE_BASE
+	//		MOV EAX, [EAX]
+	//		ADD EAX, 0x15ADB50
+	//		CALL EAX
+	//		MOV ESI, dword ptr textureRepTable
+	//		MOV [EAX], ESI
+	//		POP ESI
+	//	}
+	//}
+
+
+		__asm
+		{
+			MOV ESI, [textureRepTable]
+			ADD ESI, 8
+
+			MOV ECX, [_thisFF8]
+			ADD ECX, 0x650
+
+			PUSH ESI
+
+			MOV EAX, OFFSET IMAGE_BASE
+			MOV EAX, [EAX]
+			ADD EAX, 0x15ADB50
+			CALL EAX
+
+			MOV ECX, dword ptr[langIdentifier]
+			MOV[EAX], ECX
+			MOV ESI, [ESI]
+			MOV EAX, ESI
+
+			POP ESI
+		}
 
 	//OPENGL create tex and load here
 
