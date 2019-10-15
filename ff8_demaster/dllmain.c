@@ -279,27 +279,36 @@ UINT OPENGL_TEXTURES;
 byte* texture_buffer_open;
 unsigned char* rgbBuffer;
 void* textureRepTable;
-UINT v27;
 char* tex_getFileOpening;
 
 DWORD* v4;
-int v131;
 
 __declspec(naked) void LoadGameTexture()
 {
-	__asm
-	{
-		MOV _thisFF8, ECX //get this:: //FF8 should be always the same for session
-		ADD ESP, 4
-		POP EAX
-		MOV tex_struct, EAX //this is naked, so EBP shit I'll be doing manually here
-		POP EAX
-		MOV parm1, EAX
-		XOR EAX, EAX
-		SUB ESP, 0x0C //now get back to ESP which would point to CALLE+5 (RET)
+	//__asm
+	//{
+	//	MOV _thisFF8, ECX //get this:: //FF8 should be always the same for session
+	//	ADD ESP, 4
+	//	POP EAX
+	//	MOV tex_struct, EAX //this is naked, so EBP shit I'll be doing manually here
+	//	POP EAX
+	//	MOV parm1, EAX
+	//	XOR EAX, EAX
+	//	SUB ESP, 0x0C //now get back to ESP which would point to CALLE+5 (RET)
 
-		PUSH ESI
+	//	PUSH ESI
+	//}
+
+	//it works now under C++ SEH
+	__asm 
+	{
+		MOV _thisFF8, ECX
+		MOV EBX, [EBP+8]
+		MOV tex_struct, EBX
+		MOV EBX, [EBP+0xC]
+		MOV parm1, EBX
 	}
+
 	*(DWORD*)tex_paletteIndex = parm1;
 	width = (UINT)(tex_struct + 47);
 	v4 = tex_struct + 47;
@@ -355,6 +364,7 @@ __declspec(naked) void LoadGameTexture()
 			break;
 		}
 		textureIndex = -1;
+		//texMode = 1; //DEBUG DEBUG DEBUG DEBUG DEBUG
 		switch (texMode) //224
 		{
 		case 1: //zero sysfld
@@ -867,7 +877,9 @@ __declspec(naked) void LoadGameTexture()
 
 	//CREATEGLTEXTURE END
 
-	//This one below crashes IDK why, same function, same parse and shit, looks like the v131 should point to some more data or it's some sort of struct idk
+	//This one below crashes IDK why, same function, same parse and shit, looks like the v131 should point to 
+	//some more data or it's some sort of struct idk
+	//====================It's not that important anyway, game works fine without it
 	//if (v4[16] == 1)
 	//{
 	//		v131 = parm1 + (v4[1] << 8);
@@ -895,8 +907,8 @@ __declspec(naked) void LoadGameTexture()
 			MOV ESI, [textureRepTable]
 			ADD ESI, 8
 
-			MOV ECX, [_thisFF8]
-			ADD ECX, 0x650
+			MOV ECX, [_thisFF8] //THIS
+			ADD ECX, 0x650		//THIS
 
 			PUSH ESI
 
@@ -905,12 +917,15 @@ __declspec(naked) void LoadGameTexture()
 			ADD EAX, 0x15ADB50
 			CALL EAX
 
+			//we should now have EAX accepting pointer to our tex2D array which we do have at langIdentifier
+
 			MOV ECX, dword ptr[langIdentifier]
-			MOV[EAX], ECX
-			MOV ESI, [ESI]
+			MOV ECX, [ECX]
+			MOV[EAX], ECX //EAX should be pointer, ECX should be a pointer to TextureRGBA
+			MOV ESI, [ESI] //ESI is textureRGBA+8; so it should be texIndex like 0x39
 			MOV EAX, ESI
 
-			POP ESI
+			//POP ESI //esi is probably tex_struct
 		}
 
 	//OPENGL create tex and load here
@@ -926,12 +941,21 @@ __declspec(naked) void LoadGameTexture()
 //replace LoadGameTexture first mnemonic to JMP and calculate the out value
 void ReplaceTextureFunction()
 {
-	int textureFunction = IMAGE_BASE + 0x15A9920;
-	tex_returnAddress = IMAGE_BASE + 0x15AA3EB;
+	int textureFunction = IMAGE_BASE + 0x15A992F;	//0x15A9920; [comment for no SEH/rewind]
+	tex_returnAddress = IMAGE_BASE + 0x15AA3E6;		//0x15AA3EB; [as above]
 	modPage(textureFunction, 5);
 	*(BYTE*)(textureFunction) = 0xE9;
 	DWORD jmpparm = (DWORD)LoadGameTexture - textureFunction - 5;
 	*(DWORD*)(textureFunction + 1) = jmpparm;
+
+	//replace some strtesting- probably not the best way- we should find the place where the string is copied to buffer
+	//this is clearly an error with filepath buffers- it tests for dinput and xinput in last opened files PNGs
+	//more or less- currently I'm always returning 0 from the function as the string it tests is 0xBAADF00D unitialized HEAP
+	//-it indeed may break some things (by filepath I think it might break the Xbox/PlayStation switching, but I didn't test it)
+	int patchDinputXinput = IMAGE_BASE + 0x15A9842;
+	modPage(patchDinputXinput, 1);
+	*(BYTE*)(patchDinputXinput) = 0xEB; //JMP relative 8bit
+
 
 	////replace EH_prologues and epilogues
 	//textureFunction = IMAGE_BASE + 0x15BB79C;
