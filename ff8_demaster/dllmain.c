@@ -786,7 +786,9 @@ __declspec(naked) void LoadGameTexture()
 				MOV EAX, [EAX]
 				ADD EAX, 0x15376B9 //tex_getFileOpening(int)
 
-				MOV ECX, tex_struct[48] - 13
+				MOV ECX, tex_struct
+				ADD ECX, 0xCC
+				MOV ECX, [ECX]
 				CALL EAX
 				MOV tex_getFileOpening, EAX
 			}
