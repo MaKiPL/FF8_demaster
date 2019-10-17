@@ -3,13 +3,17 @@
 #include "SOIL.h"
 #include <gl/GL.h>
 
+/*
+KURSE ALL SEEDS!
+*/
+
 #define EXPORT __declspec(dllexport)
 #pragma warning(disable:4996)
 
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
 EXPORT void InitTest()
 {
-	OutputDebugStringA("DEMASTER ENGINE LOADED!- we will try to repair what some company screwed up... ;-;\n");
+	OutputDebugStringA("DEMASTER ENGINE LOADED!- we will try to repair the lazy remaster... ;-;\n");
 	return;
 }
 
@@ -828,11 +832,6 @@ __declspec(naked) void LoadGameTexture()
 		TexFuncGlSegment();
 	}
 
-	//============================                                                     ==============================\\\\\\
-	//============================       RICH MENU SWITCHES, DATA, ICONS, SYSTEM       ==============================\\\\\\
-	//============================                       [END]                         ==============================\\\\\\
-
-
 	//============================                   [BEGIN]                           ==============================\\\\\\
 	//============================      BATTLE, FIELD, 3D TEX REPLACE                  ==============================\\\\\\
 	//============================                                                     ==============================\\\\\\
@@ -860,7 +859,7 @@ __declspec(naked) void LoadGameTexture()
 
 				if (tex_struct[51]) //row 1 texture
 				{
-					TexFuncCharaSegment(_thisFF8, 1, tex_struct[52], tex_struct[52]-1);
+					TexFuncCharaSegment(_thisFF8, 1, tex_struct[51], tex_struct[52]-1);
 				}
 				if (tex_struct[57]) //row 0 texture
 				{
@@ -875,11 +874,6 @@ __declspec(naked) void LoadGameTexture()
 		}
 	}
 
-	//============================                                                     ==============================\\\\\\
-	//============================      BATTLE, FIELD, 3D TEX REPLACE                  ==============================\\\\\\
-	//============================                       [END]                         ==============================\\\\\\
-
-
 	//============================                   [BEGIN]                           ==============================\\\\\\
 	//============================       FIELD REPLACEMENT TEXTURE CODE                ==============================\\\\\\
 	//============================                                                     ==============================\\\\\\
@@ -891,9 +885,6 @@ __declspec(naked) void LoadGameTexture()
 		//GOVER
 	}
 
-	//============================                                                     ==============================\\\\\\
-	//============================       FIELD REPLACEMENT TEXTURE CODE                ==============================\\\\\\
-	//============================                       [END]                         ==============================\\\\\\
 
 	if (tex_struct[48] - 11 == 0) //unk battle fs
 	{
@@ -901,7 +892,7 @@ __declspec(naked) void LoadGameTexture()
 	}
 
 	//============================                   [BEGIN]                           ==============================\\\\\\
-	//============================       OPENINGS, OVERTURE, SPLASH                    ==============================\\\\\\
+	//============================			OPENINGS, OVERTURE, SPLASH                 ==============================\\\\\\
 	//============================                                                     ==============================\\\\\\
 
 	if (tex_struct[48] - 13 == 0) //OPENINGS
