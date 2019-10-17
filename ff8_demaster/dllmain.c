@@ -283,6 +283,96 @@ char* tex_getFileOpening;
 
 DWORD* v4;
 
+
+///
+	///no table param! it's created after, no need it
+	///filepath is texPath static
+///
+BYTE TexFuncCharaSegment(int this__, int row, int aIndex, int bIndex)
+{
+	//THIS IS NON-NAKED FUNCTION, SO WE CAN UTILIZE NEW LOCALS
+	char tempPath[256];
+	char tempSprint[256];
+	sprintf(texPath, "%stextures\\field.fs\\field_hd", DIRECT_IO_EXPORT_DIR);
+	strcpy(tempPath, texPath); //exp\\tex\\fieldfs\\fielhd
+
+
+	if (aIndex - 97 > 0xF9F)
+	{
+		//bla bla not field model texture bla bla
+	}
+	if (aIndex >= 0xC19)
+		sprintf(tempSprint, "\\%s%03u_%u", "p", aIndex - 3097, bIndex);
+	else if (aIndex < 0x831)
+	{
+		if(aIndex < 0x449)
+			sprintf(tempSprint, "\\%s%03u_%u", "d", aIndex - 97, bIndex);
+		else		
+			sprintf(tempSprint, "\\%s%03u_%u", "n", aIndex - 1097, bIndex);
+	}
+	else
+		sprintf(tempSprint, "\\%s%03u_%u", "o", aIndex - 2097, bIndex);
+
+
+	char testPath[256];
+	sprintf(testPath, "%s%s.png", tempPath,tempSprint);
+	attr = GetFileAttributesA(testPath);
+	if (attr == INVALID_FILE_ATTRIBUTES)
+		sprintf(testPath, "%s_new%s.png",tempPath, tempSprint);
+	attr = GetFileAttributesA(testPath);
+	if (attr == INVALID_FILE_ATTRIBUTES)
+		sprintf(testPath, "%s_new\\d000_0.png",tempPath); //ERROR !!!!
+
+	strcpy(texPath, testPath); //establish path
+
+
+	//we now need to create the atlas- it's normally one tex on top and one below
+	//but of course we can easily tweak it because I ported whole texture function
+	//- vanilla dev (that company starting at D) made every size hardcoded
+	//like create gl tex with 768x768 or subtex at 384
+	int width, height;
+	rgbBuffer = SOIL_load_image(texPath, &width, &height, 0, SOIL_LOAD_RGBA);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, row == 0 ? 384 : 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, rgbBuffer);
+	SOIL_free_image_data(rgbBuffer);
+
+	return 0;
+}
+
+void TexFuncGlSegment()
+{
+	strcat(texPath, ".png");
+	OutputDebugStringA(texPath);
+	OutputDebugStringA("\n");
+
+	//CREATEGLTEXTURE START
+	glGenTextures(1, &OPENGL_TEXTURES);
+	glBindTexture(GL_TEXTURE_2D, OPENGL_TEXTURES);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+
+	if (height != 0)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 0x812F); //GL_CLAMP_TO_EDGE
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812F);
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	}
+
+	attr = GetFileAttributesA(texPath);
+	if (attr == INVALID_FILE_ATTRIBUTES)
+	{
+		memset(texPath, 0, 256);
+		strcat(texPath, "EXP\\textures\\null.png");
+	}
+	rgbBuffer = SOIL_load_image(texPath, &width, &height, 0, SOIL_LOAD_RGBA);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgbBuffer);
+	SOIL_free_image_data(rgbBuffer);
+}
+
 __declspec(naked) void LoadGameTexture()
 {
 	//__asm
@@ -339,6 +429,12 @@ __declspec(naked) void LoadGameTexture()
 	memset(texPath, 0, 256); //clear path
 	strcat(texPath, DIRECT_IO_EXPORT_DIR);
 	strcat(texPath, "textures\\");
+
+
+	//============================                   [BEGIN]                           ==============================\\\\\\
+	//============================       RICH MENU SWITCHES, DATA, ICONS, SYSTEM       ==============================\\\\\\
+	//============================                                                     ==============================\\\\\\
+
 	if (*(tex_struct + 47) == 1)
 	{
 		memset(langIdentifier, 0, 3);
@@ -364,7 +460,6 @@ __declspec(naked) void LoadGameTexture()
 			break;
 		}
 		textureIndex = -1;
-		//texMode = 1; //DEBUG DEBUG DEBUG DEBUG DEBUG
 		switch (texMode) //224
 		{
 		case 1: //zero sysfld
@@ -730,27 +825,86 @@ __declspec(naked) void LoadGameTexture()
 		case 61:
 			strcat(texPath, "magita.tex");
 		}
+		TexFuncGlSegment();
 	}
 
+	//============================                                                     ==============================\\\\\\
+	//============================       RICH MENU SWITCHES, DATA, ICONS, SYSTEM       ==============================\\\\\\
+	//============================                       [END]                         ==============================\\\\\\
 
-	//BELOW IS TEST SEGMENT - it means it's basically only conditions to display shit I want fastest way
+
+	//============================                   [BEGIN]                           ==============================\\\\\\
+	//============================      BATTLE, FIELD, 3D TEX REPLACE                  ==============================\\\\\\
+	//============================                                                     ==============================\\\\\\
 
 	if (tex_struct[48] > 0x19) //762
 	{
 		if (tex_struct[48] != 28)
 		{
-			if (tex_struct[48] == 35)
+			if (tex_struct[48] == 35) //BATTLE
 			{
+				OutputDebugStringA("REQUESTED BATTLE tex_struct[48] == 35");
+			}
+			else if (tex_struct[48] == 57) //FIELD
+			{
+				//we need to create the buffer- don't worry, we will create the tex replacement struct later
+				glGenTextures(1, &OPENGL_TEXTURES);
+				glBindTexture(GL_TEXTURE_2D, OPENGL_TEXTURES);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 768, 768, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //768 768 is prior to change
 
+				strcat(texPath, "FIELD.FS\\field_hd");
+
+				if (tex_struct[51]) //row 1 texture
+				{
+					TexFuncCharaSegment(_thisFF8, 1, tex_struct[52], tex_struct[52]-1);
+				}
+				if (tex_struct[57]) //row 0 texture
+				{
+					TexFuncCharaSegment(_thisFF8, 0, tex_struct[57], tex_struct[58]-1);
+				}
+			}
+			else
+			{
+				OutputDebugStringA("REQUESTED CARDS");
+				//CARDS
 			}
 		}
 	}
+
+	//============================                                                     ==============================\\\\\\
+	//============================      BATTLE, FIELD, 3D TEX REPLACE                  ==============================\\\\\\
+	//============================                       [END]                         ==============================\\\\\\
+
+
+	//============================                   [BEGIN]                           ==============================\\\\\\
+	//============================       FIELD REPLACEMENT TEXTURE CODE                ==============================\\\\\\
+	//============================                                                     ==============================\\\\\\
+
+
 	if (tex_struct[48] == 25)
 	{
+				OutputDebugStringA("REQUESTED FIELD/GOVER BG replacement");
 		//GOVER
 	}
 
-	if (tex_struct[48] - 13 == 0)
+	//============================                                                     ==============================\\\\\\
+	//============================       FIELD REPLACEMENT TEXTURE CODE                ==============================\\\\\\
+	//============================                       [END]                         ==============================\\\\\\
+
+	if (tex_struct[48] - 11 == 0) //unk battle fs
+	{
+		OutputDebugStringA("REQUESTED BATTLE FS UNKNOWN_ tex_Struct[48] - 11 == 0");
+	}
+
+	//============================                   [BEGIN]                           ==============================\\\\\\
+	//============================       OPENINGS, OVERTURE, SPLASH                    ==============================\\\\\\
+	//============================                                                     ==============================\\\\\\
+
+	if (tex_struct[48] - 13 == 0) //OPENINGS
 	{
 		if (tex_struct[51] < 0x41 || tex_struct[51] > 0x4E)
 		{
@@ -772,6 +926,7 @@ __declspec(naked) void LoadGameTexture()
 				strcat(texPath, "_");
 				sprintf(tex_paletteIndex, "%u", tex_struct[50]);
 				strcat(texPath, tex_paletteIndex);
+				TexFuncGlSegment();
 			}
 			else
 			{
@@ -798,43 +953,14 @@ __declspec(naked) void LoadGameTexture()
 			strcat(texPath, "_");
 			sprintf(tex_paletteIndex, "%u", tex_struct[50]);
 			strcat(texPath, tex_paletteIndex);
+			TexFuncGlSegment();
 		}
 	}
 
-	//END OF TEST SEGMENT
-	
+	//============================                                                     ==============================\\\\\\
+	//============================       OPENINGS, OVERTURE, SPLASH                    ==============================\\\\\\
+	//============================                       [END]                         ==============================\\\\\\
 
-	strcat(texPath, ".png");
-	OutputDebugStringA(texPath);
-	OutputDebugStringA("\n");
-
-	//CREATEGLTEXTURE START
-	glGenTextures(1, &OPENGL_TEXTURES);
-	glBindTexture(GL_TEXTURE_2D, OPENGL_TEXTURES);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-
-	if (height != 0)
-	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 0x812F); //GL_CLAMP_TO_EDGE
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812F);
-	}
-	else
-	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	}
-
-	attr = GetFileAttributesA(texPath);
-	if (attr == INVALID_FILE_ATTRIBUTES)
-	{
-		memset(texPath, 0, 256);
-		strcat(texPath, "EXP\\textures\\null.png");
-	}
-	rgbBuffer = SOIL_load_image(texPath, &width, &height, 0, SOIL_LOAD_RGBA);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgbBuffer);
-	SOIL_free_image_data(rgbBuffer);
 
 	textureRepTable = calloc(52, sizeof(byte));
 	__asm
@@ -958,6 +1084,10 @@ void ReplaceTextureFunction()
 	modPage(patchDinputXinput, 1);
 	*(BYTE*)(patchDinputXinput) = 0xEB; //JMP relative 8bit
 
+
+	int patchUnwantedTexStructFree = IMAGE_BASE + 0x15AC4A4;
+	modPage(patchUnwantedTexStructFree, 1);
+	*(BYTE*)(patchUnwantedTexStructFree) = 0xEB; //JMP relative 8bit
 
 	////replace EH_prologues and epilogues
 	//textureFunction = IMAGE_BASE + 0x15BB79C;
