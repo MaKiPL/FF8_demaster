@@ -18,6 +18,7 @@ EXPORT void InitTest()
 }
 
 static __int64 IMAGE_BASE;
+DWORD attr;
 
 BOOL modPage(DWORD address, int size)
 {
@@ -85,6 +86,8 @@ DWORD IO_backAddress3 = 0;
 DWORD filePathBuffer, filePathStrlen;
 char IO_backlogFilePath[256];
 
+
+//CREATES PATH
 __declspec(naked) void directIO_fopenReroute()
 {
 	__asm
@@ -104,6 +107,10 @@ __declspec(naked) void directIO_fopenReroute()
 	OutputDebugStringA(IO_backlogFilePath);
 	OutputDebugStringA("\n");
 
+	attr = GetFileAttributesA(IO_backlogFilePath);
+	if (attr == INVALID_FILE_ATTRIBUTES)
+		sprintf(IO_backlogFilePath, "%stextures\\null.png", DIRECT_IO_EXPORT_DIR);
+
 
 	__asm
 	{
@@ -122,6 +129,7 @@ __declspec(naked) void directIO_fopenReroute()
 
 const char rb[] = "rb";
 
+//PUSHES THE PATH TO READER
 __declspec(naked) void directIO_fopenReroute2()
 {
 	__asm
@@ -133,21 +141,34 @@ __declspec(naked) void directIO_fopenReroute2()
 }
 int loc00 = 0;
 FILE* fd;
+
+//SETS FILESIZE BASED ON REAL HDD ENTRY INSTEAD OF VTABLE OF WEEP ARCHIVE
 __declspec(naked) void directIO_fopenReroute3()
 {
 	__asm
 	{
+		//JNE $+0xC //I can't do JE IO_backAddress3, probably because VS treats it's a DWORD PTR
 		MOV EAX, ESI
 		MOV ECX, [EBP - 0x0C]
+		TEST ESI, ESI //
+		JNZ validEsi
+		JMP IO_backAddress3 
+		validEsi:
 		PUSH EAX
 		PUSH EBX
 		PUSH ECX
 		PUSH EDX
 	}
-	fd = fopen(IO_backlogFilePath, "rb");
-	fseek(fd, 0, 2); //back
-	loc00 = ftell(fd);
-	fclose(fd);
+	attr = GetFileAttributesA(IO_backlogFilePath);
+	if (attr == INVALID_FILE_ATTRIBUTES)
+		loc00 = -1;
+	else
+	{
+		fd = fopen(IO_backlogFilePath, "rb");
+		fseek(fd, 0, 2); //back
+		loc00 = ftell(fd);
+		fclose(fd);
+	}
 
 	__asm
 	{
@@ -271,7 +292,6 @@ char* dinput = "_dinput";
 char* xinput = "_xinput";
 int textureIndex = -1;
 int v147;
-DWORD attr;
 
 DWORD* tex_struct; //arg+4
 DWORD parm1; //arg+8
