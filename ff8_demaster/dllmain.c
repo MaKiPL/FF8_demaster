@@ -370,6 +370,54 @@ BYTE TexFuncCharaSegment(int this__, int row, int aIndex, int bIndex)
 	return 0;
 }
 
+BYTE TexFuncBattleSegment(int this_, int aIndex, int bIndex)
+{
+	glGenTextures(1, &OPENGL_TEXTURES);
+	glBindTexture(GL_TEXTURE_2D, OPENGL_TEXTURES);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+
+	char n[256];
+	char nb[256];
+	char nc[256];
+	sprintf(n, "%stextures\\battle.fs\\hd_new\\d%xc%03u_",DIRECT_IO_EXPORT_DIR, (aIndex - 4097) / 100, (aIndex - 4097) % 100);
+	sprintf(nc, "%stextures\\battle.fs\\hd_new\\d%xw%03u_0.png",DIRECT_IO_EXPORT_DIR, (bIndex - 5197) / 100, (bIndex - 5197) % 100);
+	strcpy(nb, n);
+	strcat(n, "0.png");
+	strcat(nb, "1.png");
+
+
+
+	int width, height;
+	unsigned char* buffer = SOIL_load_image(n, &width, &height, 0, SOIL_LOAD_RGBA); //chara 0
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width*2, height*2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //sets the atlas
+
+	int width2, height2, width3, height3;
+	unsigned char * buffertwo = SOIL_load_image(nb, &width2, &height2, 0, SOIL_LOAD_RGBA); //chara 0
+	unsigned char * bufferthree = SOIL_load_image(nc, &width3, &height3, 0, SOIL_LOAD_RGBA); //chara 0
+
+
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, height, width2, height2, GL_RGBA, GL_UNSIGNED_BYTE, buffertwo);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, height+height2, width3, height3, GL_RGBA, GL_UNSIGNED_BYTE, bufferthree);
+
+	SOIL_free_image_data(bufferthree);
+	SOIL_free_image_data(buffertwo);
+	SOIL_free_image_data(buffer);
+	strcat(n, "\n");
+	strcat(nb, "\n");
+	strcat(nc, "\n");
+	OutputDebugStringA(n);
+	OutputDebugStringA(nb);
+	OutputDebugStringA(nc);
+
+	return 0;
+}
+
 void TexFuncGlSegment()
 {
 	strcat(texPath, ".png");
@@ -870,7 +918,8 @@ __declspec(naked) void LoadGameTexture()
 		{
 			if (tex_struct[48] == 35) //BATTLE
 			{
-				OutputDebugStringA("REQUESTED BATTLE tex_struct[48] == 35");
+				OutputDebugStringA("REQUESTED BATTLE tex_struct[48] == 35\n");
+				TexFuncBattleSegment(_thisFF8, tex_struct[51], tex_struct[52]);
 			}
 			else if (tex_struct[48] == 57) //FIELD
 			{
