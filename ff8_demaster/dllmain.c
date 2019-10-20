@@ -312,6 +312,11 @@ DWORD* v4;
 	///no table param! it's created after, no need it
 	///filepath is texPath static
 ///
+
+int lastWidth;
+int lastHeight;
+UCHAR* lastrgbBuffer;
+
 BYTE TexFuncCharaSegment(int this__, int row, int aIndex, int bIndex)
 {
 	//THIS IS NON-NAKED FUNCTION, SO WE CAN UTILIZE NEW LOCALS
@@ -355,9 +360,12 @@ BYTE TexFuncCharaSegment(int this__, int row, int aIndex, int bIndex)
 	//- vanilla dev (that company starting at D) made every size hardcoded
 	//like create gl tex with 768x768 or subtex at 384
 	int width, height;
-	rgbBuffer = SOIL_load_image(texPath, &width, &height, 0, SOIL_LOAD_RGBA);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, row == 0 ? 384 : 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, rgbBuffer);
-	SOIL_free_image_data(rgbBuffer);
+	char n[256];
+	lastrgbBuffer = SOIL_load_image(texPath, &width, &height, 0, SOIL_LOAD_RGBA);
+	sprintf(n, "TEX::CHARAFIELD- %s %dx%d\n", texPath, width, height);
+	OutputDebugStringA(n);
+	lastWidth = width;
+	lastHeight = height;
 
 	return 0;
 }
@@ -866,24 +874,52 @@ __declspec(naked) void LoadGameTexture()
 			}
 			else if (tex_struct[48] == 57) //FIELD
 			{
-				//we need to create the buffer- don't worry, we will create the tex replacement struct later
-				glGenTextures(1, &OPENGL_TEXTURES);
-				glBindTexture(GL_TEXTURE_2D, OPENGL_TEXTURES);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 768, 768, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //768 768 is prior to change
+				lastrgbBuffer = NULL;
 
 				strcat(texPath, "FIELD.FS\\field_hd");
+
+				/*glTexSubImage2D(GL_TEXTURE_2D, 0, 0, row == 0 ? 384 : 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, rgbBuffer);
+				SOIL_free_image_data(rgbBuffer);*/
+
+				//I am creating the texture by height*2, because every texture has 384 but it has to fit two textures
+				//therefore 384*2 = 768, but there are some cases when 384x384 tex happens, but it's still 768x768
+				//so if we upscaled the tex by 2, then we would het 768*2, but width will always stay the same
+				//no matter what even if we just read 384x384 on row 2
 
 				if (tex_struct[51]) //row 1 texture
 				{
 					TexFuncCharaSegment(_thisFF8, 1, tex_struct[51], tex_struct[52]-1);
+					glGenTextures(1, &OPENGL_TEXTURES);
+					glBindTexture(GL_TEXTURE_2D, OPENGL_TEXTURES);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, lastHeight*2,lastHeight*2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //sets the atlas
+					glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, lastWidth, lastHeight, GL_RGBA, GL_UNSIGNED_BYTE, lastrgbBuffer);
+					SOIL_free_image_data(lastrgbBuffer);
 				}
 				if (tex_struct[57]) //row 0 texture
 				{
-					TexFuncCharaSegment(_thisFF8, 0, tex_struct[57], tex_struct[58]-1);
+					if (lastrgbBuffer == NULL)
+					{
+						glGenTextures(1, &OPENGL_TEXTURES);
+						glBindTexture(GL_TEXTURE_2D, OPENGL_TEXTURES);
+						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+						TexFuncCharaSegment(_thisFF8, 0, tex_struct[57], tex_struct[58]-1);
+						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, lastHeight*2,lastHeight*2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //sets the atlas
+						glTexSubImage2D(GL_TEXTURE_2D, 0, 0, lastHeight, lastWidth, lastHeight, GL_RGBA, GL_UNSIGNED_BYTE, lastrgbBuffer);
+						SOIL_free_image_data(lastrgbBuffer);
+					}
+					else
+					{
+						TexFuncCharaSegment(_thisFF8, 0, tex_struct[57], tex_struct[58] - 1);
+						glTexSubImage2D(GL_TEXTURE_2D, 0, 0, lastHeight, lastWidth, lastHeight, GL_RGBA, GL_UNSIGNED_BYTE, lastrgbBuffer);
+						SOIL_free_image_data(lastrgbBuffer);
+					}
 				}
 			}
 			else
