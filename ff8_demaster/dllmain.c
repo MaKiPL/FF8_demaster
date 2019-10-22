@@ -1,6 +1,8 @@
 ﻿#include <stdio.h>
 #include <Windows.h>
-#include "SOIL.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+//#include "SOIL.h" - deprecated/ no PNG interlace support
 #include <gl/GL.h>
 
 /*
@@ -249,16 +251,16 @@ void ApplyDirectIO()
 
 #pragma region TextureUpscaleMod
 
-const int battleTextureUpscale = 0x300; //768 [600=2048]
-
-void ApplyTextureUpscaleMod()
-{
-	int mnemonicPatchPlace = IMAGE_BASE + 0x15AABAB;
-	modPage(mnemonicPatchPlace, 5);
-	BYTE* b = mnemonicPatchPlace;
-	*b = 0xB9; //MOV ECX
-	*(DWORD*)(b + 1) = battleTextureUpscale;
-}
+//const int battleTextureUpscale = 0x300; //768 [600=2048]
+//
+//void ApplyTextureUpscaleMod()
+//{
+//	int mnemonicPatchPlace = IMAGE_BASE + 0x15AABAB;
+//	modPage(mnemonicPatchPlace, 5);
+//	BYTE* b = mnemonicPatchPlace;
+//	*b = 0xB9; //MOV ECX
+//	*(DWORD*)(b + 1) = battleTextureUpscale;
+//}
 
 
 
@@ -359,9 +361,9 @@ BYTE TexFuncCharaSegment(int this__, int row, int aIndex, int bIndex)
 	//but of course we can easily tweak it because I ported whole texture function
 	//- vanilla dev (that company starting at D) made every size hardcoded
 	//like create gl tex with 768x768 or subtex at 384
-	int width, height;
+	int width, height, channels;
 	char n[256];
-	lastrgbBuffer = SOIL_load_image(texPath, &width, &height, 0, SOIL_LOAD_RGBA);
+	lastrgbBuffer = stbi_load(texPath, &width, &height, &channels, 4);
 	sprintf(n, "TEX::CHARAFIELD- %s %dx%d\n", texPath, width, height);
 	OutputDebugStringA(n);
 	lastWidth = width;
@@ -391,23 +393,23 @@ BYTE TexFuncBattleSegment(int this_, int aIndex, int bIndex)
 
 
 
-	int width, height;
-	unsigned char* buffer = SOIL_load_image(n, &width, &height, 0, SOIL_LOAD_RGBA); //chara 0
+	int width, height, channels;
+	unsigned char* buffer = stbi_load(n, &width, &height, &channels, 0); //chara 0
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width*2, height*2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //sets the atlas
 
 	int width2, height2, width3, height3;
-	unsigned char * buffertwo = SOIL_load_image(nb, &width2, &height2, 0, SOIL_LOAD_RGBA); //chara 0
-	unsigned char * bufferthree = SOIL_load_image(nc, &width3, &height3, 0, SOIL_LOAD_RGBA); //chara 0
+	unsigned char * buffertwo = stbi_load(nb, &width2, &height2, &channels, 0); //chara 0
+	unsigned char * bufferthree = stbi_load(nc, &width3, &height3, &channels, 0); //chara 0
 
 
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, height, width2, height2, GL_RGBA, GL_UNSIGNED_BYTE, buffertwo);
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, height+height2, width3, height3, GL_RGBA, GL_UNSIGNED_BYTE, bufferthree);
 
-	SOIL_free_image_data(bufferthree);
-	SOIL_free_image_data(buffertwo);
-	SOIL_free_image_data(buffer);
+	stbi_image_free(bufferthree);
+	stbi_image_free(buffertwo);
+	stbi_image_free(buffer);
 	strcat(n, "\n");
 	strcat(nb, "\n");
 	strcat(nc, "\n");
@@ -417,6 +419,8 @@ BYTE TexFuncBattleSegment(int this_, int aIndex, int bIndex)
 
 	return 0;
 }
+
+int channels;
 
 void TexFuncGlSegment()
 {
@@ -448,9 +452,9 @@ void TexFuncGlSegment()
 		memset(texPath, 0, 256);
 		strcat(texPath, "EXP\\textures\\null.png");
 	}
-	rgbBuffer = SOIL_load_image(texPath, &width, &height, 0, SOIL_LOAD_RGBA);
+	rgbBuffer = stbi_load(texPath, &width, &height, &channels, 0);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rgbBuffer);
-	SOIL_free_image_data(rgbBuffer);
+	stbi_image_free(rgbBuffer);
 }
 
 __declspec(naked) void LoadGameTexture()
@@ -916,7 +920,7 @@ __declspec(naked) void LoadGameTexture()
 	{
 		if (tex_struct[48] != 28)
 		{
-			if (tex_struct[48] == 35) //BATTLE
+			if (tex_struct[48] == 35) //BATTLE - this is all about characters only
 			{
 				OutputDebugStringA("REQUESTED BATTLE tex_struct[48] == 35\n");
 				TexFuncBattleSegment(_thisFF8, tex_struct[51], tex_struct[52]);
@@ -946,7 +950,7 @@ __declspec(naked) void LoadGameTexture()
 					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, lastHeight*2,lastHeight*2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //sets the atlas
 					glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, lastWidth, lastHeight, GL_RGBA, GL_UNSIGNED_BYTE, lastrgbBuffer);
-					SOIL_free_image_data(lastrgbBuffer);
+					stbi_image_free(lastrgbBuffer);
 				}
 				if (tex_struct[57]) //row 0 texture
 				{
@@ -961,22 +965,27 @@ __declspec(naked) void LoadGameTexture()
 						TexFuncCharaSegment(_thisFF8, 0, tex_struct[57], tex_struct[58]-1);
 						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, lastHeight*2,lastHeight*2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //sets the atlas
 						glTexSubImage2D(GL_TEXTURE_2D, 0, 0, lastHeight, lastWidth, lastHeight, GL_RGBA, GL_UNSIGNED_BYTE, lastrgbBuffer);
-						SOIL_free_image_data(lastrgbBuffer);
+						stbi_image_free(lastrgbBuffer);
 					}
 					else
 					{
 						TexFuncCharaSegment(_thisFF8, 0, tex_struct[57], tex_struct[58] - 1);
 						glTexSubImage2D(GL_TEXTURE_2D, 0, 0, lastHeight, lastWidth, lastHeight, GL_RGBA, GL_UNSIGNED_BYTE, lastrgbBuffer);
-						SOIL_free_image_data(lastrgbBuffer);
+						stbi_image_free(lastrgbBuffer);
 					}
 				}
 			}
 			else
 			{
-				OutputDebugStringA("REQUESTED CARDS");
+				OutputDebugStringA("REQUESTED CARDS"); //not sure about this one- it requests cards, but they tend to work without anything done here
 				//CARDS
 			}
 		}
+	}
+
+	if (tex_struct[48] - 11 == 0) //unk battle fs
+	{
+		OutputDebugStringA("REQUESTED BATTLE FS UNKNOWN_ tex_Struct[48] - 11 == 0");
 	}
 
 	//============================                   [BEGIN]                           ==============================\\\\\\
@@ -990,11 +999,6 @@ __declspec(naked) void LoadGameTexture()
 		//GOVER
 	}
 
-
-	if (tex_struct[48] - 11 == 0) //unk battle fs
-	{
-		OutputDebugStringA("REQUESTED BATTLE FS UNKNOWN_ tex_Struct[48] - 11 == 0");
-	}
 
 	//============================                   [BEGIN]                           ==============================\\\\\\
 	//============================			OPENINGS, OVERTURE, SPLASH                 ==============================\\\\\\
@@ -1223,10 +1227,10 @@ BOOL WINAPI DllMain(
 	//LET'S GET THE HACKING DONE
 	ApplyUVPatch();
 	ApplyDirectIO();
-	ApplyTextureUpscaleMod();
 	ReplaceTextureFunction();
 
 
+													//ApplyTextureUpscaleMod();
 	//HACKING DONE, WE CAN GTFO
 	return 1; //all success
 }
