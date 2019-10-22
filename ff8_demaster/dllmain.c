@@ -319,6 +319,39 @@ int lastWidth;
 int lastHeight;
 UCHAR* lastrgbBuffer;
 
+struct TexFuncMonsterStruct
+{
+	char* filename; //DWORD PTR
+	int pad; //in asm it's align 8
+	UINT fileIndex; //this is that weird shit that don't conform the battlefilesarray from vanilla
+	int unk; //initialized with -1
+	int pad2; //not pad, but maybe unused?
+	USHORT wUnk;  //in mag i.e. 832- is VRAM?
+	USHORT wUnk2; //see above, now it's 256 so VRAM y?
+	USHORT wUnk3; //i.e. 64- width?
+	USHORT wUnk4; //see above, but probably height?
+	UINT uUnk;
+};
+
+//This is stupid design approach- for the process of development of monster replacement 
+//I'm just copying their structures, but yeah- this is bad, hardcoding stuff is bad
+//awful, just awful
+struct TexFuncMonsterStruct TexFuncMonsterTexProvider[] = { 
+	{"mag900", 0, 0x41F, -1, 0,0,0,0,0}, 
+	{"mag089", 0, 0x420, -1, 0,0,0,0,0}, 
+	{"mag200", 0, 0x425, -1, 0,0,0,0,0}, 
+	{NULL}/*CONTINUE AT 1175B950*/ };
+
+//bad design struct array
+
+
+BYTE TexFuncBattleMonsterSegment(int this_, DWORD* v4)
+{
+	int v7 = v4[6]; //this should be our texId [yeah]
+	char* test = TexFuncMonsterTexProvider[0].filename; //test
+	//monsterTexs[0].filename;
+}
+
 BYTE TexFuncCharaSegment(int this__, int row, int aIndex, int bIndex)
 {
 	//THIS IS NON-NAKED FUNCTION, SO WE CAN UTILIZE NEW LOCALS
@@ -983,9 +1016,10 @@ __declspec(naked) void LoadGameTexture()
 		}
 	}
 
-	if (tex_struct[48] - 11 == 0) //unk battle fs
+	if (tex_struct[48] - 11 == 0) //BATTLE MONSTER
 	{
 		OutputDebugStringA("REQUESTED BATTLE FS UNKNOWN_ tex_Struct[48] - 11 == 0");
+		TexFuncBattleMonsterSegment(_thisFF8,v4);
 	}
 
 	//============================                   [BEGIN]                           ==============================\\\\\\
