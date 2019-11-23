@@ -95,8 +95,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.c" />
+    <ClCompile Include="iopatch.c" />
+    <ClCompile Include="patch.c" />
+    <ClCompile Include="texturepatch.c" />
+    <ClCompile Include="uvpatch.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="coreHeader.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
