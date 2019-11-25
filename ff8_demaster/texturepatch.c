@@ -36,7 +36,6 @@ UINT width;
 UINT height;
 char tex_paletteIndex[4];
 int texMode;
-char texPath[256];
 char* langIdentifier = "EN";
 char* dinput = "_dinput";
 char* xinput = "_xinput";
@@ -47,7 +46,6 @@ DWORD* tex_struct; //arg+4
 DWORD parm1; //arg+8
 
 DWORD OPENGL_METHOD;
-UINT OPENGL_TEXTURES;
 
 byte* texture_buffer_open;
 unsigned char* rgbBuffer;
@@ -55,150 +53,6 @@ void* textureRepTable;
 char* tex_getFileOpening;
 
 DWORD* v4;
-
-
-///
-	///no table param! it's created after, no need it
-	///filepath is texPath static
-///
-
-int lastWidth;
-int lastHeight;
-UCHAR* lastrgbBuffer;
-
-struct TexFuncMonsterStruct
-{
-	char* filename; //DWORD PTR
-	int pad; //in asm it's align 8
-	UINT fileIndex; //this is that weird shit that don't conform the battlefilesarray from vanilla
-	int unk; //initialized with -1
-	int pad2; //not pad, but maybe unused?
-	USHORT wUnk;  //in mag i.e. 832- is VRAM?
-	USHORT wUnk2; //see above, now it's 256 so VRAM y?
-	USHORT wUnk3; //i.e. 64- width?
-	USHORT wUnk4; //see above, but probably height?
-	UINT uUnk;
-};
-
-//This is stupid design approach- for the process of development of monster replacement 
-//I'm just copying their structures, but yeah- this is bad, hardcoding stuff is bad
-//awful, just awful
-struct TexFuncMonsterStruct TexFuncMonsterTexProvider[] = {
-	{"mag900", 0, 0x41F, -1, 0,0,0,0,0},
-	{"mag089", 0, 0x420, -1, 0,0,0,0,0},
-	{"mag200", 0, 0x425, -1, 0,0,0,0,0},
-	{NULL}/*CONTINUE AT 1175B950*/ };
-
-//bad design struct array
-
-
-BYTE TexFuncBattleMonsterSegment(int this_, DWORD* v4)
-{
-	int v7 = v4[6]; //this should be our texId [yeah]
-	char* test = TexFuncMonsterTexProvider[0].filename; //test
-	//monsterTexs[0].filename;
-}
-
-BYTE TexFuncCharaSegment(int this__, int row, int aIndex, int bIndex)
-{
-	//THIS IS NON-NAKED FUNCTION, SO WE CAN UTILIZE NEW LOCALS
-	char tempPath[256];
-	char tempSprint[256];
-	sprintf(texPath, "%stextures\\field.fs\\field_hd", DIRECT_IO_EXPORT_DIR);
-	strcpy(tempPath, texPath); //exp\\tex\\fieldfs\\fielhd
-
-
-	if (aIndex - 97 > 0xF9F)
-	{
-		//bla bla not field model texture bla bla
-	}
-	if (aIndex >= 0xC19)
-		sprintf(tempSprint, "\\%s%03u_%u", "p", aIndex - 3097, bIndex);
-	else if (aIndex < 0x831)
-	{
-		if (aIndex < 0x449)
-			sprintf(tempSprint, "\\%s%03u_%u", "d", aIndex - 97, bIndex);
-		else
-			sprintf(tempSprint, "\\%s%03u_%u", "n", aIndex - 1097, bIndex);
-	}
-	else
-		sprintf(tempSprint, "\\%s%03u_%u", "o", aIndex - 2097, bIndex);
-
-
-	char testPath[256];
-	sprintf(testPath, "%s%s.png", tempPath, tempSprint);
-	attr = GetFileAttributesA(testPath);
-	if (attr == INVALID_FILE_ATTRIBUTES)
-		sprintf(testPath, "%s_new%s.png", tempPath, tempSprint);
-	attr = GetFileAttributesA(testPath);
-	if (attr == INVALID_FILE_ATTRIBUTES)
-		sprintf(testPath, "%s_new\\d000_0.png", tempPath); //ERROR !!!!
-
-	strcpy(texPath, testPath); //establish path
-
-
-	//we now need to create the atlas- it's normally one tex on top and one below
-	//but of course we can easily tweak it because I ported whole texture function
-	//- vanilla dev (that company starting at D) made every size hardcoded
-	//like create gl tex with 768x768 or subtex at 384
-	int width, height, channels;
-	char n[256];
-	lastrgbBuffer = stbi_load(texPath, &width, &height, &channels, 4);
-	sprintf(n, "TEX::CHARAFIELD- %s %dx%d\n", texPath, width, height);
-	OutputDebugStringA(n);
-	lastWidth = width;
-	lastHeight = height;
-
-	return 0;
-}
-
-BYTE TexFuncBattleSegment(int this_, int aIndex, int bIndex)
-{
-	glGenTextures(1, &OPENGL_TEXTURES);
-	glBindTexture(GL_TEXTURE_2D, OPENGL_TEXTURES);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-
-
-	char n[256];
-	char nb[256];
-	char nc[256];
-	sprintf(n, "%stextures\\battle.fs\\hd_new\\d%xc%03u_", DIRECT_IO_EXPORT_DIR, (aIndex - 4097) / 100, (aIndex - 4097) % 100);
-	sprintf(nc, "%stextures\\battle.fs\\hd_new\\d%xw%03u_0.png", DIRECT_IO_EXPORT_DIR, (bIndex - 5197) / 100, (bIndex - 5197) % 100);
-	strcpy(nb, n);
-	strcat(n, "0.png");
-	strcat(nb, "1.png");
-
-
-
-	int width, height, channels;
-	unsigned char* buffer = stbi_load(n, &width, &height, &channels, 0); //chara 0
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width * 2, height * 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //sets the atlas
-
-	int width2, height2, width3, height3;
-	unsigned char* buffertwo = stbi_load(nb, &width2, &height2, &channels, 0); //chara 0
-	unsigned char* bufferthree = stbi_load(nc, &width3, &height3, &channels, 0); //chara 0
-
-
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, height, width2, height2, GL_RGBA, GL_UNSIGNED_BYTE, buffertwo);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, height + height2, width3, height3, GL_RGBA, GL_UNSIGNED_BYTE, bufferthree);
-
-	stbi_image_free(bufferthree);
-	stbi_image_free(buffertwo);
-	stbi_image_free(buffer);
-	strcat(n, "\n");
-	strcat(nb, "\n");
-	strcat(nc, "\n");
-	OutputDebugStringA(n);
-	OutputDebugStringA(nb);
-	OutputDebugStringA(nc);
-
-	return 0;
-}
 
 int channels;
 

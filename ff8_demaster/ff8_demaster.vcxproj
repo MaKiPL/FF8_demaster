@@ -98,6 +98,8 @@
     <ClCompile Include="iopatch.c" />
     <ClCompile Include="patch.c" />
     <ClCompile Include="texturepatch.c" />
+    <ClCompile Include="texturepatch_battle.c" />
+    <ClCompile Include="texturepatch_fieldChara.c" />
     <ClCompile Include="uvpatch.c" />
   </ItemGroup>
   <ItemGroup>
