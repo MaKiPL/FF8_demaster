@@ -3,16 +3,12 @@
 #include "stb_image.h"
 #include <gl/GL.h>
 
-//const int battleTextureUpscale = 0x300; //768 [600=2048]
-//
-//void ApplyTextureUpscaleMod()
-//{
-//	int mnemonicPatchPlace = IMAGE_BASE + 0x15AABAB;
-//	modPage(mnemonicPatchPlace, 5);
-//	BYTE* b = mnemonicPatchPlace;
-//	*b = 0xB9; //MOV ECX
-//	*(DWORD*)(b + 1) = battleTextureUpscale;
-//}
+
+//for second release their compiler embeded SEH PROLOGUE!
+const DWORD TEXPATCH1 = 0x16054FE; //first: 0x15A992F;
+const DWORD TEXPATCH2 = 0x1606A1C; //first: 0x15AA3E6;		//0x15AA3EB; [as above]
+const DWORD TEXPATCH3 = 0x1603900; //first: 0x15A9842;
+const DWORD TEXPATCH4 = 0x1601E4B; //first: 0x15AC4A4;
 
 
 
@@ -243,20 +239,6 @@ void TexFuncGlSegment()
 
 __declspec(naked) void LoadGameTexture()
 {
-	//__asm
-	//{
-	//	MOV _thisFF8, ECX //get this:: //FF8 should be always the same for session
-	//	ADD ESP, 4
-	//	POP EAX
-	//	MOV tex_struct, EAX //this is naked, so EBP shit I'll be doing manually here
-	//	POP EAX
-	//	MOV parm1, EAX
-	//	XOR EAX, EAX
-	//	SUB ESP, 0x0C //now get back to ESP which would point to CALLE+5 (RET)
-
-	//	PUSH ESI
-	//}
-
 	//it works now under C++ SEH
 	__asm
 	{
@@ -954,8 +936,8 @@ __declspec(naked) void LoadGameTexture()
 //replace LoadGameTexture first mnemonic to JMP and calculate the out value
 void ReplaceTextureFunction()
 {
-	int textureFunction = IMAGE_BASE + 0x15A992F;	//0x15A9920; [comment for no SEH/rewind]
-	tex_returnAddress = IMAGE_BASE + 0x15AA3E6;		//0x15AA3EB; [as above]
+	int textureFunction = IMAGE_BASE + TEXPATCH1;	//0x15A9920; [comment for no SEH/rewind]
+	tex_returnAddress = IMAGE_BASE + TEXPATCH2;		//0x15AA3EB; [as above]
 	modPage(textureFunction, 5);
 	*(BYTE*)(textureFunction) = 0xE9;
 	DWORD jmpparm = (DWORD)LoadGameTexture - textureFunction - 5;
@@ -965,12 +947,12 @@ void ReplaceTextureFunction()
 	//this is clearly an error with filepath buffers- it tests for dinput and xinput in last opened files PNGs
 	//more or less- currently I'm always returning 0 from the function as the string it tests is 0xBAADF00D unitialized HEAP
 	//-it indeed may break some things (by filepath I think it might break the Xbox/PlayStation switching, but I didn't test it)
-	int patchDinputXinput = IMAGE_BASE + 0x15A9842;
+	int patchDinputXinput = IMAGE_BASE + TEXPATCH3;
 	modPage(patchDinputXinput, 1);
 	*(BYTE*)(patchDinputXinput) = 0xEB; //JMP relative 8bit
 
 
-	int patchUnwantedTexStructFree = IMAGE_BASE + 0x15AC4A4;
+	int patchUnwantedTexStructFree = IMAGE_BASE + TEXPATCH4;
 	modPage(patchUnwantedTexStructFree, 1);
 	*(BYTE*)(patchUnwantedTexStructFree) = 0xEB; //JMP relative 8bit
 
