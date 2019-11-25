@@ -10,10 +10,12 @@ DWORD IO_backAddress3 = 0;
 DWORD filePathBuffer, filePathStrlen;
 char IO_backlogFilePath[256];
 
-const DWORD IO_FUNC1 = 0x15D41EB;
-const DWORD IO_FUNC2 = 0x15D4797;
-const DWORD IO_FUNC3 = 0x15D47D8;
-const DWORD IO_FUNC4 = 0x15D42B7;
+const DWORD IO_FUNC1 = 0x364CC;//first: 0x15D41EB
+const DWORD IO_FUNC2 = 0x36B37;//first: 0x15D4797;
+const DWORD IO_FUNC3 = 0x36B78;//first: 0x15D47D8;
+const DWORD IO_FUNC4 = 0x36D37;//first: 0x15D4947;
+const DWORD IO_FUNC5 = 0x365F8;//first: 0x15D42B7;
+
 
 
 //CREATES PATH
@@ -51,7 +53,7 @@ __declspec(naked) void directIO_fopenReroute()
 		//original code here
 		PUSH ECX
 		PUSH EDX
-		LEA ECX, [ebp - 2Ch]
+		LEA ECX, [esp+0x38] //first: [ebp - 2Ch]
 		JMP IO_backAddress
 	}
 }
@@ -78,7 +80,7 @@ __declspec(naked) void directIO_fopenReroute3()
 	{
 		//JNE $+0xC //I can't do JE IO_backAddress3, probably because VS treats it's a DWORD PTR
 		MOV EAX, ESI
-		MOV ECX, [EBP - 0x0C]
+		MOV ECX, [ESP + 0x50]
 		TEST ESI, ESI //
 		JNZ validEsi
 		JMP IO_backAddress3
@@ -133,7 +135,7 @@ void ApplyDirectIO()
 	//Patch fopen method
 //patch JMP to directIO_fopenReroute
 	BYTE* fopenPatchMnemonic = IMAGE_BASE + IO_FUNC1;
-	IO_backAddress = fopenPatchMnemonic + 5;
+	IO_backAddress = fopenPatchMnemonic + 6;
 	DWORD jmpParam = (DWORD)directIO_fopenReroute - (DWORD)fopenPatchMnemonic - 5;
 	modPage(fopenPatchMnemonic, 5);
 	*fopenPatchMnemonic = 0xE9; //JMP [DW]
@@ -157,7 +159,7 @@ void ApplyDirectIO()
 	*(fopenPatchMnemonic + 2) = 0x90;	//NOP
 
 	//Second fseek
-	fopenPatchMnemonic = IMAGE_BASE + 0x15D4947;
+	fopenPatchMnemonic = IMAGE_BASE + IO_FUNC4;
 	modPage(fopenPatchMnemonic, 3); //XOR EAX, EAX + NOP
 	*fopenPatchMnemonic = 0x31;		//XOR EAX
 	*(fopenPatchMnemonic + 1) = 0xc0;	//	XOR EAX->EAX
@@ -166,8 +168,8 @@ void ApplyDirectIO()
 	//Now we need to fix fd struct filelen for modifications of RAW files
 	//see fopen_archivePrepareSeek- we need to update struct before return
 	//EAX contains struct for FD open archive
-	fopenPatchMnemonic = IMAGE_BASE + IO_FUNC4; //MOV EAX, ESI; MOV ECX, [EBP-0ch]   [//8BC6 8B4DF4]
-	IO_backAddress3 = fopenPatchMnemonic + 5;
+	fopenPatchMnemonic = IMAGE_BASE + IO_FUNC5; //MOV EAX, ESI; MOV ECX, [EBP-0ch]   [//8BC6 8B4DF4]
+	IO_backAddress3 = fopenPatchMnemonic + 6;
 	modPage(fopenPatchMnemonic, 5); //JMP
 	jmpParam = (DWORD)directIO_fopenReroute3 - (DWORD)fopenPatchMnemonic - 5;
 	*fopenPatchMnemonic = 0xE9; //JMP [DW]
