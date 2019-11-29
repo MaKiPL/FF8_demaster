@@ -2,6 +2,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include <gl/GL.h>
+#include "texturepatch.h"
 
 
 //for second release their compiler embeded SEH PROLOGUE!
@@ -55,6 +56,22 @@ char* tex_getFileOpening;
 DWORD* v4;
 
 int channels;
+
+void InitTextureRepTable(void* _THIS, int zero, int one, int height, int width, int height2, int width2, int OPENGL_TEXTURES)
+{
+	int TextureRGBA_vftable = IMAGE_BASE + 0x16A4E4C;
+	*(DWORD*)_THIS = TextureRGBA_vftable;
+	*(((BYTE*)_THIS) + 4) = 1;
+	*(((DWORD*)_THIS) + 2) = OPENGL_TEXTURES; //0x08
+	*(((DWORD*)_THIS) + 3) = height; //0x0C
+	*(((DWORD*)_THIS) + 4) = width; //0x10
+	*(((DWORD*)_THIS) + 5) = height2; //0x14
+	*(((DWORD*)_THIS) + 6) = width2; //0x18
+	*(((DWORD*)_THIS) + 7) = 0x20; //0x1C
+//	*(((DWORD*)_THIS) + 8) = 0x00; //0x20   //already 0 due to calloc
+//	*(((BYTE*)_THIS) + 33) = 0; //see above
+	//three null DWORDs- already 0 due to calloc
+}
 
 void TexFuncGlSegment()
 {
@@ -112,7 +129,7 @@ __declspec(naked) void LoadGameTexture()
 		__asm
 		{
 			MOV ECX, _thisFF8 //this
-			ADD ECX, 0x684
+			ADD ECX, 0x688 //first 0x684
 			//MOV ECX, [ECX]
 			LEA EAX, height
 			PUSH EAX
@@ -120,7 +137,7 @@ __declspec(naked) void LoadGameTexture()
 			PUSH EAX
 			MOV EAX, OFFSET IMAGE_BASE
 			MOV EAX, [EAX]
-			ADD EAX, 0x15AE068
+			ADD EAX, 0x4BBF0; //first: 0x15AE068
 			CALL EAX
 
 		}
@@ -389,7 +406,7 @@ __declspec(naked) void LoadGameTexture()
 			}
 		case 22:
 			strcat(texPath, "FIELD.FS\\jp_add_font_hd\\");
-			sprintf(tex_paletteIndex, "%u", *(USHORT*)(IMAGE_BASE + 0x1768678));
+			sprintf(tex_paletteIndex, "%u", *(USHORT*)(IMAGE_BASE + 0x351A0)); //first: 0x1768678));
 			strcat(texPath, tex_paletteIndex);
 			strcat(texPath, "_evn_");
 			sprintf(tex_paletteIndex, "%u", parm1 >> 1);
@@ -397,7 +414,7 @@ __declspec(naked) void LoadGameTexture()
 			break;
 		case 23:
 			strcat(texPath, "FIELD.FS\\jp_add_font_hd\\");
-			sprintf(tex_paletteIndex, "%u", *(USHORT*)(IMAGE_BASE + 0x1768678));
+			sprintf(tex_paletteIndex, "%u", *(USHORT*)(IMAGE_BASE + 0x351A0)); //first: 0x1768678));
 			strcat(texPath, tex_paletteIndex);
 			strcat(texPath, "_odd_");
 			sprintf(tex_paletteIndex, "%u", parm1 >> 1);
@@ -635,7 +652,7 @@ __declspec(naked) void LoadGameTexture()
 				{
 					MOV EAX, OFFSET IMAGE_BASE
 					MOV EAX, [EAX]
-					ADD EAX, 0x15376B9 //tex_getFileOpening(int)
+					ADD EAX, 0x1560AB0; //first: x15376B9 //tex_getFileOpening(int)
 
 					MOV ECX, 0x3F
 					CALL EAX
@@ -660,7 +677,7 @@ __declspec(naked) void LoadGameTexture()
 			{
 				MOV EAX, OFFSET IMAGE_BASE
 				MOV EAX, [EAX]
-				ADD EAX, 0x15376B9 //tex_getFileOpening(int)
+				ADD EAX, 0x1560AB0; //first: x15376B9 //tex_getFileOpening(int)
 
 				MOV ECX, tex_struct
 				ADD ECX, 0xCC
@@ -684,21 +701,22 @@ __declspec(naked) void LoadGameTexture()
 
 
 	textureRepTable = calloc(52, sizeof(byte));
-	__asm
-	{
-		PUSH 0
-		PUSH 1
-		PUSH height
-		PUSH width
-		PUSH height
-		PUSH width
-		PUSH OPENGL_TEXTURES
-		MOV EAX, OFFSET IMAGE_BASE
-		MOV EAX, [EAX]
-		ADD EAX, 0x15BA402 //sets default to struct
-		MOV ECX, [textureRepTable]
-		CALL EAX
-	}
+	InitTextureRepTable(textureRepTable,0, 1, height, width, height, width, OPENGL_TEXTURES);
+	//__asm  //In second release this function was embedeed in glFunc- therefore we can't just call it ;-;
+	//{
+	//	PUSH 0
+	//	PUSH 1
+	//	PUSH height
+	//	PUSH width
+	//	PUSH height
+	//	PUSH width
+	//	PUSH OPENGL_TEXTURES
+	//	MOV EAX, OFFSET IMAGE_BASE
+	//	MOV EAX, [EAX]
+	//	ADD EAX, 0x15BA402 //sets default to struct
+	//	MOV ECX, [textureRepTable]
+	//	CALL EAX
+	//}
 
 	__asm
 	{
@@ -714,7 +732,7 @@ __declspec(naked) void LoadGameTexture()
 
 		MOV EAX, OFFSET IMAGE_BASE
 		MOV EAX, [EAX]
-		ADD EAX, 0x15BB62F //settextpointer -> vector<T>
+		ADD EAX, 0x160BE50 //first: 0x15BB62F //settextpointer -> vector<T>
 		CALL EAX
 
 		MOV EAX, [textureRepTable]
@@ -757,13 +775,13 @@ __declspec(naked) void LoadGameTexture()
 		ADD ESI, 8
 
 		MOV ECX, [_thisFF8] //THIS
-		ADD ECX, 0x650		//THIS
+		ADD ECX, 0x654		//THIS //first: 0x650
 
 		PUSH ESI
 
 		MOV EAX, OFFSET IMAGE_BASE
 		MOV EAX, [EAX]
-		ADD EAX, 0x15ADB50
+		ADD EAX, 0x15FF0F0 //first: 0x15ADB50
 		CALL EAX
 
 		//we should now have EAX accepting pointer to our tex2D array which we do have at langIdentifier
@@ -775,6 +793,10 @@ __declspec(naked) void LoadGameTexture()
 		MOV EAX, ESI
 
 		//POP ESI //esi is probably tex_struct
+		POP ECX
+		POP EDI
+		POP ESI
+		POP EBX
 	}
 
 	//OPENGL create tex and load here
