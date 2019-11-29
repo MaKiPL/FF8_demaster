@@ -14,5 +14,8 @@ int lastHeight;
 UCHAR* lastrgbBuffer;
 UINT OPENGL_TEXTURES;
 
+DWORD* tex_struct; //arg+4
+DWORD parm1; //arg+8
+
 #define EXPORT __declspec(dllexport)
 #pragma warning(disable:4996)

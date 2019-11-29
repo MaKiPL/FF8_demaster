@@ -105,6 +105,7 @@
   <ItemGroup>
     <ClInclude Include="coreHeader.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="texturepatch_battle_data.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

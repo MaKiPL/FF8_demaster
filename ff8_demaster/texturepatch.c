@@ -2,7 +2,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include <gl/GL.h>
-#include "texturepatch.h"
 
 
 //for second release their compiler embeded SEH PROLOGUE!
@@ -42,9 +41,6 @@ char* dinput = "_dinput";
 char* xinput = "_xinput";
 int textureIndex = -1;
 int v147;
-
-DWORD* tex_struct; //arg+4
-DWORD parm1; //arg+8
 
 DWORD OPENGL_METHOD;
 

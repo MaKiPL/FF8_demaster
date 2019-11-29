@@ -38,9 +38,9 @@ BOOL WINAPI DllMain(
 
 
 	//LET'S GET THE HACKING DONE
-	ApplyUVPatch();
-	ApplyDirectIO();
-	ReplaceTextureFunction();
+	//ApplyUVPatch();
+	//ApplyDirectIO();
+	//ReplaceTextureFunction();
 
 
 													//ApplyTextureUpscaleMod();
