@@ -60,14 +60,14 @@ BYTE TexFuncBattleSegment(int this_, int aIndex, int bIndex)
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width * 2, height * 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //sets the atlas
 
-	int width2 = 0, height2 = 0, width3 = 0, height3 = 0;
-	unsigned char* buffertwo = stbi_load(nb, &width2, &height2, &channels, 0); //chara 0
-	unsigned char* bufferthree = stbi_load(nc, &width3, &height3, &channels, 0); //chara 0
+	int width2 = 0, height2 = 0, width3 = 0, height3 = 0, channels2= 0, channels3 = 0;
+	unsigned char* buffertwo = stbi_load(nb, &width2, &height2, &channels2, 0); //chara 0
+	unsigned char* bufferthree = stbi_load(nc, &width3, &height3, &channels3, 0); //chara 0
 
 
 	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, channels==4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, buffer);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, height, width2, height2, channels == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, buffertwo);
-	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, height + height2, width3, height3, channels == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, bufferthree);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, height, width2, height2, channels2 == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, buffertwo);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, height + height2, width3, height3, channels3 == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, bufferthree);
 
 	stbi_image_free(bufferthree);
 	stbi_image_free(buffertwo);
