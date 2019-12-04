@@ -51,6 +51,10 @@ char* tex_getFileOpening;
 
 DWORD* v4;
 
+int v38;
+int v39;
+int v40;
+
 int channels;
 
 void InitTextureRepTable(void* _THIS, int zero, int one, int height, int width, int height2, int width2, int OPENGL_TEXTURES)
@@ -115,6 +119,8 @@ __declspec(naked) void LoadGameTexture()
 		MOV EBX, [EBP + 0xC]
 		MOV parm1, EBX
 	}
+
+	v40 = 0; //RESET FOR DEMASTER FOR FIELD CHARACTER RELOADING
 
 	*(DWORD*)tex_paletteIndex = parm1;
 	width = (UINT)(tex_struct + 47);
@@ -560,51 +566,92 @@ __declspec(naked) void LoadGameTexture()
 			}
 			else if (tex_struct[48] == 57) //FIELD
 			{
-				lastrgbBuffer = NULL;
+				v38 = tex_struct[50] + 4 * tex_struct[50] + 213;
+				v40 = (BYTE*)_thisFF8 + 8 * v38; //
+				v39 = *(DWORD*)v40;
 
-				strcat(texPath, "FIELD.FS\\field_hd");
+				//tweak below for non-infinite texture upload to VRAM
+				//if (v39
+				//	&& (*(DWORD*)(v40 + 8) != (*(DWORD*)(tex_struct + 208) | (*(DWORD*)(tex_struct + 204) << 8))
+				//		|| *(DWORD*)(v40 + 12) != (*(DWORD*)(tex_struct + 232) | (*(DWORD*)(tex_struct + 228) << 8))))
+				//{
+				//	//sub_1004BBF0((DWORD*)(_thisFF8 + 405), &height, (unsigned __int8*)(v39 + 8));
+				//	//if (height != *(DWORD*)(_thisFF8 + 405))
+				//	//	sub_11601560((void**)(_thisFF8 + 405), (int)&height, (void*)height);
+				//	if (*(DWORD*)v40)
+				//		(***(void(__stdcall****)(signed int))v40)(1);
+				//	*(DWORD*)v40 = 0;
+				//	*(BYTE*)(v40 + 4) = 0;
+				//	*(BYTE*)(v40 + 28) = 0;
+				//	*(BYTE*)(v40 + 36) = 0;
+				//	if (*(BYTE*)(v40 + 30) == 0)
+				//		*(DWORD*)(v40 + 24) = 0;
+				//	if (!*(BYTE*)(v40 + 38))
+				//		*(DWORD*)(v40 + 32) = 0;
+				//}
+				//if (*(DWORD*)(v40 + 24))
+				//{
+				//	*(DWORD*)(v40 + 24) = 0;
+				//	*(BYTE*)(v40 + 30) = 0;
+				//	*(BYTE*)(v40 + 4) = 0;
+				//	*(BYTE*)(v40 + 28) = *(DWORD*)(v40 + 24) != 1;
+				//}
+				//if (*(DWORD*)(v40 + 32))
+				//{
+				//	*(DWORD*)(v40 + 32) = 0;
+				//	*(BYTE*)(v40 + 38) = 0;
+				//	*(BYTE*)(v40 + 4) = 0;
+				//	*(BYTE*)(v40 + 36) = *(DWORD*)(v40 + 32) != 1;
+				//}
 
-				/*glTexSubImage2D(GL_TEXTURE_2D, 0, 0, row == 0 ? 384 : 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, rgbBuffer);
-				SOIL_free_image_data(rgbBuffer);*/
-
-				//I am creating the texture by height*2, because every texture has 384 but it has to fit two textures
-				//therefore 384*2 = 768, but there are some cases when 384x384 tex happens, but it's still 768x768
-				//so if we upscaled the tex by 2, then we would het 768*2, but width will always stay the same
-				//no matter what even if we just read 384x384 on row 2
-
-				if (tex_struct[51]) //row 1 texture
+				if (!*(DWORD*)v40)
 				{
-					TexFuncCharaSegment(_thisFF8, 1, tex_struct[51], tex_struct[52] - 1);
-					glGenTextures(1, &OPENGL_TEXTURES);
-					glBindTexture(GL_TEXTURE_2D, OPENGL_TEXTURES);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-					glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, lastHeight * 2, lastHeight * 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //sets the atlas
-					glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, lastWidth, lastHeight, GL_RGBA, GL_UNSIGNED_BYTE, lastrgbBuffer);
-					stbi_image_free(lastrgbBuffer);
-				}
-				if (tex_struct[57]) //row 0 texture
-				{
-					if (lastrgbBuffer == NULL)
+					lastrgbBuffer = NULL;
+
+					strcat(texPath, "FIELD.FS\\field_hd");
+
+					/*glTexSubImage2D(GL_TEXTURE_2D, 0, 0, row == 0 ? 384 : 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, rgbBuffer);
+					SOIL_free_image_data(rgbBuffer);*/
+
+					//I am creating the texture by height*2, because every texture has 384 but it has to fit two textures
+					//therefore 384*2 = 768, but there are some cases when 384x384 tex happens, but it's still 768x768
+					//so if we upscaled the tex by 2, then we would het 768*2, but width will always stay the same
+					//no matter what even if we just read 384x384 on row 2
+
+					if (tex_struct[51]) //row 1 texture
 					{
+						TexFuncCharaSegment(_thisFF8, 1, tex_struct[51], tex_struct[52] - 1);
 						glGenTextures(1, &OPENGL_TEXTURES);
 						glBindTexture(GL_TEXTURE_2D, OPENGL_TEXTURES);
 						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 						glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-						TexFuncCharaSegment(_thisFF8, 0, tex_struct[57], tex_struct[58] - 1);
 						glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, lastHeight * 2, lastHeight * 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //sets the atlas
-						glTexSubImage2D(GL_TEXTURE_2D, 0, 0, lastHeight, lastWidth, lastHeight, GL_RGBA, GL_UNSIGNED_BYTE, lastrgbBuffer);
+						glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, lastWidth, lastHeight, GL_RGBA, GL_UNSIGNED_BYTE, lastrgbBuffer);
 						stbi_image_free(lastrgbBuffer);
 					}
-					else
+					if (tex_struct[57]) //row 0 texture
 					{
-						TexFuncCharaSegment(_thisFF8, 0, tex_struct[57], tex_struct[58] - 1);
-						glTexSubImage2D(GL_TEXTURE_2D, 0, 0, lastHeight, lastWidth, lastHeight, GL_RGBA, GL_UNSIGNED_BYTE, lastrgbBuffer);
-						stbi_image_free(lastrgbBuffer);
+						if (lastrgbBuffer == NULL)
+						{
+							glGenTextures(1, &OPENGL_TEXTURES);
+							glBindTexture(GL_TEXTURE_2D, OPENGL_TEXTURES);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+							glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+							TexFuncCharaSegment(_thisFF8, 0, tex_struct[57], tex_struct[58] - 1);
+							glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, lastHeight * 2, lastHeight * 2, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //sets the atlas
+							glTexSubImage2D(GL_TEXTURE_2D, 0, 0, lastHeight, lastWidth, lastHeight, GL_RGBA, GL_UNSIGNED_BYTE, lastrgbBuffer);
+							stbi_image_free(lastrgbBuffer);
+						}
+						else
+						{
+							TexFuncCharaSegment(_thisFF8, 0, tex_struct[57], tex_struct[58] - 1);
+							glTexSubImage2D(GL_TEXTURE_2D, 0, 0, lastHeight, lastWidth, lastHeight, GL_RGBA, GL_UNSIGNED_BYTE, lastrgbBuffer);
+							stbi_image_free(lastrgbBuffer);
+						}
 					}
 				}
 			}
@@ -737,6 +784,8 @@ __declspec(naked) void LoadGameTexture()
 	}
 	//glTexture here
 	*(DWORD*)langIdentifier = textureRepTable;
+	if (v40)
+		*(DWORD*)v40 = textureRepTable;
 
 	//CREATEGLTEXTURE END
 
