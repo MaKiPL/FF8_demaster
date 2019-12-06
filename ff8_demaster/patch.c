@@ -13,3 +13,14 @@ BOOL modPage(DWORD address, int size)
 	}
 	return TRUE;
 }
+
+BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize)
+{
+	BYTE* fopenPatchMnemonic = address;
+	BYTE* IO_backAddress = fopenPatchMnemonic + JMPsize;
+	DWORD jmpParam = functionAddress - (DWORD)fopenPatchMnemonic - 5;
+	modPage(fopenPatchMnemonic, 5);
+	*fopenPatchMnemonic = 0xE9; //JMP [DW]
+	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
+	return IO_backAddress;
+}

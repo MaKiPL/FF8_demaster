@@ -40,6 +40,7 @@ BOOL WINAPI DllMain(
 	//LET'S GET THE HACKING DONE
 	ApplyUVPatch();
 	ApplyDirectIO();
+	//ReplaceTextureFunction_deprecated();
 	ReplaceTextureFunction();
 
 
