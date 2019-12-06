@@ -8,9 +8,9 @@ DWORD* langIdent_ESI;
 int width_fcp = 768;
 int height_fcp = 768;
 
-BYTE* backAdd1;
-BYTE* backAdd2;
-BYTE* backAdd3;
+BYTE* fcpBackAdd1;
+BYTE* fcpBackAdd2;
+BYTE* fcpBackAdd3;
 
 //casual is 384x384 or 768x768, therefore the final should be 1st height * 2
 void _fcpObtainTextureDatas(int bIndex, int aIndex)
@@ -97,7 +97,7 @@ __declspec(naked) void _fcpObtainData()
 		ADD EAX, 0x160b670 //createGLTexture
 		CALL EAX
 
-		JMP backAdd1
+		JMP fcpBackAdd1
 	}
 }
 
@@ -135,7 +135,7 @@ void ApplyFieldEntityPatch()
 	*/
 
 	//step 1. obtain needed data for tex_struct and etc.
-	backAdd1 = InjectJMP(IMAGE_BASE + 0x16061CC, (DWORD)_fcpObtainData, 18);
+	fcpBackAdd1 = InjectJMP(IMAGE_BASE + 0x16061CC, (DWORD)_fcpObtainData, 18);
 
 
 	//step 2. now tweak the yOffsets as in battle

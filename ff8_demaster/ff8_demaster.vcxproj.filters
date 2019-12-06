@@ -42,6 +42,9 @@
     <ClCompile Include="texturepatch_v2_fieldChara.c">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="texturepatch_v2_battleMonster.c">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">

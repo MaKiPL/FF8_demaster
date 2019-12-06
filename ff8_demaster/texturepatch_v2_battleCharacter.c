@@ -1,5 +1,4 @@
 #include "coreHeader.h"
-#include <gl/GL.h>
 //#include "texturepatch_battle_data.h"
 
 BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize);
@@ -10,9 +9,9 @@ DWORD* langIdent_ESI;
 int width_bcp = 768;
 int height_bcp = 768;
 
-BYTE* backAdd1;
-BYTE* backAdd2;
-BYTE* backAdd3;
+BYTE* bcpBackAdd1;
+BYTE* bcpBackAdd2;
+BYTE* bcpBackAdd3;
 
 //casual is 384x384, therefore the final should be 1st texture *2
 void _bcpObtainTextureDatas(int aIndex)
@@ -53,7 +52,7 @@ __declspec(naked) void _bcpObtainData()
 		ADD EAX, 0x160b670 //createGLTexture
 		CALL EAX
 
-		JMP backAdd1
+		JMP bcpBackAdd1
 	}
 }
 
@@ -65,7 +64,7 @@ __declspec(naked) void _bcpPushHeightOffsetY()
 		MOV EAX, [height_bcp]
 		SHR EAX, 1
 		PUSH EAX
-		JMP backAdd2
+		JMP bcpBackAdd2
 	}
 }
 
@@ -81,7 +80,7 @@ __declspec(naked) void _bcpPushHeightOffsetY_minusHeight()
 
 
 		PUSH EAX
-		JMP backAdd2
+		JMP bcpBackAdd3
 	}
 }
 
@@ -121,7 +120,7 @@ void ApplyBattleCharacterPatch()
 	*/
 
 	//step 1. obtain needed data for tex_struct and etc.
-	backAdd1 = InjectJMP(IMAGE_BASE + 0x16066BD, (DWORD)_bcpObtainData, 18);
+	bcpBackAdd1 = InjectJMP(IMAGE_BASE + 0x16066BD, (DWORD)_bcpObtainData, 18);
 
 	//step 2. we now have correct dynamic glTexture, but we need to change the LoadBattleCharaTexture and WeaponTexture
 	//			because they are still using static resolutions for getting the images (actually only the yoffsets)
@@ -141,12 +140,12 @@ void ApplyBattleCharacterPatch()
 	*/
 
 
-	backAdd2 = InjectJMP(IMAGE_BASE + 0x1604087, (DWORD)_bcpPushHeightOffsetY, 5);
+	bcpBackAdd2 = InjectJMP(IMAGE_BASE + 0x1604087, (DWORD)_bcpPushHeightOffsetY, 5);
 
 
 	//step 3. The last thing we need is replacing the weapon texture. The Y offset is 0x2a0 (768-96)
 	
-	backAdd3 = InjectJMP(IMAGE_BASE + 0x1605040, (DWORD)_bcpPushHeightOffsetY_minusHeight, 5);
+	bcpBackAdd3 = InjectJMP(IMAGE_BASE + 0x1605040, (DWORD)_bcpPushHeightOffsetY_minusHeight, 5);
 
 
 	//VOILA! Battle characters finished without replacing whole functions!
