@@ -7,8 +7,8 @@ BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize);
 DWORD* tex_struct;
 DWORD* langIdent_ESI;
 
-int width = 768;
-int height = 768;
+int width_bcp = 768;
+int height_bcp = 768;
 
 BYTE* backAdd1;
 BYTE* backAdd2;
@@ -21,11 +21,11 @@ void _bcpObtainTextureDatas(int aIndex)
 	int width_, height_, channels;
 	sprintf(n, "%stextures\\battle.fs\\hd_new\\d%xc%03u_0.png", DIRECT_IO_EXPORT_DIR, (aIndex - 4097) / 100, (aIndex - 4097) % 100);
 	unsigned char* buffer = stbi_load(n, &width_, &height_, &channels, 0); //chara 0
-	width = width_ * 2;
-	height = height_ * 2;
+	width_bcp = width_ * 2;
+	height_bcp = height_ * 2;
 
 	char out[256];
-	sprintf(out, "_bcpObtainTextureDatas:: width=%d, height=%d, filename=%s", width, height, n);
+	sprintf(out, "_bcpObtainTextureDatas:: width=%d, height=%d, filename=%s", width_bcp, height_bcp, n);
 	OutputDebugStringA(out);
 	stbi_image_free(buffer);
 	return;
@@ -46,8 +46,8 @@ __declspec(naked) void _bcpObtainData()
 		PUSH 0
 		PUSH 0
 		PUSH 0
-		PUSH [height]
-		PUSH [width]
+		PUSH [height_bcp]
+		PUSH [width_bcp]
 		MOV EAX, OFFSET IMAGE_BASE
 		MOV EAX, [EAX]
 		ADD EAX, 0x160b670 //createGLTexture
@@ -62,7 +62,7 @@ __declspec(naked) void _bcpPushHeightOffsetY()
 	__asm
 	{
 		//assembler already pushed eax, so we can use it
-		MOV EAX, [height]
+		MOV EAX, [height_bcp]
 		SHR EAX, 1
 		PUSH EAX
 		JMP backAdd2
@@ -74,10 +74,10 @@ __declspec(naked) void _bcpPushHeightOffsetY_minusHeight()
 	__asm
 	{
 		//assembler already pushed eax, so we can use it
-		MOV EAX, [height]
+		MOV EAX, [height_bcp]
 		SHR EAX, 3
 		NEG EAX //we now have -24
-		ADD EAX, [height] //-24 + height = correct Y
+		ADD EAX, [height_bcp] //-24 + height = correct Y
 
 
 		PUSH EAX

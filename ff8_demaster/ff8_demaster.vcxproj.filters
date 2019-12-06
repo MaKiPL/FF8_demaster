@@ -30,9 +30,6 @@
     <ClCompile Include="dllmain.c">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="texturepatch_fieldChara.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
     <ClCompile Include="texturepatch_battle.c">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
@@ -40,6 +37,9 @@
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
     <ClCompile Include="texturepatch_v2_battleCharacter.c">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="texturepatch_v2_fieldChara.c">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
   </ItemGroup>

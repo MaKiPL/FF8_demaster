@@ -99,9 +99,9 @@
     <ClCompile Include="patch.c" />
     <ClCompile Include="texturepatch.c" />
     <ClCompile Include="texturepatch_battle.c" />
-    <ClCompile Include="texturepatch_fieldChara.c" />
     <ClCompile Include="texturepatch_v2.c" />
     <ClCompile Include="texturepatch_v2_battleCharacter.c" />
+    <ClCompile Include="texturepatch_v2_fieldChara.c" />
     <ClCompile Include="uvpatch.c" />
   </ItemGroup>
   <ItemGroup>
