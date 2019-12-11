@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <Windows.h>
 
+BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize);
+
 __int64 IMAGE_BASE;
 DWORD OPENGL_HANDLE;
 DWORD attr;

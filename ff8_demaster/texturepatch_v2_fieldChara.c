@@ -1,7 +1,5 @@
 #include "coreHeader.h"
 
-BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize);
-
 DWORD* tex_struct;
 DWORD* langIdent_ESI;
 

@@ -19,6 +19,7 @@ void ReplaceTextureFunction()
 	ApplyBattleCharacterPatch();
 	ApplyFieldEntityPatch();
 	ApplyBattleMonsterPatch();
+	ApplyFieldBackgroundPatch();
 
 	//int textureFunction = IMAGE_BASE + TEXPATCH1;	//0x15A9920; [comment for no SEH/rewind]
 	//tex_returnAddress = IMAGE_BASE + TEXPATCH2;		//0x15AA3EB; [as above]

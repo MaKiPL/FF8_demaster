@@ -1,8 +1,6 @@
 #include "coreHeader.h"
 #include "texturepatch_battle_data.h"
 
-BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize);
-
 DWORD* tex_struct;
 DWORD* langIdent_ESI;
 
