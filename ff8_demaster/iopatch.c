@@ -15,6 +15,7 @@ const DWORD IO_FUNC2 = 0x36B37;//first: 0x15D4797;
 const DWORD IO_FUNC3 = 0x36B78;//first: 0x15D47D8;
 const DWORD IO_FUNC4 = 0x36D37;//first: 0x15D4947;
 const DWORD IO_FUNC5 = 0x365F8;//first: 0x15D42B7;
+const DWORD IO_FUNC6 = 0x3656A;//first: 0x15D42B7;
 
 
 
@@ -174,4 +175,9 @@ void ApplyDirectIO()
 	jmpParam = (DWORD)directIO_fopenReroute3 - (DWORD)fopenPatchMnemonic - 5;
 	*fopenPatchMnemonic = 0xE9; //JMP [DW]
 	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
+
+	//patch additional security that checks for weepTable
+	fopenPatchMnemonic = IMAGE_BASE + IO_FUNC6;
+	modPage(fopenPatchMnemonic, 2);
+	*(WORD*)fopenPatchMnemonic = 0x9090;		//NOP NOP
 }

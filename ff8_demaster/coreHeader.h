@@ -3,6 +3,7 @@
 #include <Windows.h>
 
 BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize);
+BOOL modPage(DWORD address, int size);
 
 __int64 IMAGE_BASE;
 DWORD OPENGL_HANDLE;
