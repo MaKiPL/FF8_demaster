@@ -17,7 +17,10 @@ int lastHeight;
 UCHAR* lastrgbBuffer;
 UINT OPENGL_TEXTURES;
 
-DWORD* tex_struct; //arg+4
+DWORD* tex_header;
+DWORD* tex_struct;
+DWORD* gl_textures;
+
 DWORD parm1; //arg+8
 
 #define EXPORT __declspec(dllexport)

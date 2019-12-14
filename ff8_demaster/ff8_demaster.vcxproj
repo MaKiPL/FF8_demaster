@@ -102,6 +102,7 @@
     <ClCompile Include="texturepatch_v2.c" />
     <ClCompile Include="texturepatch_v2_battleCharacter.c" />
     <ClCompile Include="texturepatch_v2_battleMonster.c" />
+    <ClCompile Include="texturepatch_v2_battleScenery.c" />
     <ClCompile Include="texturepatch_v2_fieldBackground.c" />
     <ClCompile Include="texturepatch_v2_fieldChara.c" />
     <ClCompile Include="uvpatch.c" />
