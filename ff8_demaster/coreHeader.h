@@ -4,6 +4,7 @@
 
 BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize);
 BOOL modPage(DWORD address, int size);
+void ReplaceCALLWithNOP(DWORD address);
 
 __int64 IMAGE_BASE;
 DWORD OPENGL_HANDLE;

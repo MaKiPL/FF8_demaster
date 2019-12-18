@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <Windows.h>
+#include "coreHeader.h"
 
 BOOL modPage(DWORD address, int size)
 {
@@ -23,4 +24,11 @@ BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize)
 	*fopenPatchMnemonic = 0xE9; //JMP [DW]
 	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
 	return IO_backAddress;
+}
+
+void ReplaceCALLWithNOP(DWORD address)
+{
+	modPage(IMAGE_BASE + address, 5);
+	*(DWORD*)(IMAGE_BASE + address) = 0x90909090;
+	*(BYTE*)(IMAGE_BASE + address + 4) = 0x90;
 }

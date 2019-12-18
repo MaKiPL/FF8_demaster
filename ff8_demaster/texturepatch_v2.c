@@ -64,30 +64,6 @@ __declspec(naked) void _cltObtainTexHeader()
 	}
 }
 
-#if DEBUGOUT
-int lastStream = 0;
-
-void DebugDumpData(DWORD* tex_str, DWORD* tex_head)
-{
-	FILE* f = fopen("D:\\demasterlog.csv", "a");
-	if (f == NULL)
-		return;
-
-	char localBuffer[64];
-
-	for (int i = 0; i < 80; i++)
-	{
-		sprintf(localBuffer, "%d\t%d\t%d\t%d\n", lastStream,i, tex_str[i], tex_head[i]);
-		fwrite(localBuffer, sizeof(char), strlen(localBuffer), f);
-		memset(localBuffer, '\0', 64);
-	}
-	fclose(f);
-	lastStream++;
-}
-#endif
-
-
-
 void _cltVoid()
 {
 	int textureType = tex_struct[48];
@@ -100,13 +76,9 @@ void _cltVoid()
 
 
 	char n[255];
-	if (textureType != 11) { //let's output only debug about tex that we want
-#if DEBUGOUT
-	DebugDumpData(tex_struct, tex_header);
-#endif
-		sprintf(n, "common_load_texture: tex_type: %s, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n", GetTextureType(textureType), palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
-		OutputDebugStringA(n);
-	}
+	n[0] = '\0';
+	sprintf(n, "common_load_texture: tex_type: %s, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n", GetTextureType(textureType), palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
+	OutputDebugStringA(n);
 
 	return;
 }
