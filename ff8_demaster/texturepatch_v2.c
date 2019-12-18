@@ -10,7 +10,7 @@
 //const DWORD TEXPATCH4 = 0x1601E4B; //first: 0x15AC4A4;
 
 
-
+#define DEBUGOUT FALSE
 
 /*
 11 - BATTLE MONSTER + SCENERY
@@ -24,6 +24,28 @@ OTHER - SYSTEM, MENU, PROLOGUE etc. [AS-IS]
 BYTE* cltBackAdd1;
 BYTE* cltBackAdd2;
 DWORD* _thisFF8 = 0; //__thiscall, so this is ECX
+
+char* textureType[3];
+
+char* GetTextureType(int texType)
+{
+	switch (texType)
+	{
+	case 11:
+		return "BATTLE";
+	case 18:
+		return "WORLDMAP";
+	case 25:
+		return "FIELDBG";
+	case 35:
+		return "BATTLECHARACTER";
+	case 57:
+		return "FIELDENTITY";
+	default:
+		sprintf(textureType, "%02d", texType);
+		return textureType;
+	}
+}
 
 __declspec(naked) void _cltObtainTexHeader()
 {
@@ -42,6 +64,30 @@ __declspec(naked) void _cltObtainTexHeader()
 	}
 }
 
+#if DEBUGOUT
+int lastStream = 0;
+
+void DebugDumpData(DWORD* tex_str, DWORD* tex_head)
+{
+	FILE* f = fopen("D:\\demasterlog.csv", "a");
+	if (f == NULL)
+		return;
+
+	char localBuffer[64];
+
+	for (int i = 0; i < 80; i++)
+	{
+		sprintf(localBuffer, "%d\t%d\t%d\t%d\n", lastStream,i, tex_str[i], tex_head[i]);
+		fwrite(localBuffer, sizeof(char), strlen(localBuffer), f);
+		memset(localBuffer, '\0', 64);
+	}
+	fclose(f);
+	lastStream++;
+}
+#endif
+
+
+
 void _cltVoid()
 {
 	int textureType = tex_struct[48];
@@ -51,9 +97,14 @@ void _cltVoid()
 	DWORD unknownCheckHD = tex_struct[47];
 	DWORD tPage = tex_struct[50];
 
+
+
 	char n[255];
-	if (textureType != 57) { //I don't want field chara tex update spam - you may want to delete that if you want full debug
-		sprintf(n, "common_load_texture: tex_type: %d, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n", textureType, palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
+	if (textureType != 11) { //let's output only debug about tex that we want
+#if DEBUGOUT
+	DebugDumpData(tex_struct, tex_header);
+#endif
+		sprintf(n, "common_load_texture: tex_type: %s, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n", GetTextureType(textureType), palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
 		OutputDebugStringA(n);
 	}
 
