@@ -112,6 +112,7 @@ void ReplaceTextureFunction()
 	ApplyBattleCharacterPatch();
 	ApplyFieldEntityPatch();
 	ApplyBattleMonsterPatch();
+	ApplyBattleHookPatch();
 	ApplyFieldBackgroundPatch();
 
 	cltBackAdd2 = InjectJMP(IMAGE_BASE + 0x155CD05, (DWORD)_cltObtainTexHeader, 5);

@@ -32,3 +32,9 @@ void ReplaceCALLWithNOP(DWORD address)
 	*(DWORD*)(IMAGE_BASE + address) = 0x90909090;
 	*(BYTE*)(IMAGE_BASE + address + 4) = 0x90;
 }
+
+void InjectDWORD(DWORD address, DWORD value)
+{
+	modPage(address, 4);
+	*(DWORD*)(address) = value;
+}

@@ -99,7 +99,7 @@ BOOL WINAPI DllMain(
 	//ReplaceTextureFunction_deprecated();
 	ReplaceTextureFunction();
 
-	ApplyDebugOutputPatch(); //they have hella of debug info shit, but then function is nullsub-
+	//ApplyDebugOutputPatch(); //they have hella of debug info shit, but then function is nullsub-
 							//quite usual- vanilla ff8 from 2000 had the same for harata battle debug
 							//but worry not- we can write such function from scratch
 													//ApplyTextureUpscaleMod();
