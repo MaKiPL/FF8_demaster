@@ -380,3 +380,16 @@ struct TexFuncMonsterTex TexFuncMonsterTexProvider[] = {
 };
 
 DWORD TexFuncMonsterTexProviderLength = sizeof(TexFuncMonsterTexProvider) / sizeof(TexFuncMonsterTexProvider[0]);
+
+
+//[11770F78]
+struct BattleHookStructure
+{
+	char* filename; //DWORD PTR
+	UINT unk;
+	UINT unk2;
+	DWORD fileIndex;
+	UINT unk3;
+	DWORD pageCount;
+	UINT unk4;
+};

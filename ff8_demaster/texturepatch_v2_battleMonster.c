@@ -8,27 +8,27 @@ void ApplyBattleMonsterPatch()
 	InjectDWORD(IMAGE_BASE + 0x15FF3DA, TexFuncMonsterTexProvider);
 	InjectDWORD(IMAGE_BASE + 0x15FF3F9, &TexFuncMonsterTexProvider->filename);
 	InjectDWORD(IMAGE_BASE + 0x15FF400, &TexFuncMonsterTexProvider->filename);
-	InjectDWORD(IMAGE_BASE + 0x1601CE2, TexFuncMonsterTexProvider);
-	InjectDWORD(IMAGE_BASE + 0x1601CFE, TexFuncMonsterTexProvider);
+	//InjectDWORD(IMAGE_BASE + 0x1601CE2, TexFuncMonsterTexProvider);
+	//InjectDWORD(IMAGE_BASE + 0x1601CFE, TexFuncMonsterTexProvider);
 
-	InjectDWORD(IMAGE_BASE + 0x157DB2C+2, &TexFuncMonsterTexProvider->filename);
-	InjectDWORD(IMAGE_BASE + 0x157DB53+2, &TexFuncMonsterTexProvider->fileIndex);
-	InjectDWORD(IMAGE_BASE + 0x157DB5E+2, &TexFuncMonsterTexProvider->dUnk);
-	InjectDWORD(IMAGE_BASE + 0x157DB67+2, &TexFuncMonsterTexProvider->wUnk);
-	InjectDWORD(IMAGE_BASE + 0x157DB70+2, &TexFuncMonsterTexProvider->wUnk2);
-	InjectDWORD(IMAGE_BASE + 0x157DB79+2, &TexFuncMonsterTexProvider->wUnk3);
-	InjectDWORD(IMAGE_BASE + 0x157DB82+2, &TexFuncMonsterTexProvider->wUnk4);
-	InjectDWORD(IMAGE_BASE + 0x157DB94+2, &TexFuncMonsterTexProvider->filename);
+	//InjectDWORD(IMAGE_BASE + 0x157DB2C+2, &TexFuncMonsterTexProvider->filename);
+	//InjectDWORD(IMAGE_BASE + 0x157DB53+2, &TexFuncMonsterTexProvider->fileIndex);
+	//InjectDWORD(IMAGE_BASE + 0x157DB5E+2, &TexFuncMonsterTexProvider->dUnk);
+	//InjectDWORD(IMAGE_BASE + 0x157DB67+2, &TexFuncMonsterTexProvider->wUnk);
+	//InjectDWORD(IMAGE_BASE + 0x157DB70+2, &TexFuncMonsterTexProvider->wUnk2);
+	//InjectDWORD(IMAGE_BASE + 0x157DB79+2, &TexFuncMonsterTexProvider->wUnk3);
+	//InjectDWORD(IMAGE_BASE + 0x157DB82+2, &TexFuncMonsterTexProvider->wUnk4);
+	//InjectDWORD(IMAGE_BASE + 0x157DB94+2, &TexFuncMonsterTexProvider->filename);
 
-	InjectDWORD(IMAGE_BASE + 0x1581C83+2, &TexFuncMonsterTexProvider->dUnk);
-	InjectDWORD(IMAGE_BASE + 0x1581C8A+2, &TexFuncMonsterTexProvider->fileIndex);
-	InjectDWORD(IMAGE_BASE + 0x1581C93+2, &TexFuncMonsterTexProvider->unk);
-	InjectDWORD(IMAGE_BASE + 0x1581DEA+2, &TexFuncMonsterTexProvider->dUnk);
-	InjectDWORD(IMAGE_BASE + 0x1581DF1+2, &TexFuncMonsterTexProvider->fileIndex);
-	InjectDWORD(IMAGE_BASE + 0x1581DFA+2, &TexFuncMonsterTexProvider->unk);
+	//InjectDWORD(IMAGE_BASE + 0x1581C83+2, &TexFuncMonsterTexProvider->dUnk);
+	//InjectDWORD(IMAGE_BASE + 0x1581C8A+2, &TexFuncMonsterTexProvider->fileIndex);
+	//InjectDWORD(IMAGE_BASE + 0x1581C93+2, &TexFuncMonsterTexProvider->unk);
+	//InjectDWORD(IMAGE_BASE + 0x1581DEA+2, &TexFuncMonsterTexProvider->dUnk);
+	//InjectDWORD(IMAGE_BASE + 0x1581DF1+2, &TexFuncMonsterTexProvider->fileIndex);
+	//InjectDWORD(IMAGE_BASE + 0x1581DFA+2, &TexFuncMonsterTexProvider->unk);
 
-	InjectDWORD(IMAGE_BASE + 0x1601CE1+1, &TexFuncMonsterTexProvider->fileIndex);
-	InjectDWORD(IMAGE_BASE + 0x1601CFC+2, &TexFuncMonsterTexProvider->fileIndex);
+	//InjectDWORD(IMAGE_BASE + 0x1601CE1+1, &TexFuncMonsterTexProvider->fileIndex);
+	//InjectDWORD(IMAGE_BASE + 0x1601CFC+2, &TexFuncMonsterTexProvider->fileIndex);
 
 	//this patches force release of tex 84 that is invalid/wrong pointer
 	modPage(IMAGE_BASE + 0x1601E02, 6);

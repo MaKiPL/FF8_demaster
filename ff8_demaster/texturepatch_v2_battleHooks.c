@@ -6,7 +6,7 @@ char* _bhpStrPointer;
 DWORD* texture_file_enemy_ex_Id;
 
 
-void _bhpVoid()
+BYTE _bhpVoid()
 {
 	char localn[256];
 	char localPath[256];
@@ -26,19 +26,10 @@ void _bhpVoid()
 		sprintf(localPath, "%stextures\\battle.fs\\hd_new\\a0stg%03d_0.png", DIRECT_IO_EXPORT_DIR, intStageId);
 		DWORD attr = GetFileAttributesA(localPath);
 		if (attr == INVALID_FILE_ATTRIBUTES) //file doesn't exist, so please do not replace textures
-			return;
-		//int stageTpageSize = 1; //is it needed?
-
-		//for (int i = 1; i < 8; i++)
-		//{
-		//	localPath[strlen(localPath) - 5] = '0' + i;
-		//	DWORD attr = GetFileAttributesA(localPath);
-		//	if (attr == INVALID_FILE_ATTRIBUTES) //file doesn't exist, so please do not replace textures
-		//		break;
-		//	stageTpageSize++;
-		//}
+			return 0;
 
 		*texture_file_enemy_ex_Id = 1200 + intStageId;
+		return 1;
 	}
 	else if (bhpChechker == 'c')
 	{
@@ -50,22 +41,13 @@ void _bhpVoid()
 		sprintf(localPath, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.png", DIRECT_IO_EXPORT_DIR, intMonsId);
 		DWORD attr = GetFileAttributesA(localPath);
 		if (attr == INVALID_FILE_ATTRIBUTES) //file doesn't exist, so please do not replace textures
-			return;
-		//int stageTpageSize = 1; //is it needed?
-
-		//for (int i = 1; i < 8; i++)
-		//{
-		//	localPath[strlen(localPath) - 5] = '0' + i;
-		//	DWORD attr = GetFileAttributesA(localPath);
-		//	if (attr == INVALID_FILE_ATTRIBUTES) //file doesn't exist, so please do not replace textures
-		//		break;
-		//	stageTpageSize++;
-		//}
+			return 0;
 
 		*texture_file_enemy_ex_Id = 1000 + intMonsId;
+		return 1;
 	}
 	else 
-		return;
+		return 0;
 
 	return;
 }
@@ -108,8 +90,10 @@ __declspec(naked) void _bhp()
 
 		//NOT REPLACED? Then call our function [bhpStrPointer is already set]
 		CALL _bhpVoid
+		MOV BL, AL
 
 		_isreplaced:
+		XOR BL, BL
 		
 		cmp     dword ptr[ebp - 0x14], 0x10
 		JB	_exitbph
@@ -129,3 +113,6 @@ void ApplyBattleHookPatch()
 {
 	_bhpBackAdd1 = InjectJMP(IMAGE_BASE + 0x157DA5D, (DWORD)_bhp, 17);
 }
+
+//TODO!!!!!!!!!!!!!!
+//1157DCD5 should have the paletteIndexer!!!- replace structure!!!!!!!!!!!!!

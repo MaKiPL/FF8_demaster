@@ -134,10 +134,6 @@ void ApplyFieldBackgroundPatch()
 		*(DWORD*)(IMAGE_BASE + 0x1591B79) = 0x90909090;
 		*(WORD*)(IMAGE_BASE + 0x1591B7D) = 0x9090;*/
 
-
-		//modPage(IMAGE_BASE + 0x1606540, 1);
-		//*(BYTE*)(IMAGE_BASE + 0x1606540) = 0xEB;
-
 		//disable tpage 16&17 limit
 		modPage(IMAGE_BASE + 0x1606595, 1); 
 		*(BYTE*)(IMAGE_BASE + 0x1606595) = 0xEB;

@@ -111,9 +111,10 @@ void ReplaceTextureFunction()
 	OutputDebugStringA("Applying texture patches...");
 	ApplyBattleCharacterPatch();
 	ApplyFieldEntityPatch();
-	ApplyBattleMonsterPatch();
-	ApplyBattleHookPatch();
+	//ApplyBattleHookPatch();
+	//ApplyBattleMonsterPatch();
 	ApplyFieldBackgroundPatch();
+	//ApplyWorldPatch();
 
 	cltBackAdd2 = InjectJMP(IMAGE_BASE + 0x155CD05, (DWORD)_cltObtainTexHeader, 5);
 	cltBackAdd1 = InjectJMP(IMAGE_BASE + 0x155CD7A, (DWORD)_cltObtainTexStructDebug, 7);
