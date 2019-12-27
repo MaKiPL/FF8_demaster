@@ -6,6 +6,7 @@ BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize);
 BOOL modPage(DWORD address, int size);
 void ReplaceCALLWithNOP(DWORD address);
 void InjectDWORD(DWORD address, DWORD value);
+DWORD bspVoid(UINT textures, int a2, char* pixels);
 
 __int64 IMAGE_BASE;
 DWORD OPENGL_HANDLE;
@@ -24,6 +25,8 @@ DWORD* tex_struct;
 DWORD* gl_textures;
 
 DWORD parm1; //arg+8
+
+int currentStage;
 
 #define EXPORT __declspec(dllexport)
 #pragma warning(disable:4996)

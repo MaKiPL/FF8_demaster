@@ -38,4 +38,10 @@ void ApplyBattleMonsterPatch()
 
 	InjectDWORD(IMAGE_BASE + 0x1601CFE, TexFuncMonsterTexProvider);
 
+	//battlemonster struct
+	//InjectDWORD(IMAGE_BASE + 0x157DCD5 + 2, &BattleHookProvider->filename);
+	//InjectDWORD(IMAGE_BASE + 0x157DCE0 + 1, &BattleHookProvider->filename);
+	//InjectDWORD(IMAGE_BASE + 0x157DCF4 + 3, &BattleHookProvider->filename);
+	//InjectDWORD(IMAGE_BASE + 0x157DCFC + 3, &BattleHookProvider->filename);
+
 }
