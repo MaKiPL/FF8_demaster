@@ -109,13 +109,20 @@ __declspec(naked) void _cltObtainTexStructDebug()
 void ReplaceTextureFunction()
 {
 	OutputDebugStringA("Applying texture patches...");
-	ApplyBattleCharacterPatch();
-	ApplyFieldEntityPatch();
-	ApplyBattleHookPatch();
-	ApplyBattleMonsterPatch();
-	ApplyFieldBackgroundPatch();
-	ApplyBattleFieldPatch();
-	//ApplyWorldPatch();
+	if(BATTLE_CHARA)
+		ApplyBattleCharacterPatch();
+	if(FIELD_ENTITY)
+		ApplyFieldEntityPatch();
+	if (BATTLE_HOOK)
+	{
+		ApplyBattleHookPatch();
+		ApplyBattleMonsterPatch();
+		ApplyBattleFieldPatch();
+	}
+	if(FIELD_BACKGROUND)
+		ApplyFieldBackgroundPatch();
+	if(WORLD_TEXTURES)
+		ApplyWorldPatch();
 
 	cltBackAdd2 = InjectJMP(IMAGE_BASE + 0x155CD05, (DWORD)_cltObtainTexHeader, 5);
 	cltBackAdd1 = InjectJMP(IMAGE_BASE + 0x155CD7A, (DWORD)_cltObtainTexStructDebug, 7);

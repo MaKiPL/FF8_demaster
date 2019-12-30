@@ -129,6 +129,7 @@ void ApplyDirectIO()
 	if (attrib == INVALID_FILE_ATTRIBUTES)
 	{
 		OutputDebugStringA("There is no export directory, so it looks like you didn't export the files from zzz files. Not applying patch\n");
+		DIRECT_IO = FALSE;
 		return;
 	}
 

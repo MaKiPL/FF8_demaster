@@ -1,6 +1,7 @@
 ﻿#include <stdio.h>
 #include <Windows.h>
 #include "coreHeader.h"
+#include "ini.h"
 
 /*
 KURSE ALL SEEDS!
@@ -15,8 +16,7 @@ KURSE ALL SEEDS!
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
 EXPORT void InitTest()
 {
-	OutputDebugStringA("DEMASTER ENGINE LOADED!- we will try to repair the lazy remaster... ;-;\n");
-	DIRECT_IO_EXPORT_DIR = "EXP\\";
+	OutputDebugStringA("DEMASTER ENGINE LOADED!\n");
 	return;
 }
 
@@ -78,6 +78,45 @@ void ApplyDebugOutputPatch()
 	ReplaceCALLWithNOP(0x15824B6);
 }
 
+
+
+
+void ReadConfigFile()
+{
+	DWORD attr = GetFileAttributesA("demaster.ini");
+	if (attr == INVALID_FILE_ATTRIBUTES)
+		return;
+	ini_t* conf = ini_load("demaster.ini");
+
+	int var_;
+	//BASIC
+	ini_sget(conf, "BASIC", "UV_PATCH", "%d", &var_);
+		UVPATCH = var_ == 0 ? FALSE : TRUE;
+	ini_sget(conf, "BASIC", "DIRECT_IO", "%d", &var_);
+		DIRECT_IO = var_ == 0 ? FALSE : TRUE;
+	ini_sget(conf, "BASIC", "TEXTURE_PATCH", "%d", &var_);
+		TEXTURE_PATCH = var_ == 0 ? FALSE : TRUE;
+	ini_sget(conf, "BASIC", "UNSTABLE_DEBUG_OUTPUT_PATCH", "%d", &var_);
+		DEBUG_PATCH = var_ == 0 ? FALSE : TRUE;
+
+	char* c = ini_get(conf, "DIRECT_IO", "DIRECT_IO_EXPORT_DIR");
+	strcpy(DIRECT_IO_EXPORT_DIR, c);
+
+	ini_sget(conf, "TEXTURE_PATCH", "BATTLE_CHARACTER", "%d", &var_);
+	BATTLE_CHARA = var_ == 0 ? FALSE : TRUE;
+	ini_sget(conf, "TEXTURE_PATCH", "FIELD_ENTITY", "%d", &var_);
+	FIELD_ENTITY = var_ == 0 ? FALSE : TRUE;
+	ini_sget(conf, "TEXTURE_PATCH", "BATTLE_HOOK_MONSTER_FIELDS", "%d", &var_);
+	BATTLE_HOOK = var_ == 0 ? FALSE : TRUE;
+	ini_sget(conf, "TEXTURE_PATCH", "FIELD_BACKGROUND", "%d", &var_);
+	FIELD_BACKGROUND = var_ == 0 ? FALSE : TRUE;
+	ini_sget(conf, "TEXTURE_PATCH", "WORLD_TEXTURES", "%d", &var_);
+	WORLD_TEXTURES = var_ == 0 ? FALSE : TRUE;
+
+	ini_free(conf);
+
+}
+
 BOOL WINAPI DllMain(
 
 	HINSTANCE hinstDLL, // handle to DLL module
@@ -87,19 +126,22 @@ BOOL WINAPI DllMain(
 	if (fdwReason != DLL_PROCESS_ATTACH) //fail if not on app-init. Attaching is not recommended, should be loaded at startup by import
 		return 0;
 
+	InitTest();
+	ReadConfigFile();
+
 	IMAGE_BASE = GetModuleHandleA("FFVIII_EFIGS");
 	OPENGL_HANDLE = GetModuleHandleA("OPENGL32");
 	
-	InitTest();
-
 
 	//LET'S GET THE HACKING DONE
-	ApplyUVPatch();
-	ApplyDirectIO();
-	//ReplaceTextureFunction_deprecated();
-	ReplaceTextureFunction();
-
-	//ApplyDebugOutputPatch(); //they have hella of debug info shit, but then function is nullsub-
+	if(DIRECT_IO)
+		ApplyDirectIO();
+	if(UVPATCH)
+		ApplyUVPatch();
+	if(TEXTURE_PATCH && DIRECT_IO)
+		ReplaceTextureFunction();
+	if(DEBUG_PATCH)
+		ApplyDebugOutputPatch(); //they have hella of debug info shit, but then function is nullsub-
 							//quite usual- vanilla ff8 from 2000 had the same for harata battle debug
 							//but worry not- we can write such function from scratch
 													//ApplyTextureUpscaleMod();
