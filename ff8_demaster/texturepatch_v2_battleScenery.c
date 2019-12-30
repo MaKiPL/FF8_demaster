@@ -63,14 +63,13 @@ __declspec(naked) void _bsp()
 
 		CALL _bspCheck
 		TEST EAX, EAX
-		JZ _original
+		JNZ _bspOk
 
-		PUSH DWORD PTR[EBP + 0x10]
-		call DWORD PTR ds : 0x1166b2a8 //- ds:free
-		MOV bAlreadyFreed, 1
-		
-		CALL _bspGl
-		JMP _out
+		//CALL _wtpCheck
+		//TEST EAX, EAX
+		//JNZ _wtpOk
+
+
 
 		_original:
 		PUSH DWORD PTR[EBP + 0x10]
@@ -85,6 +84,24 @@ __declspec(naked) void _bsp()
 			call   DWORD PTR ds : 0x1166b4a0
 		_out:
 		JMP _bspBackAdd1
+
+		//	_wtpOk:
+		//PUSH DWORD PTR[EBP+0x10]
+		//CALL DWORD PTR DS:0x1166B2A8
+		//MOV bAlreadyFreed, 1
+		//CALL _wtpGl
+		//JMP _out
+
+		JMP _original
+
+		_bspOk:
+		PUSH DWORD PTR[EBP + 0x10]
+		call DWORD PTR ds : 0x1166b2a8 //- ds:free
+		MOV bAlreadyFreed, 1
+		
+		CALL _bspGl
+		JMP _out
+
 	}
 }
 

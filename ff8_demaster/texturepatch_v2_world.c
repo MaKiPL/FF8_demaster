@@ -1,17 +1,22 @@
 #include "coreHeader.h"
+#include <gl/GL.h>
 
 DWORD _wtpBackAdd1;
 DWORD _wtpBackAdd2;
+DWORD _wtpBackAdd3;
 
 
 DWORD _wtpSaveTpage = -1;
+DWORD texlSaveESI = -1;
+DWORD texlSaveEAX = -1;
 
-//you can't just create new folder because >WEEP< - no, really, idk but it doesn't work
+//you can't just create new folder because >WEEP< - too lazy to find the cause
 char* _wtpReplaceVoid();
 
 BOOL bWtpHdAvailable(int tPage)
 {
-	_wtpSaveTpage = tPage;
+	_wtpSaveTpage = tPage; //wtp tpage doesn't matter- however I found texl getting via pointer so...
+	//texlSaveESI = *(DWORD*)(IMAGE_BASE + 0x17424B0);
 	char localn[256];
 	sprintf(localn, "%stextures\\", DIRECT_IO_EXPORT_DIR);
 	char* wtprep = _wtpReplaceVoid();
@@ -26,11 +31,11 @@ BOOL bWtpHdAvailable(int tPage)
 void wtpVoid()
 {
 	char localn[256];
-	sprintf(localn, "_wtp::Load world module: %d at TPage: %d\n", *(DWORD*)(IMAGE_BASE + 0x178207C), *(DWORD*)(IMAGE_BASE + 0x1782084));
+	sprintf(localn, "_wtp::Load world module: %d at TPage: %d ESI at: %d\n", *(DWORD*)(IMAGE_BASE + 0x178207C), *(DWORD*)(IMAGE_BASE + 0x1782084), *(DWORD*)(IMAGE_BASE + 0x17424B0));
 	OutputDebugStringA(localn);
 
 	int currentTpage = *(DWORD*)(IMAGE_BASE + 0x1782084);
-	if (currentTpage < 16 || currentTpage>26)
+	if (currentTpage < 16 || currentTpage>27)
 		return;
 	if (!bWtpHdAvailable(currentTpage))
 		return;
@@ -42,9 +47,7 @@ void wtpVoid()
 char* _wtpReplaceVoid()
 {
 	char localn[256];
-	sprintf(localn, "field.fs\\field_hd_new\\hp_texpg_%d", _wtpSaveTpage - 3);
-	//sprintf(localn, "FIELD.FS\\field_hd_new\\wmset_014_0"); - another dotemu limiter for files ehh
-	
+	sprintf(localn, "field.fs\\field_hd_new\\hp_texpg_%d", texlSaveESI);
 	return localn;
 }
 
@@ -95,8 +98,69 @@ __declspec(naked) void _wtp()
 	}
 }
 
+__declspec(naked) void _wtpGetEax()
+{
+	__asm
+	{
+		MOV texlSaveEAX, EAX
+		//orig
+		MOV ecx, DWORD PTR ds : 0x11780f88
+		MOV texlSaveESI, ECX
+		JMP _wtpBackAdd3
+	}
+}
+
+//void _wtpGl()
+//{
+//	DWORD tPage = gl_textures[50];
+//	int palette = tex_header[52];
+//	char localn[256];
+//
+//	sprintf(localn, "_wtpGl()::localEAX: %d, Tpage: %d, Palette: %d\n", *(DWORD*)(IMAGE_BASE + 0x1780f88), tPage, palette);
+//	OutputDebugStringA(localn);
+//
+//	sprintf(localn, "%stextures\\field.fs\\field_hd_new\\hp_texpg_%d.png", DIRECT_IO_EXPORT_DIR, *(DWORD*)(IMAGE_BASE + 0x1780f88));
+//	int width_, height_, channels;
+//	unsigned char* buffer = stbi_load(localn, &width_, &height_, &channels, 0); //chara 0
+//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+//	sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", width_, height_, channels);
+//	OutputDebugStringA(localn);
+//	stbi_image_free(buffer);
+//	return;
+//}
+//
+//DWORD _wtpCheck()
+//{
+//	if (!WORLD_TEXTURES)
+//		return 0;
+//
+//	int textureType = gl_textures[48];
+//	if (textureType != 18) //we want only battle textures
+//		return 0;
+//
+//	DWORD tPage = gl_textures[50];
+//	if (tPage < 16)
+//		return 0;
+//	if (tPage > 26)
+//		return 0;
+//
+//	DWORD testVar = *(DWORD*)(IMAGE_BASE + 0x1780f88);
+//
+//	char localn[256];
+//
+//	sprintf(localn, "%stextures\\field.fs\\field_hd_new\\hp_texpg_%d.png", DIRECT_IO_EXPORT_DIR, testVar);
+//	DWORD attr = GetFileAttributesA(localn);
+//	if (attr == INVALID_FILE_ATTRIBUTES)
+//	{
+//		sprintf(localn, "_wtpCheck FAILED ON TEXTURE!; Expected: a0stg%03d_%d.png", currentStage, tPage);
+//		return 0;
+//	}
+//	return 1;
+//}
+
 void ApplyWorldPatch()
 {
 	_wtpBackAdd1 = InjectJMP(IMAGE_BASE + 0x1591847, (DWORD)_wtp, 6); //this is to force bHdAvailable on wm tex
 	_wtpBackAdd2 = InjectJMP(IMAGE_BASE + 0x16065F4, (DWORD)_wtpReplace, 5); //this is to pre-select PNG if available
+	_wtpBackAdd3 = InjectJMP(IMAGE_BASE + 0x155F504, (DWORD)_wtpGetEax, 6); //I don't know which texId to load due to the way wm is constructed
 }

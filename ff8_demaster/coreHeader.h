@@ -28,6 +28,9 @@ DWORD* tex_header;
 DWORD* tex_struct;
 DWORD* gl_textures;
 
+DWORD _wtpCheck();
+void _wtpGl();
+
 DWORD parm1; //arg+8
 
 int currentStage;
