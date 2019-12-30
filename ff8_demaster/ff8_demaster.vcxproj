@@ -45,6 +45,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>D:\FINAL FANTASY VIII REMASTERED\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -76,7 +77,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;FF8DEMASTER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;FF8DEMASTER_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
@@ -90,10 +91,29 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.c" />
+    <ClCompile Include="ini.c" />
+    <ClCompile Include="iopatch.c" />
+    <ClCompile Include="patch.c" />
+    <ClCompile Include="texturepatch_v2.c" />
+    <ClCompile Include="texturepatch_v2_battleCharacter.c" />
+    <ClCompile Include="texturepatch_v2_battleHooks.c" />
+    <ClCompile Include="texturepatch_v2_battleMonster.c" />
+    <ClCompile Include="texturepatch_v2_battleScenery.c" />
+    <ClCompile Include="texturepatch_v2_fieldBackground.c" />
+    <ClCompile Include="texturepatch_v2_fieldChara.c" />
+    <ClCompile Include="texturepatch_v2_world.c" />
+    <ClCompile Include="uvpatch.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="coreHeader.h" />
+    <ClInclude Include="ini.h" />
+    <ClInclude Include="stb_image.h" />
+    <ClInclude Include="texturepatch_battle_data.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
