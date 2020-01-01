@@ -36,8 +36,8 @@ __declspec(naked) void directIO_fopenReroute()
 
 	strcpy(IO_backlogFilePath, DIRECT_IO_EXPORT_DIR); //VS automatically does the ESP math
 	strcpy(IO_backlogFilePath + DIRECT_IO_EXPORT_DIR_LEN, filePathBuffer); //same for this, no local vars so no ESP--
-	OutputDebugStringA(IO_backlogFilePath);
-	OutputDebugStringA("\n");
+	OutputDebug(IO_backlogFilePath);
+	OutputDebug("\n");
 
 	attr = GetFileAttributesA(IO_backlogFilePath);
 	if (attr == INVALID_FILE_ATTRIBUTES)
@@ -123,12 +123,13 @@ __declspec(naked) void directIO_fopenReroute3()
 
 void ApplyDirectIO()
 {
+	OutputDebug("Applying DIRECT_IO\n");
 	//let's see if the exp dir exists
 	DIRECT_IO_EXPORT_DIR_LEN = strlen(DIRECT_IO_EXPORT_DIR);
 	DWORD attrib = GetFileAttributesA(DIRECT_IO_EXPORT_DIR);
 	if (attrib == INVALID_FILE_ATTRIBUTES)
 	{
-		OutputDebugStringA("There is no export directory, so it looks like you didn't export the files from zzz files. Not applying patch\n");
+		OutputDebug("There is no export directory, so it looks like you didn't export the files from zzz files. Not applying patch\n");
 		DIRECT_IO = FALSE;
 		return;
 	}

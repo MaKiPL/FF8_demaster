@@ -3,7 +3,7 @@
 #include <Windows.h>
 
 //CONFIG
-BOOL UVPATCH, DIRECT_IO, TEXTURE_PATCH, DEBUG_PATCH;
+BOOL UVPATCH, DIRECT_IO, TEXTURE_PATCH, DEBUG_PATCH, LOG;
 BOOL BATTLE_CHARA, FIELD_ENTITY, BATTLE_HOOK, FIELD_BACKGROUND, WORLD_TEXTURES;
 
 BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize);
@@ -34,6 +34,9 @@ void _wtpGl();
 DWORD parm1; //arg+8
 
 int currentStage;
+
+FILE* logFile;
+void OutputDebug(char* c);
 
 #define EXPORT __declspec(dllexport)
 #pragma warning(disable:4996)

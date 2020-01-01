@@ -22,8 +22,8 @@ void _bcpObtainTextureDatas(int aIndex)
 	height_bcp = height_ * 2;
 
 	char out[256];
-	sprintf(out, "_bcpObtainTextureDatas:: width=%d, height=%d, filename=%s", width_bcp, height_bcp, n);
-	OutputDebugStringA(out);
+	sprintf(out, "_bcpObtainTextureDatas:: width=%d, height=%d, filename=%s\n", width_bcp, height_bcp, n);
+	OutputDebug(out);
 	stbi_image_free(buffer);
 	return;
 }

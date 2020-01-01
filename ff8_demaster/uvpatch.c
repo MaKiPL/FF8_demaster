@@ -52,7 +52,7 @@ void ApplyUVPatch()
 	DWORD addMnemonic = *(DWORD*)firstMnemonic & 0xFFFFFF; //get mnemonic without parameter
 	if (addMnemonic != 0x084680)
 	{
-		OutputDebugStringA("DEMASTER::ApplyUvPatch::The addresses are wrong! We found no ADD byte ptr[esi+8] at given rel call\n");
+		OutputDebug("DEMASTER::ApplyUvPatch::The addresses are wrong! We found no ADD byte ptr[esi+8] at given rel call\n");
 		return;
 	}
 	for (int i = 0; i < 12; i++)

@@ -32,7 +32,7 @@ void wtpVoid()
 {
 	char localn[256];
 	sprintf(localn, "_wtp::Load world module: %d at TPage: %d ESI at: %d\n", *(DWORD*)(IMAGE_BASE + 0x178207C), *(DWORD*)(IMAGE_BASE + 0x1782084), *(DWORD*)(IMAGE_BASE + 0x17424B0));
-	OutputDebugStringA(localn);
+	OutputDebug(localn);
 
 	int currentTpage = *(DWORD*)(IMAGE_BASE + 0x1782084);
 	if (currentTpage < 16 || currentTpage>27)
