@@ -77,8 +77,12 @@ void _cltVoid()
 
 	char n[255];
 	n[0] = '\0';
+	if (textureType == 0)
+		return;
+	if (textureType == 18 && tPage < 15)
+		return;
 	sprintf(n, "common_load_texture: tex_type: %s, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n", GetTextureType(textureType), palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
-	OutputDebugStringA(n);
+	OutputDebug(n);
 
 	return;
 }
@@ -108,21 +112,34 @@ __declspec(naked) void _cltObtainTexStructDebug()
 
 void ReplaceTextureFunction()
 {
-	OutputDebugStringA("Applying texture patches...");
-	if(BATTLE_CHARA)
+	OutputDebug("Applying texture patches...\n");
+	if (BATTLE_CHARA)
+	{
+		OutputDebug("Applying BATTLE_CHARA patch\n");
 		ApplyBattleCharacterPatch();
-	if(FIELD_ENTITY)
+	}
+	if (FIELD_ENTITY)
+	{
+		OutputDebug("Applying FIELD_ENTITY patch\n");
 		ApplyFieldEntityPatch();
+	}
 	if (BATTLE_HOOK)
 	{
+		OutputDebug("BATTLE_HOOK- STARTING PATCHING\n");
 		ApplyBattleHookPatch();
 		ApplyBattleMonsterPatch();
 		ApplyBattleFieldPatch();
 	}
-	if(FIELD_BACKGROUND)
+	if (FIELD_BACKGROUND)
+	{
+		OutputDebug("Applying FIELD_BACKGROUND PATCH\n");
 		ApplyFieldBackgroundPatch();
-	if(WORLD_TEXTURES)
+	}
+	if (WORLD_TEXTURES)
+	{
+		OutputDebug("Applying WORLD_TEXTURES PATCH\n");
 		ApplyWorldPatch();
+	}
 
 	cltBackAdd2 = InjectJMP(IMAGE_BASE + 0x155CD05, (DWORD)_cltObtainTexHeader, 5);
 	cltBackAdd1 = InjectJMP(IMAGE_BASE + 0x155CD7A, (DWORD)_cltObtainTexStructDebug, 7);

@@ -13,10 +13,26 @@ KURSE ALL SEEDS!
 *
 */
 
+
+void OutputDebug(char* c)
+{
+	OutputDebugStringA(c);
+	if (LOG)
+	{
+		logFile = fopen("demasterlog.txt", "a+");
+		if (logFile != NULL)
+		{
+			fwrite(c, sizeof(char), strlen(c), logFile);
+			fclose(logFile);
+		}
+	}
+	
+}
+
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
 EXPORT void InitTest()
 {
-	OutputDebugStringA("DEMASTER ENGINE LOADED!\n");
+	OutputDebug("DEMASTER ENGINE LOADED!\n");
 	return;
 }
 
@@ -47,7 +63,7 @@ void DEB_JMP(char* c, DWORD a, DWORD b, DWORD cc, DWORD d, DWORD e)
 		}
 	}
 	sprintf(DEB_buf, c, a, b, cc, d, e);
-	OutputDebugStringA(DEB_buf);
+	OutputDebug(DEB_buf);
 	return;
 }
 
@@ -85,7 +101,11 @@ void ReadConfigFile()
 {
 	DWORD attr = GetFileAttributesA("demaster.ini");
 	if (attr == INVALID_FILE_ATTRIBUTES)
+	{
+		OutputDebug("File demaster.ini not found- all failed\n");
 		return;
+	}
+	OutputDebug("Reading config file demaster.ini\n");
 	ini_t* conf = ini_load("demaster.ini");
 
 	int var_;
@@ -98,6 +118,8 @@ void ReadConfigFile()
 		TEXTURE_PATCH = var_ == 0 ? FALSE : TRUE;
 	ini_sget(conf, "BASIC", "UNSTABLE_DEBUG_OUTPUT_PATCH", "%d", &var_);
 		DEBUG_PATCH = var_ == 0 ? FALSE : TRUE;
+	ini_sget(conf, "BASIC", "LOG", "%d", &var_);
+		LOG = var_ == 0 ? FALSE : TRUE;
 
 	char* c = ini_get(conf, "DIRECT_IO", "DIRECT_IO_EXPORT_DIR");
 	strcpy(DIRECT_IO_EXPORT_DIR, c);
@@ -131,7 +153,9 @@ BOOL WINAPI DllMain(
 
 	IMAGE_BASE = GetModuleHandleA("FFVIII_EFIGS");
 	OPENGL_HANDLE = GetModuleHandleA("OPENGL32");
-	
+	char localn[256];
+	sprintf(localn, "IMAGE_BASE at: %d; OPENGL at: %d\n", IMAGE_BASE, OPENGL_HANDLE);
+	OutputDebug(localn);
 
 	//LET'S GET THE HACKING DONE
 	if(DIRECT_IO)

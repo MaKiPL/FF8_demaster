@@ -52,8 +52,8 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 
 	stbi_image_free(buffer);
 	char out[256];
-	sprintf(out, "_fcpObtainTextureDatas:: width=%d, height=%d, filename=%s", width_fcp, height_fcp, texPath);
-	OutputDebugStringA(out);
+	sprintf(out, "_fcpObtainTextureDatas:: width=%d, height=%d, filename=%s\n", width_fcp, height_fcp, texPath);
+	OutputDebug(out);
 	return;
 }
 

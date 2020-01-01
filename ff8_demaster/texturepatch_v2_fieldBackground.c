@@ -17,6 +17,8 @@ char maplist[65535];
 
 char* GetFieldBackgroundFile()
 {
+	char localn[256];
+	OutputDebug("GetFieldBackgroundFile()\n");
 	DWORD* dc = IMAGE_BASE + 0x189559C;
 	char* c = *dc + 0x118;
 
@@ -24,6 +26,8 @@ char* GetFieldBackgroundFile()
 
 	int fieldId = *(DWORD*)(IMAGE_BASE + 0x1782140);
 	char* del = strtok(maplist, "\n");
+	sprintf(localn, "GetFieldBackgroundFile()::ReadyMapList at?: %s\n", del);
+	OutputDebug(localn);
 	int currField = 0;
 
 	while (del != NULL)
@@ -43,6 +47,8 @@ char* GetFieldBackgroundFile()
 	char n[256];
 	n[0] = '\0';
 	sprintf(n, "field_bg\\%s\\%s\\%s_", dirName, del, del);
+	OutputDebug(n);
+	OutputDebug("\n");
 	return n;
 }
 
@@ -85,6 +91,7 @@ __declspec(naked) void _fbgHdInject()
 //it to individually control fields- pretty cool
 DWORD _fbgCheckHdAvailableVoid()
 {
+	OutputDebug("_fbgCheckHdAvailable()\n");
 	char n[256];
 	n[0] = '\0';
 	strcat(n, DIRECT_IO_EXPORT_DIR);
@@ -107,7 +114,10 @@ __declspec(naked) void _fbgCheckHdAvailable()
 		PUSH EDX
 
 		CALL _fbgCheckHdAvailableVoid
-		MOV DWORD PTR ds:0x11782080, EAX
+		MOV EDX, OFFSET IMAGE_BASE
+		MOV EDX, [EDX]
+		ADD EDX, 0x1782080
+		MOV [EDX], EAX
 
 		POP EDX
 		POP ECX
@@ -123,16 +133,7 @@ __declspec(naked) void _fbgCheckHdAvailable()
 
 void ApplyFieldBackgroundPatch()
 {
-	//this forces all fields to be replaced with HD function
-	// ORIG
-	//	some_fieldID+3E5  66 83 3D 40 21 78 11 4B cmp     fieldId, 4Bh ; 'K'
-	//	some_fieldID+3ED  74 1A                   jne      short loc_11591B99
-
 	fbgBackAdd4 = InjectJMP(IMAGE_BASE + 0x1591B75, (DWORD)_fbgCheckHdAvailable, 20);
-		/*modPage(IMAGE_BASE + 0x1591B75, 10);
-		*(DWORD*)(IMAGE_BASE + 0x1591B75) = 0x90909090;
-		*(DWORD*)(IMAGE_BASE + 0x1591B79) = 0x90909090;
-		*(WORD*)(IMAGE_BASE + 0x1591B7D) = 0x9090;*/
 
 		//disable tpage 16&17 limit
 		modPage(IMAGE_BASE + 0x1606595, 1); 
@@ -140,10 +141,4 @@ void ApplyFieldBackgroundPatch()
 
 	//we now inject JMP when CMP fieldIfd, gover and do out stuff, then return to glSegment
 		fbgBackAdd3 = InjectJMP(IMAGE_BASE + 0x1606540, (DWORD)_fbgHdInject, 42);//169-11);
-
-
-	//should return at 116065D2 and should have eax at 
-
-
-	//fbgBackAdd3 = InjectJMP(IMAGE_BASE + 0x155CD87, (DWORD)_fbgTest, 7);
 }

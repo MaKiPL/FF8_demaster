@@ -16,14 +16,14 @@ void _bspGl()
 	char localn[256];
 
 	sprintf(localn, "_bspGl()::Stage: %d, Tpage: %d, Palette: %d\n", currentStage, tPage, palette);
-	OutputDebugStringA(localn);
+	OutputDebug(localn);
 
 	sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.png", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
 	int width_, height_, channels;
 	unsigned char* buffer = stbi_load(localn, &width_, &height_, &channels, 0); //chara 0
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 	sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", width_, height_, channels);
-	OutputDebugStringA(localn);
+	OutputDebug(localn);
 	stbi_image_free(buffer);
 	return;
 }
@@ -45,11 +45,16 @@ DWORD _bspCheck()
 	DWORD attr = GetFileAttributesA(localn);
 	if (attr == INVALID_FILE_ATTRIBUTES)
 	{
-		sprintf(localn, "_bspCheck FAILED ON TEXTURE!; Expected: a0stg%03d_%d.png", currentStage, tPage);
+		sprintf(localn, "_bspCheck FAILED ON TEXTURE!; Expected: a0stg%03d_%d.png\n", currentStage, tPage);
+		OutputDebug(localn);
 		return 0;
 	}
+	sprintf(localn, "_bspCheck: Happy at a0stg%03d_%d.png\n", currentStage, tPage);
 	return 1;
 }
+
+DWORD** ds_free;
+DWORD** ds_teximg;
 
 __declspec(naked) void _bsp()
 {
@@ -81,7 +86,9 @@ __declspec(naked) void _bsp()
 			PUSH 0x8058
 			PUSH 0
 			PUSH 0xDE1
-			call   DWORD PTR ds : 0x1166b4a0
+			MOV EAX, ds_teximg
+			MOV EAX, [EAX]
+			CALL EAX
 		_out:
 		JMP _bspBackAdd1
 
@@ -96,7 +103,9 @@ __declspec(naked) void _bsp()
 
 		_bspOk:
 		PUSH DWORD PTR[EBP + 0x10]
-		call DWORD PTR ds : 0x1166b2a8 //- ds:free
+			MOV EAX, ds_free
+			MOV EAX, [EAX]
+			CALL EAX
 		MOV bAlreadyFreed, 1
 		
 		CALL _bspGl
@@ -112,7 +121,9 @@ __declspec(naked) void _bspFree()
 		CMP bAlreadyFreed, 1
 		JE _out
 		push   DWORD PTR[ebp + 0x10]
-		call   DWORD PTR ds : 0x1166b2a8
+		MOV EAX, ds_free
+		MOV EAX, [EAX]
+		CALL EAX
 		_out:
 		JMP _bspBackAdd2
 	}
@@ -121,6 +132,12 @@ __declspec(naked) void _bspFree()
 
 void ApplyBattleFieldPatch()
 {
+	OutputDebug("Applying battle field patch\n");
+	ds_free = IMAGE_BASE + 0x166b2a8;
+	ds_teximg = IMAGE_BASE + 0x166b4a0;
+	char localn[256];
+	sprintf(localn, "ApplyBattleFieldPatch():ds_free is at: %08X and ds_teximg is at: %08X", ds_free, ds_teximg);
+	OutputDebug(localn);
 	_bspBackAdd1 = InjectJMP(IMAGE_BASE + 0x1573AFF, (DWORD)_bsp, 38);
 	_bspBackAdd2 = InjectJMP(IMAGE_BASE + 0x1573B54, (DWORD)_bspFree, 9);
 }

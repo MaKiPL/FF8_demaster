@@ -31,7 +31,7 @@ DWORD _bhpMonsterStructVoid()
 			if (maxPal == 0)
 			{
 				sprintf(localn, "_bhpMonsterStructVoid::Not found entry of c0m%03d_0.png- treating as null;\n", batId);
-				OutputDebugStringA(localn);
+				OutputDebug(localn);
 				return -1;
 			}
 			break;
@@ -39,7 +39,7 @@ DWORD _bhpMonsterStructVoid()
 		maxPal++;
 	}
 	sprintf(localn, "_bhpMonsterStructVoid::Custom worker- found C0M%03d that have %d pages\n", batId, maxPal);
-	OutputDebugStringA(localn);
+	OutputDebug(localn);
 	return maxPal;
 }
 
@@ -66,7 +66,7 @@ BYTE _bhpVoid()
 	char localn[256];
 	char localPath[256];
 	sprintf(localn, "texturepatchv2::battleHooks::BhpVoid(%s)\n", _bhpStrPointer);
-	OutputDebugStringA(localn);
+	OutputDebug(localn);
 	
 	char bhpChechker = _bhpStrPointer[0];
 	bhpChechker = tolower(bhpChechker);
