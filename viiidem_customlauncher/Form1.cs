@@ -23,11 +23,11 @@ namespace viiidem_customlauncher
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             GetOfficialAssets();
 
+            InitializeComponent();
             CheckUpdates();
             CheckUnpacked();
 
 
-            InitializeComponent();
             if(File.Exists("bg_top.jpg"))
             {
                 FileInfo fi = new FileInfo("bg_top.jpg");
@@ -59,7 +59,6 @@ namespace viiidem_customlauncher
                 if (!File.Exists("logo_top.png") || new FileInfo("logo_top.png").Length == 0)
                     DownloadFile("https://ffviiiremastered.square-enix-games.com/images/home/logo_top.png");
                 gitStatus = DownloadString("https://raw.githubusercontent.com/MaKiPL/FF8_demastered/loli/status");
-
             }
             catch
             {
@@ -72,13 +71,25 @@ namespace viiidem_customlauncher
             if(!File.Exists("demaster.conf"))
             {
                 CreateNewConfFile();
+                ForceUpdate();
             }
+            if(!string.IsNullOrWhiteSpace(gitStatus))
+            {
+                string[] op = gitStatus.Split('\n');
+                label1.Text = $"demaster version: {op[0]}";
+                label2.Text = $"launcher version: {op[1]}";
+                richTextBox1.Text = op[2].Replace("\\n", Environment.NewLine);
+            }
+        }
 
+        private void ForceUpdate()
+        {
+            
         }
 
         private void CreateNewConfFile()
         {
-            //download from github
+            DownloadFile("https://raw.githubusercontent.com/MaKiPL/FF8_demastered/loli/demaster.conf");
         }
 
         private void CheckUnpacked()
