@@ -48,6 +48,8 @@ namespace viiidem_customlauncher
 
         }
 
+        string gitStatus = string.Empty;
+
         private void GetOfficialAssets()
         {
             try
@@ -56,6 +58,8 @@ namespace viiidem_customlauncher
                     DownloadFile("https://ffviiiremastered.square-enix-games.com/images/home/bg_top.jpg");
                 if (!File.Exists("logo_top.png") || new FileInfo("logo_top.png").Length == 0)
                     DownloadFile("https://ffviiiremastered.square-enix-games.com/images/home/logo_top.png");
+                gitStatus = DownloadString("https://raw.githubusercontent.com/MaKiPL/FF8_demastered/loli/status");
+
             }
             catch
             {
@@ -105,6 +109,16 @@ namespace viiidem_customlauncher
             {
                 wc.DownloadFile(uri, Path.GetFileName(uri));
             }
+        }
+
+        private string DownloadString(string uri)
+        {
+            string localn;
+            using (WebClient wc = new WebClient())
+            {
+                localn=wc.DownloadString(uri);
+            }
+            return localn;
         }
 
         private void splitContainer1_Panel1_Paint(object sender, PaintEventArgs e)
