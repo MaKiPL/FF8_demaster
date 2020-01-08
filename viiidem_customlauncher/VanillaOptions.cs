@@ -133,6 +133,8 @@ namespace viiidem_customlauncher
 
             for (int i = 0; i < comboBox2.Items.Count; i++)
             {
+                if (i == resolutions.Count)
+                    break;
                 res _res = resolutions[i];
                 if (width == _res.width && height == _res.height)
                 {

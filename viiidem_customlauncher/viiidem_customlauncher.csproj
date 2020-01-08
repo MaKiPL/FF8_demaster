@@ -7,7 +7,7 @@
     <ProjectGuid>{E8FE9475-BE92-4FCD-8DD2-782789A07CAC}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>viiidem_customlauncher</RootNamespace>
-    <AssemblyName>viiidem_customlauncher</AssemblyName>
+    <AssemblyName>ffviii_launcher</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
