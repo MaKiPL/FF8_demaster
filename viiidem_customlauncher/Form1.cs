@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net;
 using System.IO;
-
-
+using System.Diagnostics;
 
 namespace viiidem_customlauncher
 {
     public partial class Form1 : Form
     {
         Bitmap logoBmp;
+        VanillaOptions opt;
         public Form1()
         {
             ServicePointManager.Expect100Continue = true;
@@ -24,6 +24,9 @@ namespace viiidem_customlauncher
             GetOfficialAssets();
 
             InitializeComponent();
+            opt = new VanillaOptions();
+            opt.ReRead();
+
             CheckUpdates();
             CheckUnpacked();
 
@@ -54,11 +57,11 @@ namespace viiidem_customlauncher
         {
             try
             {
+                gitStatus = DownloadString("https://raw.githubusercontent.com/MaKiPL/FF8_demastered/loli/status");
                 if (!File.Exists("bg_top.jpg") || new FileInfo("bg_top.jpg").Length == 0)
                     DownloadFile("https://ffviiiremastered.square-enix-games.com/images/home/bg_top.jpg");
                 if (!File.Exists("logo_top.png") || new FileInfo("logo_top.png").Length == 0)
                     DownloadFile("https://ffviiiremastered.square-enix-games.com/images/home/logo_top.png");
-                gitStatus = DownloadString("https://raw.githubusercontent.com/MaKiPL/FF8_demastered/loli/status");
             }
             catch
             {
@@ -66,13 +69,42 @@ namespace viiidem_customlauncher
             }
         }
 
+        bool bAlreadyUpdated = false;
         private void CheckUpdates()
         {
+            bAlreadyUpdated = false;
             if(!File.Exists("demaster.conf"))
             {
                 CreateNewConfFile();
                 ForceUpdate();
+                bAlreadyUpdated = true;
             }
+            if (!File.Exists("ff8_demaster.dll"))
+            {
+                bAlreadyUpdated = true;
+                ForceUpdate();
+            }
+
+            string[] confReader = File.ReadAllLines("demaster.conf");
+                if(confReader.Length>5)
+                {
+                    string getVersion = confReader[1].TrimStart(';');
+                    string serverVersion = gitStatus.Split('\n')[0];
+                if (getVersion != serverVersion)
+                {
+                    ForceUpdate();
+                    bAlreadyUpdated = true;
+                    confReader[1] = $";{serverVersion}";
+                    File.WriteAllLines("demaster.conf", confReader);
+                }
+                }
+                else
+                {
+                    CreateNewConfFile();
+                bAlreadyUpdated = true;
+                    ForceUpdate();
+                }
+
             if(!string.IsNullOrWhiteSpace(gitStatus))
             {
                 string[] op = gitStatus.Split('\n');
@@ -80,11 +112,18 @@ namespace viiidem_customlauncher
                 label2.Text = $"launcher version: {op[1]}";
                 richTextBox1.Text = op[2].Replace("\\n", Environment.NewLine);
             }
+
         }
 
         private void ForceUpdate()
         {
-            
+            if (bAlreadyUpdated)
+                return;
+            DownloadFile("https://github.com/MaKiPL/FF8_demastered/raw/loli/ff8_demaster.dll");
+            if (new FileInfo("ff8_demaster.dll").Length == 0)
+                MessageBox.Show("Update ERROR! Please download manually from github!");
+            else
+                MessageBox.Show($"Succesfully updated to {gitStatus.Split('\n')[0]}");
         }
 
         private void CreateNewConfFile()
@@ -125,7 +164,7 @@ namespace viiidem_customlauncher
         private string DownloadString(string uri)
         {
             string localn;
-            using (WebClient wc = new WebClient())
+            using (WebClient wc = new WebClient() {CachePolicy = new System.Net.Cache.RequestCachePolicy(System.Net.Cache.RequestCacheLevel.NoCacheNoStore) })
             {
                 localn=wc.DownloadString(uri);
             }
@@ -177,6 +216,50 @@ namespace viiidem_customlauncher
         {
             if(MessageBox.Show("Are you sure?", "Confirm files re-unpack", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
                 zzz.UnpackAll("DEMASTER_EXP");
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            opt.ReRead();
+                opt.ShowDialog();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string text = "FFVIII.exe";
+            bool result = true;
+            ProcessStartInfo processStartInfo = new ProcessStartInfo(text);
+            processStartInfo.UseShellExecute = true;
+            processStartInfo.ErrorDialog = true;
+            processStartInfo.ErrorDialogParentHandle = base.Handle;
+            try
+            {
+                if (!File.Exists(text))
+                {
+                    string message = new FileNotFoundException().Message;
+                }
+                Process process;
+                if (opt.language == "JP")
+                {
+                    processStartInfo.Arguments = "jp";
+                    process = Process.Start(processStartInfo);
+                }
+                else
+                    process = Process.Start(processStartInfo);
+                process.WaitForExit();
+            }
+            catch
+            {
+                ;
+            }
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            using(DemasterOpt dopt = new DemasterOpt())
+            {
+                dopt.ShowDialog();
+            }
         }
     }
 }

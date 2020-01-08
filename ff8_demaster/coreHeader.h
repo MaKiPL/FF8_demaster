@@ -15,7 +15,7 @@ DWORD bspVoid(UINT textures, int a2, char* pixels);
 __int64 IMAGE_BASE;
 DWORD OPENGL_HANDLE;
 DWORD attr;
-char DIRECT_IO_EXPORT_DIR[32];
+char* DIRECT_IO_EXPORT_DIR;
 DWORD DIRECT_IO_EXPORT_DIR_LEN;
 
 char texPath[256];
