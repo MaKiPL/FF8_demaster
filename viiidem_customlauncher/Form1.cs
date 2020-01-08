@@ -17,17 +17,19 @@ namespace viiidem_customlauncher
     {
         Bitmap logoBmp;
         VanillaOptions opt;
-        public Form1()
+        public Form1(bool bOffline)
         {
             ServicePointManager.Expect100Continue = true;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            GetOfficialAssets();
+            if(!bOffline)
+                GetOfficialAssets();
 
             InitializeComponent();
             opt = new VanillaOptions();
             opt.ReRead();
 
-            CheckUpdates();
+            if(!bOffline)
+                CheckUpdates();
             CheckUnpacked();
 
 
@@ -81,8 +83,13 @@ namespace viiidem_customlauncher
             }
             if (!File.Exists("ff8_demaster.dll"))
             {
-                bAlreadyUpdated = true;
                 ForceUpdate();
+                bAlreadyUpdated = true;
+            }
+            else if(new FileInfo("ff8_demaster.dll").Length == 0)
+            {
+                ForceUpdate();
+                bAlreadyUpdated = true;
             }
 
             string[] confReader = File.ReadAllLines("demaster.conf");
@@ -101,8 +108,8 @@ namespace viiidem_customlauncher
                 else
                 {
                     CreateNewConfFile();
-                bAlreadyUpdated = true;
                     ForceUpdate();
+                bAlreadyUpdated = true;
                 }
 
             if(!string.IsNullOrWhiteSpace(gitStatus))
@@ -120,10 +127,15 @@ namespace viiidem_customlauncher
             if (bAlreadyUpdated)
                 return;
             DownloadFile("https://github.com/MaKiPL/FF8_demastered/raw/master/ff8_demaster.dll");
-            if (new FileInfo("ff8_demaster.dll").Length == 0)
-                MessageBox.Show("Update ERROR! Please download manually from github!");
+            if (File.Exists("ff8_demaster.dll"))
+            {
+                if (new FileInfo("ff8_demaster.dll").Length == 0)
+                    MessageBox.Show("Update ERROR! Please download manually from github!");
+                else
+                    MessageBox.Show($"Succesfully updated to {gitStatus.Split('\n')[0]}");
+            }
             else
-                MessageBox.Show($"Succesfully updated to {gitStatus.Split('\n')[0]}");
+                    MessageBox.Show("Update ERROR! Please download manually from github!");
         }
 
         private void CreateNewConfFile()
@@ -155,9 +167,16 @@ namespace viiidem_customlauncher
 
         private void DownloadFile(string uri)
         {
-            using(WebClient wc = new WebClient())
+            try
             {
-                wc.DownloadFile(uri, Path.GetFileName(uri));
+                using (WebClient wc = new WebClient())
+                {
+                    wc.DownloadFile(uri, Path.GetFileName(uri));
+                }
+            }
+            catch
+            {
+
             }
         }
 

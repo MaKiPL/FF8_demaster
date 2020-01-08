@@ -12,11 +12,15 @@ namespace viiidem_customlauncher
         /// Główny punkt wejścia dla aplikacji.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
+            bool bOffline = false;
+            if (args.Length > 0)
+                if (args[0] == "-offline")
+                    bOffline = true;
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            Application.Run(new Form1(bOffline));
         }
     }
 }
