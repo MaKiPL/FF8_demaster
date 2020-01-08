@@ -106,6 +106,7 @@
             this.button5.TabIndex = 4;
             this.button5.Text = "DEMASTER OPTIONS";
             this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
             this.button5.MouseEnter += new System.EventHandler(this.buttonCallback_blueOn);
             this.button5.MouseLeave += new System.EventHandler(this.buttonCallback_blueOff);
             // 
@@ -175,6 +176,7 @@
             this.button2.TabIndex = 1;
             this.button2.Text = "FFVIII OPTIONS";
             this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
             this.button2.MouseEnter += new System.EventHandler(this.buttonCallback_silver);
             this.button2.MouseLeave += new System.EventHandler(this.buttonCallback_silverOff);
             // 
@@ -191,6 +193,7 @@
             this.button1.TabIndex = 0;
             this.button1.Text = "PLAY";
             this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             this.button1.MouseEnter += new System.EventHandler(this.buttonCallback_SetOrange);
             this.button1.MouseLeave += new System.EventHandler(this.buttonCallback_setOrangeOff);
             // 

@@ -33,6 +33,7 @@ void OutputDebug(char* c)
 EXPORT void InitTest()
 {
 	OutputDebug("DEMASTER ENGINE LOADED!\n");
+	DIRECT_IO_EXPORT_DIR = "DEMASTER_EXP\\";
 	return;
 }
 
@@ -99,40 +100,37 @@ void ApplyDebugOutputPatch()
 
 void ReadConfigFile()
 {
-	DWORD attr = GetFileAttributesA("demaster.ini");
+	DWORD attr = GetFileAttributesA("demaster.conf");
 	if (attr == INVALID_FILE_ATTRIBUTES)
 	{
 		OutputDebug("File demaster.ini not found- all failed\n");
 		return;
 	}
 	OutputDebug("Reading config file demaster.ini\n");
-	ini_t* conf = ini_load("demaster.ini");
+	ini_t* conf = ini_load("demaster.conf");
 
 	int var_;
 	//BASIC
-	ini_sget(conf, "BASIC", "UV_PATCH", "%d", &var_);
+	ini_sget(conf, NULL, "UV_PATCH", "%d", &var_);
 		UVPATCH = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, "BASIC", "DIRECT_IO", "%d", &var_);
+	ini_sget(conf, NULL, "DIRECT_IO", "%d", &var_);
 		DIRECT_IO = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, "BASIC", "TEXTURE_PATCH", "%d", &var_);
+	ini_sget(conf, NULL, "TEXTURE_PATCH", "%d", &var_);
 		TEXTURE_PATCH = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, "BASIC", "UNSTABLE_DEBUG_OUTPUT_PATCH", "%d", &var_);
+	ini_sget(conf, NULL, "UNSTABLE_DEBUG_OUTPUT_PATCH", "%d", &var_);
 		DEBUG_PATCH = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, "BASIC", "LOG", "%d", &var_);
+	ini_sget(conf, NULL, "LOG", "%d", &var_);
 		LOG = var_ == 0 ? FALSE : TRUE;
 
-	char* c = ini_get(conf, "DIRECT_IO", "DIRECT_IO_EXPORT_DIR");
-	strcpy(DIRECT_IO_EXPORT_DIR, c);
-
-	ini_sget(conf, "TEXTURE_PATCH", "BATTLE_CHARACTER", "%d", &var_);
+	ini_sget(conf, NULL, "BATTLE_CHARACTER", "%d", &var_);
 	BATTLE_CHARA = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, "TEXTURE_PATCH", "FIELD_ENTITY", "%d", &var_);
+	ini_sget(conf, NULL, "FIELD_ENTITY", "%d", &var_);
 	FIELD_ENTITY = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, "TEXTURE_PATCH", "BATTLE_HOOK_MONSTER_FIELDS", "%d", &var_);
+	ini_sget(conf, NULL, "BATTLE_HOOK_MONSTER_FIELDS", "%d", &var_);
 	BATTLE_HOOK = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, "TEXTURE_PATCH", "FIELD_BACKGROUND", "%d", &var_);
+	ini_sget(conf, NULL, "FIELD_BACKGROUND", "%d", &var_);
 	FIELD_BACKGROUND = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, "TEXTURE_PATCH", "WORLD_TEXTURES", "%d", &var_);
+	ini_sget(conf, NULL, "WORLD_TEXTURES", "%d", &var_);
 	WORLD_TEXTURES = var_ == 0 ? FALSE : TRUE;
 
 	ini_free(conf);
