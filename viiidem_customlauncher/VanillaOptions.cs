@@ -105,14 +105,23 @@ namespace viiidem_customlauncher
                 }
             }
             comboBox1.SelectedIndex = getLangIdx(language);
+            if (mastervol > 100 || mastervol < 0)
+                mastervol = 100; //safe 
             trackBar1.Value = mastervol;
+            if (brightness < 0 || brightness > 100)
+                brightness = 50;
             numericUpDown1.Value = brightness;
 
             var screens = Screen.AllScreens;
 
             for (int i = 0; i < screens.Length; i++)
                 comboBox4.Items.Add($"[{i}]{(screens[i].Primary ? " PRIMARY" : "")}");
+
+            if (display > comboBox4.Items.Count)
+                display = 0;
             comboBox4.SelectedIndex = display;
+            if (antialiaslevel > comboBox5.Items.Count || antialiaslevel < 0)
+                antialiaslevel = 0;
             comboBox5.SelectedIndex = antialiaslevel;
 
 
@@ -145,13 +154,17 @@ namespace viiidem_customlauncher
                 }
             }
 
+            if (screenmode < 0 || screenmode > comboBox3.Items.Count)
+                screenmode = 0;
             comboBox3.SelectedIndex = screenmode;
+            if (cameraspeed < 0 || cameraspeed > 8)
+                cameraspeed = 4;
             numericUpDown2.Value = cameraspeed;
         }
 
         private string ReverseGetLangIdx(int idx)
         {
-            switch(idx)
+            switch (idx)
             {
                 case 0:
                     return "JP";
@@ -183,24 +196,47 @@ namespace viiidem_customlauncher
 
         public void Init()
         {
+            bool bDefaultValue = false;
+            AppId_t applicationId = (AppId_t)1026680u;
             try
             {
-                AppId_t applicationId = (AppId_t)1026680u;
-                //if (SteamAPI.RestartAppIfNecessary(applicationId))
-                //{
-                //    Environment.Exit(-1);
-                //}
-                SteamAPI.Init();
-                CSteamID player = SteamApps.GetAppOwner();
-                string steamplayer = player.m_SteamID.ToString();
-                string lang = SteamUtils.GetSteamUILanguage();
-
-                string path = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-                configPath = path = Path.Combine(path, "My Games", "FINAL FANTASY VIII Remastered", "Steam", steamplayer, "config.txt");
-                if (!File.Exists(path))
+                if (!SteamAPI.Init())
                 {
-                    File.WriteAllLines(path, new string[]
-                    {
+                    MessageBox.Show("There was an error with SteamApi Init. You might have issues with config. Using first folder instead in MyGames");
+                    bDefaultValue = true;
+                }
+            }
+            catch
+            {
+                MessageBox.Show("There was an error with SteamApi Init. You might have issues with config. Using first folder instead in MyGames");
+                bDefaultValue = true;
+            }
+            string steamplayer = null;
+            if (!bDefaultValue)
+            {
+                CSteamID player = SteamApps.GetAppOwner();
+                steamplayer = player.m_SteamID.ToString();
+                string lang = SteamUtils.GetSteamUILanguage();
+            }
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+            if (!bDefaultValue)
+                configPath = path = Path.Combine(path, "My Games", "FINAL FANTASY VIII Remastered", "Steam", steamplayer, "config.txt");
+            else
+            {
+                configPath = path = Path.Combine(path, "My Games", "FINAL FANTASY VIII Remastered", "Steam");
+                var paths = Directory.EnumerateDirectories(path).ToList();
+                if (paths.Count != 0)
+                    configPath = path = paths[0];
+                else
+                    configPath = path = Path.Combine(path, "0");
+                configPath = path = Path.Combine(path, "config.txt");
+            }
+            if (!Directory.Exists(Path.GetDirectoryName(path)))
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+            if (!File.Exists(path))
+            {
+                File.WriteAllLines(path, new string[]
+                {
                     "width\t\t\t1280",
                     "height\t\t\t768",
                     "language\t\tEN",
@@ -212,12 +248,7 @@ namespace viiidem_customlauncher
                     "brightness\t\t50",
                     "antialiaslevel\t1",
                     "firstboot\t1"
-                    }, Encoding.GetEncoding("Shift_JIS"));
-                }
-            }
-            catch
-            {
-
+                }, Encoding.GetEncoding("Shift_JIS"));
             }
         }
 
@@ -282,7 +313,7 @@ namespace viiidem_customlauncher
             public int bpp;
             public int freq;
 
-            
+
         }
 
         List<res> resolutions;
@@ -338,7 +369,7 @@ namespace viiidem_customlauncher
 
         int getLangIdx(string lang)
         {
-            switch(lang)
+            switch (lang)
             {
                 case "JP":
                     return 0;
