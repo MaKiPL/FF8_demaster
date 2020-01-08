@@ -79,7 +79,7 @@ void _cltVoid()
 	n[0] = '\0';
 	if (textureType == 0)
 		return;
-	if (textureType == 18 && tPage < 15)
+	if (textureType == 18 && (tPage <= 15 || tPage>=28))
 		return;
 	sprintf(n, "common_load_texture: tex_type: %s, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n", GetTextureType(textureType), palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
 	OutputDebug(n);

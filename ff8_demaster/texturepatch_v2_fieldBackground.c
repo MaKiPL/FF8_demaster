@@ -24,7 +24,7 @@ char* GetFieldBackgroundFile()
 
 	strcpy(maplist, c);
 
-	int fieldId = *(DWORD*)(IMAGE_BASE + 0x1782140);
+	int fieldId = *(DWORD*)(IMAGE_BASE + 0x1782140) & 0xFFFF;
 	char* del = strtok(maplist, "\n");
 	sprintf(localn, "GetFieldBackgroundFile()::ReadyMapList at?: %s\n", del);
 	OutputDebug(localn);
@@ -38,7 +38,8 @@ char* GetFieldBackgroundFile()
 		del = strtok(NULL, "\n");
 	}
 
-
+	if (del == NULL)
+		return "ERROR";
 
 	char dirName[3];
 	memcpy(dirName, del, 2); //warning- yes, I know- but it doesn't matter. IO_func is set to load null.png if not found
