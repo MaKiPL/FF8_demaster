@@ -35,7 +35,7 @@ namespace viiidem_customlauncher
             firstboot = 0;
             language = ReverseGetLangIdx(comboBox1.SelectedIndex);
 
-            using (StreamWriter sw = new StreamWriter(configPath, append: false, Encoding.GetEncoding("Shift_JIS")))
+            using (StreamWriter sw = new StreamWriter(configPath, false, Encoding.GetEncoding("Shift_JIS")))
             {
                 sw.WriteLine($"width\t\t\t{width}");
                 sw.WriteLine($"height\t\t\t{height}");
