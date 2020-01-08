@@ -140,4 +140,7 @@ void ApplyBattleFieldPatch()
 	OutputDebug(localn);
 	_bspBackAdd1 = InjectJMP(IMAGE_BASE + 0x1573AFF, (DWORD)_bsp, 38);
 	_bspBackAdd2 = InjectJMP(IMAGE_BASE + 0x1573B54, (DWORD)_bspFree, 9);
+
+	//this disables textureLimit for resolution
+	InjectJMP(IMAGE_BASE + 0x156CED4, (DWORD)(IMAGE_BASE + 0x156D30B), 6);
 }
