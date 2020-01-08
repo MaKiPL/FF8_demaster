@@ -57,7 +57,7 @@ namespace viiidem_customlauncher
         {
             try
             {
-                gitStatus = DownloadString("https://raw.githubusercontent.com/MaKiPL/FF8_demastered/loli/status");
+                gitStatus = DownloadString("https://raw.githubusercontent.com/MaKiPL/FF8_demastered/master/status");
                 if (!File.Exists("bg_top.jpg") || new FileInfo("bg_top.jpg").Length == 0)
                     DownloadFile("https://ffviiiremastered.square-enix-games.com/images/home/bg_top.jpg");
                 if (!File.Exists("logo_top.png") || new FileInfo("logo_top.png").Length == 0)
@@ -119,7 +119,7 @@ namespace viiidem_customlauncher
         {
             if (bAlreadyUpdated)
                 return;
-            DownloadFile("https://github.com/MaKiPL/FF8_demastered/raw/loli/ff8_demaster.dll");
+            DownloadFile("https://github.com/MaKiPL/FF8_demastered/raw/master/ff8_demaster.dll");
             if (new FileInfo("ff8_demaster.dll").Length == 0)
                 MessageBox.Show("Update ERROR! Please download manually from github!");
             else
@@ -128,7 +128,7 @@ namespace viiidem_customlauncher
 
         private void CreateNewConfFile()
         {
-            DownloadFile("https://raw.githubusercontent.com/MaKiPL/FF8_demastered/loli/demaster.conf");
+            DownloadFile("https://raw.githubusercontent.com/MaKiPL/FF8_demastered/master/demaster.conf");
         }
 
         private void CheckUnpacked()
