@@ -35,7 +35,7 @@ namespace viiidem_customlauncher
             firstboot = 0;
             language = ReverseGetLangIdx(comboBox1.SelectedIndex);
 
-            using (StreamWriter sw = new StreamWriter(configPath, append: false, Encoding.GetEncoding("Shift_JIS")))
+            using (StreamWriter sw = new StreamWriter(configPath, false, Encoding.GetEncoding("Shift_JIS")))
             {
                 sw.WriteLine($"width\t\t\t{width}");
                 sw.WriteLine($"height\t\t\t{height}");
@@ -59,6 +59,8 @@ namespace viiidem_customlauncher
             Init();
 
             //read here
+            if (!File.Exists(configPath))
+                return;
             string[] configFile = File.ReadAllLines(configPath, Encoding.GetEncoding("Shift_JIS"));
             foreach (string line in configFile)
             {
@@ -181,25 +183,24 @@ namespace viiidem_customlauncher
 
         public void Init()
         {
-            AppId_t applicationId = (AppId_t)1026680u;
-            if (SteamAPI.RestartAppIfNecessary(applicationId))
+            try
             {
-                Environment.Exit(-1);
-            }
-            if (!SteamAPI.Init())
-            {
-                Environment.Exit(-1);
-            }
-            CSteamID player = SteamApps.GetAppOwner();
-            string steamplayer = player.m_SteamID.ToString();
-            string lang = SteamUtils.GetSteamUILanguage();
+                AppId_t applicationId = (AppId_t)1026680u;
+                //if (SteamAPI.RestartAppIfNecessary(applicationId))
+                //{
+                //    Environment.Exit(-1);
+                //}
+                SteamAPI.Init();
+                CSteamID player = SteamApps.GetAppOwner();
+                string steamplayer = player.m_SteamID.ToString();
+                string lang = SteamUtils.GetSteamUILanguage();
 
-            string path = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
-            configPath = path = Path.Combine(path, "My Games", "FINAL FANTASY VIII Remastered", "Steam", steamplayer, "config.txt");
-            if (!File.Exists(path))
-            {
-                File.WriteAllLines(path, new string[]
+                string path = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                configPath = path = Path.Combine(path, "My Games", "FINAL FANTASY VIII Remastered", "Steam", steamplayer, "config.txt");
+                if (!File.Exists(path))
                 {
+                    File.WriteAllLines(path, new string[]
+                    {
                     "width\t\t\t1280",
                     "height\t\t\t768",
                     "language\t\tEN",
@@ -211,7 +212,12 @@ namespace viiidem_customlauncher
                     "brightness\t\t50",
                     "antialiaslevel\t1",
                     "firstboot\t1"
-                }, Encoding.GetEncoding("Shift_JIS"));
+                    }, Encoding.GetEncoding("Shift_JIS"));
+                }
+            }
+            catch
+            {
+
             }
         }
 
