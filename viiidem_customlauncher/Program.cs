@@ -15,12 +15,25 @@ namespace viiidem_customlauncher
         static void Main(string[] args)
         {
             bool bOffline = false;
+            bool bForcePlay = false;
             if (args.Length > 0)
-                if (args[0] == "-offline")
-                    bOffline = true;
+            {
+                for(int i = 0; i<args.Length; i++)
+                {
+                    switch(args[i])
+                    {
+                        case "-offline":
+                            bOffline = true;
+                            break;
+                        case "-forceplay"
+                            :bForcePlay = true;break;
+                    }
+                }
+            }
+                
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1(bOffline));
+            Application.Run(new Form1(bOffline,bForcePlay));
         }
     }
 }

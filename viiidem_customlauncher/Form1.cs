@@ -16,9 +16,11 @@ namespace viiidem_customlauncher
     public partial class Form1 : Form
     {
         Bitmap logoBmp;
-        VanillaOptions opt;
-        public Form1(bool bOffline)
+        VanillaOptions opt = null;
+        public Form1(bool bOffline, bool bForcePlay)
         {
+            if (bForcePlay)
+                LaunchGame();
             ServicePointManager.Expect100Continue = true;
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             if(!bOffline)
@@ -245,6 +247,11 @@ namespace viiidem_customlauncher
 
         private void button1_Click(object sender, EventArgs e)
         {
+            LaunchGame();
+        }
+
+        private void LaunchGame()
+        {
             string text = "FFVIII.exe";
             bool result = true;
             ProcessStartInfo processStartInfo = new ProcessStartInfo(text);
@@ -258,10 +265,15 @@ namespace viiidem_customlauncher
                     string message = new FileNotFoundException().Message;
                 }
                 Process process;
-                if (opt.language == "JP")
+                if (opt != null)
                 {
-                    processStartInfo.Arguments = "jp";
-                    process = Process.Start(processStartInfo);
+                    if (opt.language == "JP")
+                    {
+                        processStartInfo.Arguments = "jp";
+                        process = Process.Start(processStartInfo);
+                    }
+                    else
+                        process = Process.Start(processStartInfo);
                 }
                 else
                     process = Process.Start(processStartInfo);
