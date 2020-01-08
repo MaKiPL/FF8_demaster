@@ -1,20 +1,12 @@
 # FF8_demastered
-This is injectable DLL that acts as an import-dependency for FFVIII_EFIGS.dll hot-patching the gamecode and allowing future super-fast-development mods
+FF8_Demastered is unofficial patch for Final Fantasy VIII Remastered game by SquareEnix. It works as DLL-dependency and has custom launcher with brand new functions. Patch makes it possible to load new textures, use non-fixed-resolution textures and will aim in tweaking issues
 
 ## Usage:
 1. Just drop to your folder of Final Fantasy VIII Remastered installation.
 Usually:<br/>
 _D:\SteamLibrary\steamapps\common\FINAL FANTASY VIII Remastered_<br/>
-2. Extract your main.zzz and other.zzz to new folder called "EXP". This DLL was compiled to use unpacked .zzz files in folder called "EXP".
-If user doesn't have such folder the patch wouldn't be applied to not crash the application.<br/>
-Tools to extract zzz files: [qt.zzz](https://github.com/myst6re/qt-zzz/releases), [zzzDeArchive](https://github.com/Sebanisu/zzzDeArchive/releases)
-
-
 
 ## Troubleshooting
-### Usage:
-`FFVIII_LAUNCER.exe` crashes, and won't let you start the game.<br/>
-  - [Use an alternate launcher](https://github.com/Sebanisu/FFVIII_LAUNCHER-Alternative/releases) - now comes with the release.
 ### Compiling:
 `Error	MSB8020	The build tools for v142 (Platform Toolset = 'v142') cannot be found.`<br/>
   - Open properties (right click _ff8_demaster_ and click properties) and change `Platform Toolset` to something you have installed.
