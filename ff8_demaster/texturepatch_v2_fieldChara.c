@@ -30,11 +30,15 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 	else
 		sprintf(tempSprint, "\\%s%03u_%u", "o", aIndex - 2097, bIndex);
 
+	BOOL bNonHdParent = FALSE;
+
 	char testPath[256];
 	sprintf(testPath, "%s%s.png", texPath, tempSprint);
 	attr = GetFileAttributesA(testPath);
 	if (attr == INVALID_FILE_ATTRIBUTES)
 		sprintf(testPath, "%s_new%s.png", texPath, tempSprint);
+	else
+		bNonHdParent = TRUE;
 	attr = GetFileAttributesA(testPath);
 	if (attr == INVALID_FILE_ATTRIBUTES)
 		sprintf(testPath, "%s_new\\d000_0.png", tempPath); //ERROR !!!!
@@ -44,8 +48,9 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 
 	int width_, height_, channels;
 	char * buffer = stbi_load(texPath, &width_, &height_, &channels, 4);
+
 	//the most important is height here
-	height_fcp = height_*2;
+	height_fcp = height_ * 2;
 	int scale = height_ / 384; //normally should be always 1
 	
 
@@ -89,13 +94,33 @@ __declspec(naked) void _fcpObtainData()
 		PUSH 0
 		PUSH 0
 		PUSH[height_fcp]
-		PUSH[width_fcp]
+		PUSH[height_fcp]
 		MOV EAX, OFFSET IMAGE_BASE
 		MOV EAX, [EAX]
 		ADD EAX, 0x160b670 //createGLTexture
 		CALL EAX
 
 		JMP fcpBackAdd1
+	}
+}
+
+__declspec(naked) void _fcpSetYoffset()
+{
+	__asm
+	{
+		CMP[EBP + 0x0C], 0
+		JE originalcode
+		MOV EAX, [height_fcp]
+		SHR EAX, 1
+		PUSH EAX
+		PUSH 0
+		JMP returnhere
+
+		originalcode :
+		push[ebp + 0x0C]
+		push[ebp + 0x08]
+		returnhere:
+		JMP fcpBackAdd2
 	}
 }
 
@@ -134,6 +159,17 @@ void ApplyFieldEntityPatch()
 
 	//step 1. obtain needed data for tex_struct and etc.
 	fcpBackAdd1 = InjectJMP(IMAGE_BASE + 0x16061CC, (DWORD)_fcpObtainData, 18);
+
+
+	//step 2. disable out of bounds error- we know that, but we are using new, bigger buffers
+	modPage(IMAGE_BASE + 0x160C43A, 1);
+	*(BYTE*)(IMAGE_BASE + 0x160C43A) = 0xEB; //JBE -> JMP
+
+	modPage(IMAGE_BASE + 0x160C467, 1);
+	*(BYTE*)(IMAGE_BASE + 0x160C467) = 0xEB; //JBE -> JMP
+
+	//1160545A - set
+	fcpBackAdd2 = InjectJMP(IMAGE_BASE + 0x160C4AD, (DWORD)_fcpSetYoffset, 6);
 
 
 	//step 2. now tweak the yOffsets as in battle
