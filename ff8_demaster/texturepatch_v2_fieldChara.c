@@ -104,10 +104,14 @@ __declspec(naked) void _fcpObtainData()
 	}
 }
 
+DWORD _fcpCurrentTexMode;
+
 __declspec(naked) void _fcpSetYoffset()
 {
 	__asm
 	{
+		CMP [TEX_TYPE], 57
+		JNE originalcode
 		CMP[EBP + 0x0C], 0
 		JE originalcode
 		MOV EAX, [height_fcp]

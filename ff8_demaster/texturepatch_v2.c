@@ -67,6 +67,7 @@ __declspec(naked) void _cltObtainTexHeader()
 void _cltVoid()
 {
 	int textureType = tex_struct[48];
+	TEX_TYPE = textureType;
 	int palette = tex_header[52];
 	UINT unknownDword = tex_struct[65];
 	BOOL bHaveHD = tex_struct[49];

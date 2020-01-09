@@ -28,6 +28,8 @@ DWORD* tex_header;
 DWORD* tex_struct;
 DWORD* gl_textures;
 
+DWORD TEX_TYPE;
+
 DWORD _wtpCheck();
 void _wtpGl();
 
