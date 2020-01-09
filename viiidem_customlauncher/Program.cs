@@ -25,8 +25,9 @@ namespace viiidem_customlauncher
                         case "-offline":
                             bOffline = true;
                             break;
-                        case "-forceplay"
-                            :bForcePlay = true;break;
+                        case "-forceplay":
+                            bForcePlay = true;
+                            break;
                     }
                 }
             }

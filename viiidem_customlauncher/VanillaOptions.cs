@@ -28,7 +28,8 @@ namespace viiidem_customlauncher
             mastervol = trackBar1.Value;
             bgmvol = trackBar1.Value;
             screenmode = comboBox3.SelectedIndex;
-            display = comboBox4.SelectedIndex;
+            string getDisplayNumber = comboBox4.SelectedItem.ToString().Substring(1,1);
+            display = int.Parse(getDisplayNumber);
             cameraspeed = (int)numericUpDown2.Value;
             brightness = (int)numericUpDown1.Value;
             antialiaslevel = comboBox5.SelectedIndex;
@@ -114,6 +115,7 @@ namespace viiidem_customlauncher
 
             var screens = Screen.AllScreens;
 
+            comboBox4.Items.Clear();
             for (int i = 0; i < screens.Length; i++)
                 comboBox4.Items.Add($"[{i}]{(screens[i].Primary ? " PRIMARY" : "")}");
 
