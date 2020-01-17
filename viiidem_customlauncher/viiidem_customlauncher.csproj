@@ -69,6 +69,7 @@
     <Compile Include="VanillaOptions.Designer.cs">
       <DependentUpon>VanillaOptions.cs</DependentUpon>
     </Compile>
+    <Compile Include="WhatIsWrongWithThisLauncher.cs" />
     <Compile Include="zzz.cs" />
     <Compile Include="zzzWatcher.cs">
       <SubType>Form</SubType>
