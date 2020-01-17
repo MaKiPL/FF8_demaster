@@ -5,6 +5,7 @@ FF8_Demastered is unofficial patch for Final Fantasy VIII Remastered game by Squ
 1. Just drop to your folder of Final Fantasy VIII Remastered installation.
 Usually:<br/>
 _D:\SteamLibrary\steamapps\common\FINAL FANTASY VIII Remastered_<br/>
+2. If it's your first run- please open FFVIII_Demaster_Manager.exe to unpacking files
 
 ## Troubleshooting
 ### Compiling:

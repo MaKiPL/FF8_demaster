@@ -7,7 +7,7 @@
     <ProjectGuid>{E8FE9475-BE92-4FCD-8DD2-782789A07CAC}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>viiidem_customlauncher</RootNamespace>
-    <AssemblyName>ffviii_launcher</AssemblyName>
+    <AssemblyName>ffviii_demaster_manager</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -32,10 +32,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Steamworks.NET, Version=12.0.0.0, Culture=neutral, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\Steamworks.NET.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -63,13 +59,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VanillaOptions.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="VanillaOptions.Designer.cs">
-      <DependentUpon>VanillaOptions.cs</DependentUpon>
-    </Compile>
-    <Compile Include="WhatIsWrongWithThisLauncher.cs" />
     <Compile Include="zzz.cs" />
     <Compile Include="zzzWatcher.cs">
       <SubType>Form</SubType>
@@ -93,9 +82,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="VanillaOptions.resx">
-      <DependentUpon>VanillaOptions.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="zzzWatcher.resx">
       <DependentUpon>zzzWatcher.cs</DependentUpon>
     </EmbeddedResource>
@@ -117,12 +103,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\blue_on.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\orange.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\orange_off.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\silver_off.png" />
