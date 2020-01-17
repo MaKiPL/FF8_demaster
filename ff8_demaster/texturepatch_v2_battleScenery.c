@@ -9,6 +9,39 @@ DWORD texturesPtr;
 
 DWORD bAlreadyFreed;
 
+unsigned char* buffer16;
+unsigned char* buffer17;
+unsigned char* buffer18;
+unsigned char* buffer19;
+unsigned char* buffer20;
+unsigned char* buffer21;
+unsigned char* buffer22;
+DWORD lastStage;
+
+struct battleSceneryStructure
+{
+	char localPath[256];
+	DWORD tpage;
+	unsigned char* buffer;
+	int width;
+	int height;
+	int channels;
+	BOOL bActive;
+};
+
+struct battleSceneryStructure bss[] =
+{
+	{"", 16, -1, -1,-1,-1,FALSE},
+	{"", 17, -1, -1,-1,-1,FALSE},
+	{"", 18, -1, -1,-1,-1,FALSE},
+	{"", 19, -1, -1,-1,-1,FALSE},
+	{"", 20, -1, -1,-1,-1,FALSE},
+	{"", 21, -1, -1,-1,-1,FALSE},
+	{"", 22, -1, -1,-1,-1,FALSE}
+};
+
+void bssInvalidateTexPath(DWORD tPage);
+
 void _bspGl()
 {
 	DWORD tPage = gl_textures[50];
@@ -20,12 +53,67 @@ void _bspGl()
 
 	sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.png", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
 	int width_, height_, channels;
-	unsigned char* buffer = stbi_load(localn, &width_, &height_, &channels, 0); //chara 0
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width_, height_, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-	sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", width_, height_, channels);
-	OutputDebug(localn);
-	stbi_image_free(buffer);
+	unsigned char* buffer;
+	if (bss[tPage - 16].buffer == -1) //texture never loaded
+	{
+		buffer = stbi_load(localn, &width_, &height_, &channels, 0);
+		bss[tPage - 16].bActive = TRUE;
+		bss[tPage - 16].width = width_;
+		bss[tPage - 16].height = height_;
+		bss[tPage - 16].channels = channels;
+		bssInvalidateTexPath(tPage);
+		strcpy(bss[tPage - 16].localPath, localn);
+		bss[tPage - 16].buffer = buffer;
+		bss[tPage - 16].tpage = tPage;
+		sprintf(localn, "\tbspGl():bss - First time init battle texture for page: %d", tPage);
+		OutputDebug(localn);
+		sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", width_, height_, channels);
+		OutputDebug(localn);
+	}
+	else
+	{
+		if (strcmp(bss[tPage - 16].localPath, localn)) //there is new texture- the filepath are not the same
+		{
+			//first step is to invalidate last buffer
+			stbi_image_free(bss[tPage - 16].buffer); //let's release memory from unused texture
+			bssInvalidateTexPath(tPage);
+			strcpy(bss[tPage - 16].localPath, localn);
+			buffer = stbi_load(localn, &width_, &height_, &channels, 0);
+			bss[tPage - 16].width = width_;
+			bss[tPage - 16].height = height_;
+			bss[tPage - 16].channels = channels;
+			bss[tPage - 16].buffer = buffer;
+			sprintf(localn, "\tbspGl():bss - replacing cached texture with new one for tPage: %d", tPage);
+			OutputDebug(localn);
+			sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", width_, height_, channels);
+			OutputDebug(localn);
+		}
+		else
+		{
+			 //uncomment for old behaviour laggy
+			//stbi_image_free(bss[tPage - 16].buffer); //let's release memory from unused texture
+			//bssInvalidateTexPath(tPage);
+			//strcpy(bss[tPage - 16].localPath, localn);
+			//buffer = stbi_load(localn, &width_, &height_, &channels, 0);
+			//bss[tPage - 16].width = width_;
+			//bss[tPage - 16].height = height_;
+			//bss[tPage - 16].channels = channels;
+			//bss[tPage - 16].buffer = buffer;
+			//sprintf(localn, "\tbspGl():bss - what happens during force-reload?: %d", tPage);
+			//OutputDebug(localn);
+			//sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", width_, height_, channels);
+			//OutputDebug(localn);
+		}
+	}
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bss[tPage - 16].width, bss[tPage - 16].height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bss[tPage - 16].buffer);
+	//we no longer free the buffer here
 	return;
+}
+
+void bssInvalidateTexPath(DWORD tPage)
+{
+	for (int i = 0; i < 256; i++) //reinventing wheel with strset/memset
+		bss[tPage - 16].localPath[i] = 0x00;
 }
 
 DWORD _bspCheck()
@@ -76,7 +164,7 @@ __declspec(naked) void _bsp()
 
 
 
-		_original:
+	_original:
 		PUSH DWORD PTR[EBP + 0x10]
 			PUSH 0x1401
 			PUSH 0x80E1
@@ -89,27 +177,27 @@ __declspec(naked) void _bsp()
 			MOV EAX, ds_teximg
 			MOV EAX, [EAX]
 			CALL EAX
-		_out:
+			_out :
 		JMP _bspBackAdd1
 
-		//	_wtpOk:
-		//PUSH DWORD PTR[EBP+0x10]
-		//CALL DWORD PTR DS:0x1166B2A8
-		//MOV bAlreadyFreed, 1
-		//CALL _wtpGl
-		//JMP _out
+			//	_wtpOk:
+			//PUSH DWORD PTR[EBP+0x10]
+			//CALL DWORD PTR DS:0x1166B2A8
+			//MOV bAlreadyFreed, 1
+			//CALL _wtpGl
+			//JMP _out
 
-		JMP _original
+			JMP _original
 
-		_bspOk:
+			_bspOk :
 		PUSH DWORD PTR[EBP + 0x10]
 			MOV EAX, ds_free
 			MOV EAX, [EAX]
 			CALL EAX
-		MOV bAlreadyFreed, 1
-		
-		CALL _bspGl
-		JMP _out
+			MOV bAlreadyFreed, 1
+
+			CALL _bspGl
+			JMP _out
 
 	}
 }
@@ -124,7 +212,7 @@ __declspec(naked) void _bspFree()
 		MOV EAX, ds_free
 		MOV EAX, [EAX]
 		CALL EAX
-		_out:
+		_out :
 		JMP _bspBackAdd2
 	}
 
