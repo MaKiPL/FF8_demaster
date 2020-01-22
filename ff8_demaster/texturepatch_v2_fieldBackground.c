@@ -53,13 +53,31 @@ char* GetFieldBackgroundFile()
 	return n;
 }
 
+DWORD fbpRequestedTpage;
+
 char* _fbgHdInjectVoid()
 {
 	char n[256];
+	char localn[256];
 	n[0] = '\0';
 	strcat(n, GetFieldBackgroundFile());
-	strcat(n, "%u");
-	return n;
+	int palette = tex_header[52];
+	sprintf(localn, "%stextures\\%s%u_%u.png", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette);
+	DWORD attr = GetFileAttributesA(localn);
+	sprintf(localn, "fbp_Requesting: %s\n", localn);
+	OutputDebug(localn);
+	if (attr == INVALID_FILE_ATTRIBUTES)
+	{
+		strcat(n, "%u");
+		return n;
+	}
+	else
+	{
+		strcat(n, "%u_");
+		strcpy(localn, n);
+		sprintf(n, "%s%u", localn, palette);
+		return n;
+	}
 }
 
 __declspec(naked) void _fbgHdInject()
@@ -67,16 +85,16 @@ __declspec(naked) void _fbgHdInject()
 	__asm
 	{
 		PUSH EBX
-		PUSH ECX
 		PUSH EDX
 
+		MOV EAX, dword ptr[edi+0xC]
+		MOV fbpRequestedTpage, EAX
 		CALL _fbgHdInjectVoid
 
 		POP EDX
-		POP ECX
 		POP EBX
 
-		MOV ECX, dword ptr[edi + 0xC]
+		MOV ECX, fbpRequestedTpage
 		SUB ECX, 16
 		PUSH ECX
 		
