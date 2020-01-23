@@ -27,7 +27,9 @@ namespace viiidem_customlauncher
             version = demContent[1];
             for(int i = 2; i<demContent.Length; i+=2)
             {
+                if (string.IsNullOrWhiteSpace(demContent[i])) continue;
                 string[] feature = demContent[i].Split('=');
+                if (feature.Length != 2) continue;
                 string descr = demContent[i + 1].TrimStart(';');
                 dataGridView1.Rows.Add($"{feature[0]}", descr, feature[1][0] == '1' ? true : false);
             }
