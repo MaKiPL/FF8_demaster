@@ -1,3 +1,10 @@
 
 .vs/*
 */Release/*
+*/obj/*
+*.log
+*.resources
+*.exe
+viiidem_customlauncher/bin/debug/ffviii_demaster_manager.exe.config
+*.pdb
+*/bin/*
