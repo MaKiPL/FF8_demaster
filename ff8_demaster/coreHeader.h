@@ -27,8 +27,12 @@ UINT OPENGL_TEXTURES;
 DWORD* tex_header;
 DWORD* tex_struct;
 DWORD* gl_textures;
+DWORD pixelsPtr;
+DWORD texturesPtr;
 
 DWORD TEX_TYPE;
+
+
 
 DWORD _wtpCheck();
 void _wtpGl();

@@ -4,8 +4,7 @@
 DWORD _bspBackAdd1;
 DWORD _bspBackAdd2;
 
-DWORD pixelsPtr;
-DWORD texturesPtr;
+
 
 DWORD bAlreadyFreed;
 
@@ -144,6 +143,7 @@ DWORD _bspCheck()
 DWORD** ds_free;
 DWORD** ds_teximg;
 
+//this function hooks the pre-upload to VRAM data. Add new cases below for other modules
 __declspec(naked) void _bsp()
 {
 	__asm
@@ -158,9 +158,9 @@ __declspec(naked) void _bsp()
 		TEST EAX, EAX
 		JNZ _bspOk
 
-		//CALL _wtpCheck
-		//TEST EAX, EAX
-		//JNZ _wtpOk
+		CALL _wtpCheck //WORLD MODULE
+		TEST EAX, EAX
+		JNZ _wtpOk
 
 
 
@@ -180,12 +180,12 @@ __declspec(naked) void _bsp()
 			_out :
 		JMP _bspBackAdd1
 
-			//	_wtpOk:
-			//PUSH DWORD PTR[EBP+0x10]
-			//CALL DWORD PTR DS:0x1166B2A8
-			//MOV bAlreadyFreed, 1
-			//CALL _wtpGl
-			//JMP _out
+				_wtpOk:
+			PUSH DWORD PTR[EBP+0x10]
+			CALL DWORD PTR DS:0x1166B2A8
+			MOV bAlreadyFreed, 1
+			CALL _wtpGl
+			JMP _out
 
 			JMP _original
 
