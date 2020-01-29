@@ -164,7 +164,8 @@ namespace viiidem_customlauncher
         private void button5_Click(object sender, EventArgs e)
         {
             using (DemasterOpt dopt = new DemasterOpt())
-                dopt.ShowDialog();
+                if (!dopt.IsDisposed)
+                    dopt.ShowDialog();
         }
 
         private void button6_Click(object sender, EventArgs e)

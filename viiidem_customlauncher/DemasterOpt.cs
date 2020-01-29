@@ -20,17 +20,27 @@ namespace viiidem_customlauncher
             InitializeComponent();
             if(!File.Exists("demaster.conf"))
             {
-                MessageBox.Show("demaster.conf not found, restart launcher or download current release from github");
+                nodata();
+            }
+            void nodata()
+            {
+                MessageBox.Show("demaster.conf is empty or missing, Click [Download Update (Auto)] to download the default version.");
+                //MessageBox.Show("demaster.conf not found, restart launcher or download current release from github");
                 Close();
             }
             string[] demContent = File.ReadAllLines("demaster.conf");
             version = demContent[1];
             for(int i = 2; i<demContent.Length; i+=2)
             {
+                if (string.IsNullOrWhiteSpace(demContent[i])) continue;
                 string[] feature = demContent[i].Split('=');
+                if (feature.Length != 2) continue;
                 string descr = demContent[i + 1].TrimStart(';');
                 dataGridView1.Rows.Add($"{feature[0]}", descr, feature[1][0] == '1' ? true : false);
             }
+            if (dataGridView1.Rows.Count == 0)
+                nodata();
+                
         }
 
         private void DemasterOpt_FormClosing(object sender, FormClosingEventArgs e)
