@@ -16,7 +16,7 @@ KURSE ALL SEEDS!
 
 void OutputDebug(char* c)
 {
-	OutputDebugStringA(c);
+	printf(c);
 	if (LOG)
 	{
 		logFile = fopen("demasterlog.txt", "a+");
@@ -32,6 +32,7 @@ void OutputDebug(char* c)
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
 EXPORT void InitTest()
 {
+	printf("test");
 	OutputDebug("DEMASTER ENGINE LOADED!\n");
 	DIRECT_IO_EXPORT_DIR = "DEMASTER_EXP\\";
 	return;
@@ -145,7 +146,9 @@ BOOL WINAPI DllMain(
 {
 	if (fdwReason != DLL_PROCESS_ATTACH) //fail if not on app-init. Attaching is not recommended, should be loaded at startup by import
 		return 0;
-
+	AllocConsole();
+	freopen("CONOUT$", "w", stdout);
+	freopen("CON", "r", stdin);
 	InitTest();
 	ReadConfigFile();
 
