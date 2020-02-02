@@ -1,10 +1,11 @@
 #pragma once
 #include <stdio.h>
 #include <Windows.h>
-
+#ifndef COMMONDEF
+#define COMMONDEF
 //CONFIG
-BOOL UVPATCH, DIRECT_IO, TEXTURE_PATCH, DEBUG_PATCH, LOG;
-BOOL BATTLE_CHARA, FIELD_ENTITY, BATTLE_HOOK, FIELD_BACKGROUND, WORLD_TEXTURES;
+extern BOOL UVPATCH, DIRECT_IO, TEXTURE_PATCH, DEBUG_PATCH, LOG;
+extern BOOL BATTLE_CHARA, FIELD_ENTITY, BATTLE_HOOK, FIELD_BACKGROUND, WORLD_TEXTURES;
 
 BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize);
 BOOL modPage(DWORD address, int size);
@@ -12,37 +13,52 @@ void ReplaceCALLWithNOP(DWORD address);
 void InjectDWORD(DWORD address, DWORD value);
 DWORD bspVoid(UINT textures, int a2, char* pixels);
 
-__int64 IMAGE_BASE;
-DWORD OPENGL_HANDLE;
-DWORD attr;
-char* DIRECT_IO_EXPORT_DIR;
-DWORD DIRECT_IO_EXPORT_DIR_LEN;
+extern long long IMAGE_BASE;
+extern DWORD OPENGL_HANDLE;
+extern DWORD attr;
+extern const char* DIRECT_IO_EXPORT_DIR;
+extern DWORD DIRECT_IO_EXPORT_DIR_LEN;
 
-char texPath[256];
-int lastWidth;
-int lastHeight;
-UCHAR* lastrgbBuffer;
-UINT OPENGL_TEXTURES;
+void ApplyDirectIO();
+void ApplyUVPatch();
+void ReplaceTextureFunction();
 
-DWORD* tex_header;
-DWORD* tex_struct;
-DWORD* gl_textures;
-DWORD pixelsPtr;
-DWORD texturesPtr;
+void ApplyBattleCharacterPatch();
+void ApplyFieldEntityPatch();
+void ApplyBattleHookPatch();
+void ApplyBattleMonsterPatch();
+void ApplyBattleFieldPatch();
+void ApplyFieldBackgroundPatch();
+void ApplyWorldPatch();
 
-DWORD TEX_TYPE;
+extern char texPath[256];
+extern int lastWidth;
+extern int lastHeight;
+extern UCHAR* lastrgbBuffer;
+extern UINT OPENGL_TEXTURES;
+
+extern DWORD* tex_header;
+extern DWORD* tex_struct;
+extern DWORD* gl_textures;
+extern DWORD pixelsPtr;
+extern DWORD texturesPtr;
+
+extern DWORD TEX_TYPE;
 
 
 
 DWORD _wtpCheck();
 void _wtpGl();
 
-DWORD parm1; //arg+8
+extern DWORD parm1; //arg+8
 
-int currentStage;
+extern DWORD* langIdent_ESI;
 
-FILE* logFile;
-void OutputDebug(char* c);
+extern int currentStage;
+
+extern FILE* logFile;
+void OutputDebug(const char* c);
 
 #define EXPORT __declspec(dllexport)
 #pragma warning(disable:4996)
+#endif

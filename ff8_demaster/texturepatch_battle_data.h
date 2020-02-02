@@ -3,16 +3,16 @@
 
 struct TexFuncMonsterTex
 {
-	char* filename; //DWORD PTR
+	const char* filename; //DWORD PTR
 	int pad; //in asm it's align 8
-	UINT fileIndex; //this is that weird shit that don't conform the battlefilesarray from vanilla
+	unsigned int fileIndex; //this is that weird shit that don't conform the battlefilesarray from vanilla
 	int unk; //initialized with -1
 	int pad2; //not pad, but maybe unused?
-	USHORT wUnk;  //in mag i.e. 832- is VRAM?
-	USHORT wUnk2; //see above, now it's 256 so VRAM y?
-	USHORT wUnk3; //i.e. 64- width?
-	USHORT wUnk4; //see above, but probably height?
-	UINT dUnk;
+	unsigned short wUnk;  //in mag i.e. 832- is VRAM?
+	unsigned short wUnk2; //see above, now it's 256 so VRAM y?
+	unsigned short wUnk3; //i.e. 64- width?
+	unsigned short wUnk4; //see above, but probably height?
+	unsigned int dUnk;
 };
 
 //This is stupid design approach- for the process of development of monster replacement 
@@ -379,7 +379,7 @@ struct TexFuncMonsterTex TexFuncMonsterTexProvider[] = {
 { "a0stg162", 0, 1362, -1,0,0,0,0,0,0 }
 };
 
-DWORD TexFuncMonsterTexProviderLength = sizeof(TexFuncMonsterTexProvider) / sizeof(TexFuncMonsterTexProvider[0]);
+unsigned int TexFuncMonsterTexProviderLength = sizeof(TexFuncMonsterTexProvider) / sizeof(TexFuncMonsterTexProvider[0]);
 
 
 ////[11770F78]

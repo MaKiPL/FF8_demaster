@@ -114,7 +114,7 @@ BYTE _bhpVoid()
 	else 
 		return 0;
 
-	return;
+	return 0;
 }
 
 //due to the way the function is constructed (break from while(1)) we need to re-check
@@ -203,8 +203,8 @@ __declspec(naked) void _bhptpage()
 void ApplyBattleHookPatch()
 {
 	currentStage = -1;
-	_bhpBackAdd1 = InjectJMP(IMAGE_BASE + 0x157DA5D, (DWORD)_bhp, 17);
-	_bhpBackAdd2 = InjectJMP(IMAGE_BASE + 0x157DD05, (DWORD)_bhpMonsterStruct, 5); //GetBattleMonsterStructPalCount _notfound
+	_bhpBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + 0x157DA5D, (DWORD)_bhp, 17);
+	_bhpBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + 0x157DD05, (DWORD)_bhpMonsterStruct, 5); //GetBattleMonsterStructPalCount _notfound
 	
 	//_bhpJmpAdd1 = IMAGE_BASE + 0x157EF85; //Jump to 13-15 cases!!
 	//_bhpBackAdd3 = InjectJMP(IMAGE_BASE + 0x157EF72, (DWORD)_bhptpage, 6); //bHdAvailable_Battle -> check TPage for stage replacement

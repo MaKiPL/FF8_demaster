@@ -4,8 +4,8 @@
 
 BOOL modPage(DWORD address, int size)
 {
-	PDWORD lastProtect = 0;
-	DWORD failure = VirtualProtect(address, size, PAGE_EXECUTE_READWRITE, &lastProtect);
+	DWORD lastProtect = 0;
+	DWORD failure = VirtualProtect((LPVOID)address, size, PAGE_EXECUTE_READWRITE, &lastProtect);
 	if (failure == 0)
 	{
 		DWORD myError = GetLastError();
@@ -17,10 +17,10 @@ BOOL modPage(DWORD address, int size)
 
 BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize)
 {
-	BYTE* fopenPatchMnemonic = address;
+	BYTE* fopenPatchMnemonic = (BYTE*)address;
 	BYTE* IO_backAddress = fopenPatchMnemonic + JMPsize;
 	DWORD jmpParam = functionAddress - (DWORD)fopenPatchMnemonic - 5;
-	modPage(fopenPatchMnemonic, 5);
+	modPage((DWORD)fopenPatchMnemonic, 5);
 	*fopenPatchMnemonic = 0xE9; //JMP [DW]
 	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
 	return IO_backAddress;

@@ -32,18 +32,18 @@ char* GetTextureType(int texType)
 	switch (texType)
 	{
 	case 11:
-		return "BATTLE";
+		return (char*)"BATTLE";
 	case 18:
-		return "WORLDMAP";
+		return (char*)"WORLDMAP";
 	case 25:
-		return "FIELDBG";
+		return (char*)"FIELDBG";
 	case 35:
-		return "BATTLECHARACTER";
+		return (char*)"BATTLECHARACTER";
 	case 57:
-		return "FIELDENTITY";
+		return (char*)"FIELDENTITY";
 	default:
-		sprintf(textureType, "%02d", texType);
-		return textureType;
+		sprintf((char*)textureType, "%02d", texType);
+		return (char*)textureType;
 	}
 }
 

@@ -1,5 +1,6 @@
 #include "coreHeader.h"
 #include <gl/GL.h>
+#include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
@@ -21,27 +22,27 @@ struct worldTextureStructure
 
 struct worldTextureStructure ws[] =
 {
-	{"", 0, -1, -1,-1,-1,FALSE},
-	{"", 1, -1, -1,-1,-1,FALSE},
-	{"", 2, -1, -1,-1,-1,FALSE},
-	{"", 3, -1, -1,-1,-1,FALSE},
-	{"", 4, -1, -1,-1,-1,FALSE},
-	{"", 5, -1, -1,-1,-1,FALSE},
-	{"", 6, -1, -1,-1,-1,FALSE},
-	{"", 7, -1, -1,-1,-1,FALSE},
-	{"", 8, -1, -1,-1,-1,FALSE},
-	{"", 9, -1, -1,-1,-1,FALSE},
-	{"", 10, -1, -1,-1,-1,FALSE},
-	{"", 11, -1, -1,-1,-1,FALSE},
-	{"", 12, -1, -1,-1,-1,FALSE},
-	{"", 13, -1, -1,-1,-1,FALSE},
-	{"", 14, -1, -1,-1,-1,FALSE},
-	{"", 15, -1, -1,-1,-1,FALSE},
-	{"", 16, -1, -1,-1,-1,FALSE},
-	{"", 17, -1, -1,-1,-1,FALSE},
-	{"", 18, -1, -1,-1,-1,FALSE},
-	{"", 19, -1, -1,-1,-1,FALSE},
-	{"", 20, -1, -1,-1,-1,FALSE}
+	{"", 0, NULL, -1,-1,-1,FALSE},
+	{"", 1, NULL, -1,-1,-1,FALSE},
+	{"", 2, NULL, -1,-1,-1,FALSE},
+	{"", 3, NULL, -1,-1,-1,FALSE},
+	{"", 4, NULL, -1,-1,-1,FALSE},
+	{"", 5, NULL, -1,-1,-1,FALSE},
+	{"", 6, NULL, -1,-1,-1,FALSE},
+	{"", 7, NULL, -1,-1,-1,FALSE},
+	{"", 8, NULL, -1,-1,-1,FALSE},
+	{"", 9, NULL, -1,-1,-1,FALSE},
+	{"", 10, NULL, -1,-1,-1,FALSE},
+	{"", 11, NULL, -1,-1,-1,FALSE},
+	{"", 12, NULL, -1,-1,-1,FALSE},
+	{"", 13, NULL, -1,-1,-1,FALSE},
+	{"", 14, NULL, -1,-1,-1,FALSE},
+	{"", 15, NULL, -1,-1,-1,FALSE},
+	{"", 16, NULL, -1,-1,-1,FALSE},
+	{"", 17, NULL, -1,-1,-1,FALSE},
+	{"", 18, NULL, -1,-1,-1,FALSE},
+	{"", 19, NULL, -1,-1,-1,FALSE},
+	{"", 20, NULL, -1,-1,-1,FALSE}
 };
 
 int GetTextureIndex();
@@ -62,7 +63,7 @@ void _wtpGl()
 	OutputDebugStringA(localn);
 	sprintf(localn, "%stextures\\world\\dat\\texl\\texl_%03d_0.png", DIRECT_IO_EXPORT_DIR, /*tPage*/texIndex);
 
-	if (ws[texIndex].bActive == FALSE || ws[texIndex].buffer == -1)
+	if (ws[texIndex].bActive == FALSE || ws[texIndex].buffer == NULL)
 	{
 		int width_, height_, channels;
 		unsigned char* buffer = stbi_load(localn, &width_, &height_, &channels, 0);
@@ -80,7 +81,7 @@ void _wtpGl()
 
 int GetTextureIndex()
 {
-	DWORD pixels = pixelsPtr;
+	void* pixels = (void*)pixelsPtr;
 	char pixNULL[24] = { 0x00 };
 	char pixNULL2[24] = { 0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05,0x05 };
 	char pix1_1[24] = { 0x1E,0xCF,0x0F,0xED,0xBE,0x00,0x01,0x22,0x42,0x12,0x0D,0x8F,0x1E,0xCF,0x0F,0xED,0x22,0x10,0xEF,0x03,0x31,0x0F,0xBE,0x00 };
@@ -292,21 +293,21 @@ int GetTextureIndex()
 	char localn[256];
 	sprintf(localn, "_wpp::Unknown tex buffer, mem is: %08X, use: ", pixels);
 	OutputDebug(localn);
-	DWORD whichTex;
-	scanf("%d", &whichTex);
+	//DWORD whichTex;
+	//scanf("%d", &whichTex);
 
-	FILE* fd = fopen("demasterWorldHashes.txt", "a+");
+	/*FILE* fd = fopen("demasterWorldHashes.txt", "a+");
 	sprintf(localn, "%d=", whichTex);
 	for (int i = 0; i < 24; i++)
 	{
-		sprintf(localn, "%s0x%02X,", localn, *(BYTE*)((pixels)+i));
+		sprintf(localn, "%s0x%02X,", localn, *(BYTE*)pixels)+i));
 	}
 	strcat(localn, "\n");
 	fwrite(localn, sizeof(char), strlen(localn), fd);
-	fclose(fd);
+	fclose(fd);*/
 
-	lastKnownTextureId = whichTex;
-	return whichTex;
+	//lastKnownTextureId = whichTex;
+	//return whichTex;
 
 	return -1;
 }

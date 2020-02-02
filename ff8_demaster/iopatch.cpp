@@ -35,7 +35,7 @@ __declspec(naked) void directIO_fopenReroute()
 	}
 
 	strcpy(IO_backlogFilePath, DIRECT_IO_EXPORT_DIR); //VS automatically does the ESP math
-	strcpy(IO_backlogFilePath + DIRECT_IO_EXPORT_DIR_LEN, filePathBuffer); //same for this, no local vars so no ESP--
+	strcpy(IO_backlogFilePath + DIRECT_IO_EXPORT_DIR_LEN, (char*)filePathBuffer); //same for this, no local vars so no ESP--
 	OutputDebug(IO_backlogFilePath);
 	OutputDebug("\n");
 
@@ -123,7 +123,7 @@ __declspec(naked) void directIO_fopenReroute3()
 
 void ApplyDirectIO()
 {
-	OutputDebug("Applying DIRECT_IO\n");
+	OutputDebug((char*)"Applying DIRECT_IO\n");
 	//let's see if the exp dir exists
 	DIRECT_IO_EXPORT_DIR_LEN = strlen(DIRECT_IO_EXPORT_DIR);
 	DWORD attrib = GetFileAttributesA(DIRECT_IO_EXPORT_DIR);
@@ -137,33 +137,33 @@ void ApplyDirectIO()
 
 	//Patch fopen method
 //patch JMP to directIO_fopenReroute
-	BYTE* fopenPatchMnemonic = IMAGE_BASE + IO_FUNC1;
-	IO_backAddress = fopenPatchMnemonic + 6;
+	BYTE* fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC1);
+	IO_backAddress = (DWORD)fopenPatchMnemonic + 6;
 	DWORD jmpParam = (DWORD)directIO_fopenReroute - (DWORD)fopenPatchMnemonic - 5;
-	modPage(fopenPatchMnemonic, 5);
+	modPage((DWORD)fopenPatchMnemonic, 5);
 	*fopenPatchMnemonic = 0xE9; //JMP [DW]
 	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
 
 	//patch JMP to directIO_fopenReroute2
-	fopenPatchMnemonic = IMAGE_BASE + IO_FUNC2;
-	IO_backAddress2 = fopenPatchMnemonic + 5;
+	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC2);
+	IO_backAddress2 = (DWORD)fopenPatchMnemonic + 5;
 	jmpParam = (DWORD)directIO_fopenReroute2 - (DWORD)fopenPatchMnemonic - 5;
-	modPage(fopenPatchMnemonic, 5);
+	modPage((DWORD)fopenPatchMnemonic, 5);
 	*fopenPatchMnemonic = 0xE9; //JMP [DW]
 	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
 	*(fopenPatchMnemonic + 5) = 0x90; //NOP
 
 		//patch FSEEKs
 	//First fseek
-	fopenPatchMnemonic = IMAGE_BASE + IO_FUNC3;
-	modPage(fopenPatchMnemonic, 3); //PUSH + NOP
+	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC3);
+	modPage((DWORD)fopenPatchMnemonic, 3); //PUSH + NOP
 	*fopenPatchMnemonic = 0x6A;		//PUSH
 	*(fopenPatchMnemonic + 1) = 0x00;	//	PUSH->0
 	*(fopenPatchMnemonic + 2) = 0x90;	//NOP
 
 	//Second fseek
-	fopenPatchMnemonic = IMAGE_BASE + IO_FUNC4;
-	modPage(fopenPatchMnemonic, 3); //XOR EAX, EAX + NOP
+	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC4);
+	modPage((DWORD)fopenPatchMnemonic, 3); //XOR EAX, EAX + NOP
 	*fopenPatchMnemonic = 0x31;		//XOR EAX
 	*(fopenPatchMnemonic + 1) = 0xc0;	//	XOR EAX->EAX
 	*(fopenPatchMnemonic + 2) = 0x90;	//NOP
@@ -171,15 +171,15 @@ void ApplyDirectIO()
 	//Now we need to fix fd struct filelen for modifications of RAW files
 	//see fopen_archivePrepareSeek- we need to update struct before return
 	//EAX contains struct for FD open archive
-	fopenPatchMnemonic = IMAGE_BASE + IO_FUNC5; //MOV EAX, ESI; MOV ECX, [EBP-0ch]   [//8BC6 8B4DF4]
-	IO_backAddress3 = fopenPatchMnemonic + 6;
-	modPage(fopenPatchMnemonic, 5); //JMP
+	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC5); //MOV EAX, ESI; MOV ECX, [EBP-0ch]   [//8BC6 8B4DF4]
+	IO_backAddress3 = (DWORD)fopenPatchMnemonic + 6;
+	modPage((DWORD)fopenPatchMnemonic, 5); //JMP
 	jmpParam = (DWORD)directIO_fopenReroute3 - (DWORD)fopenPatchMnemonic - 5;
 	*fopenPatchMnemonic = 0xE9; //JMP [DW]
 	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
 
 	//patch additional security that checks for weepTable
-	fopenPatchMnemonic = IMAGE_BASE + IO_FUNC6;
-	modPage(fopenPatchMnemonic, 2);
+	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC6);
+	modPage((DWORD)fopenPatchMnemonic, 2);
 	*(WORD*)fopenPatchMnemonic = 0x9090;		//NOP NOP
 }

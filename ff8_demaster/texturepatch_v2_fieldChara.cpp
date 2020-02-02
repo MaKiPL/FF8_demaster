@@ -1,7 +1,5 @@
 #include "coreHeader.h"
-
-DWORD* tex_struct;
-DWORD* langIdent_ESI;
+#include "stb_image.h"
 
 int width_fcp = 768;
 int height_fcp = 768;
@@ -47,7 +45,7 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 
 
 	int width_, height_, channels;
-	char * buffer = stbi_load(texPath, &width_, &height_, &channels, 4);
+	char * buffer = (char*)stbi_load(texPath, &width_, &height_, &channels, 4);
 
 	//the most important is height here
 	height_fcp = height_ * 2;
@@ -130,37 +128,6 @@ __declspec(naked) void _fcpSetYoffset()
 
 void ApplyFieldEntityPatch()
 {
-	//step  D* creates glTexture 768x768 again- then they connect the texture by calling
-	//			their method with 0 or 1- don't remember which one, but normally 0 or 1 means yOffset=384
-	//			the texture may be 384x384 or 768x384, but it's always half the size
-	//			the texture is not complicated to get path from, so let's get the first texture size and multiply by 2
-
-	/*
-	==				ORIGINAL DISSASEMBLY PSEUDOCODE			==
-
-1		  *(_DWORD *)langIdentifier = CreateGLTexture(768, 768, 0, 0, 0); <--- see? the same as in battle chara
-2		  strappend(&filePath, (int)&Dst, "FIELD.FS\\field_hd"); 
-3		  v43 = *(_DWORD *)(tex_struct + 204);   <-- see? that looks the same as battle chara bChara or bWeapon available
-4		  LOBYTE(v123) = 24;
-5		  if ( v43 )
-6			*(_BYTE *)(v40 + 29) = fieldTexReplacement(
-7									 _this,
-8									 *(_DWORD *)langIdentifier,
-9									 1,   <-- this is the yOffset parameter- 1 means y=384 afair
-10									 v43, <-- this is glTexture
-11									 *(_DWORD *)(tex_struct + 208) - 1,
-12									 &filePath);
-13		  v44 = *(_DWORD *)(tex_struct + 228);
-14		  if ( v44 )				<-- and now the latter texture- it can be null of course
-15			*(_BYTE *)(v40 + 37) = fieldTexReplacement(
-16									 _this,
-17									 *(_DWORD *)langIdentifier,
-18									 0,
-19									 v44,
-20									 *(_DWORD *)(tex_struct + 232) - 1,
-21									 &filePath);
-	*/
-
 	//step 1. obtain needed data for tex_struct and etc.
 	fcpBackAdd1 = InjectJMP(IMAGE_BASE + 0x16061CC, (DWORD)_fcpObtainData, 18);
 
@@ -174,8 +141,4 @@ void ApplyFieldEntityPatch()
 
 	//1160545A - set
 	fcpBackAdd2 = InjectJMP(IMAGE_BASE + 0x160C4AD, (DWORD)_fcpSetYoffset, 6);
-
-
-	//step 2. now tweak the yOffsets as in battle
-	//TODO - it's the least important thing, as to make it working you would need to upscale ALL textures
 }

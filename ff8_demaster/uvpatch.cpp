@@ -48,7 +48,7 @@ Second release =	911A05
 
 void ApplyUVPatch()
 {
-	BYTE* firstMnemonic = IMAGE_BASE + 0x911A05;
+	BYTE* firstMnemonic = (BYTE*)(IMAGE_BASE + 0x911A05);
 	DWORD addMnemonic = *(DWORD*)firstMnemonic & 0xFFFFFF; //get mnemonic without parameter
 	if (addMnemonic != 0x084680)
 	{

@@ -12,9 +12,25 @@ KURSE ALL SEEDS!
 *
 *
 */
+long long IMAGE_BASE = 0;
+DWORD OPENGL_HANDLE = 0;
+const char * DIRECT_IO_EXPORT_DIR = "DEMASTER_EXP\\";
+FILE* logFile = NULL;
+DWORD* tex_header = 0;
+DWORD attr = -1;
+DWORD DIRECT_IO_EXPORT_DIR_LEN = -1;
+DWORD* tex_struct = 0;
+DWORD* gl_textures= 0;
+DWORD pixelsPtr = 0;
+DWORD texturesPtr = 0;
+DWORD TEX_TYPE = 0;
+int currentStage = -1;
+DWORD* langIdent_ESI;
+BOOL UVPATCH, DIRECT_IO, TEXTURE_PATCH, DEBUG_PATCH, LOG;
+BOOL BATTLE_CHARA, FIELD_ENTITY, BATTLE_HOOK, FIELD_BACKGROUND, WORLD_TEXTURES;
 
 
-void OutputDebug(char* c)
+void OutputDebug(const char* c)
 {
 	printf(c);
 	if (LOG)
@@ -29,12 +45,12 @@ void OutputDebug(char* c)
 	
 }
 
+
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
 EXPORT void InitTest()
 {
 	printf("test");
 	OutputDebug("DEMASTER ENGINE LOADED!\n");
-	DIRECT_IO_EXPORT_DIR = "DEMASTER_EXP\\";
 	return;
 }
 
@@ -43,7 +59,7 @@ DWORD lastJMP;
 
 void DEB_JMP(char* c, DWORD a, DWORD b, DWORD cc, DWORD d, DWORD e)
 {
-	if (c == 0x3)
+	if (c < (char*)IMAGE_BASE)
 		return;
 	char localD[32];
 	localD[0] = '\0';
@@ -81,7 +97,7 @@ DWORD DEB_backAdd;
 
 void ApplyDebugOutputPatch()
 {
-	DEB_backAdd = InjectJMP(IMAGE_BASE + 0x33DC0, (DWORD)DEB_JMP, 5);
+	DEB_backAdd = (DWORD)InjectJMP(IMAGE_BASE + 0x33DC0, (DWORD)DEB_JMP, 5);
 	//critical sections are null here, but they point to common_fieldEC, that's not cool
 	*(DWORD*)(IMAGE_BASE + 0x16EDF68) = (DWORD)nullsub;
 	*(DWORD*)(IMAGE_BASE + 0x16EDF7C) = (DWORD)nullsub;
@@ -108,34 +124,20 @@ void ReadConfigFile()
 		return;
 	}
 	OutputDebug("Reading config file demaster.ini\n");
-	ini_t* conf = ini_load("demaster.conf");
+	//ini_t* conf = ini_load("demaster.conf");
 
-	int var_;
-	//BASIC
-	ini_sget(conf, NULL, "UV_PATCH", "%d", &var_);
-		UVPATCH = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, NULL, "DIRECT_IO", "%d", &var_);
-		DIRECT_IO = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, NULL, "TEXTURE_PATCH", "%d", &var_);
-		TEXTURE_PATCH = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, NULL, "UNSTABLE_DEBUG_OUTPUT_PATCH", "%d", &var_);
-		DEBUG_PATCH = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, NULL, "LOG", "%d", &var_);
-		LOG = var_ == 0 ? FALSE : TRUE;
+	INIReader conf("demaster.conf");
 
-	ini_sget(conf, NULL, "BATTLE_CHARACTER", "%d", &var_);
-	BATTLE_CHARA = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, NULL, "FIELD_ENTITY", "%d", &var_);
-	FIELD_ENTITY = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, NULL, "BATTLE_HOOK_MONSTER_FIELDS", "%d", &var_);
-	BATTLE_HOOK = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, NULL, "FIELD_BACKGROUND", "%d", &var_);
-	FIELD_BACKGROUND = var_ == 0 ? FALSE : TRUE;
-	ini_sget(conf, NULL, "WORLD_TEXTURES", "%d", &var_);
-	WORLD_TEXTURES = var_ == 0 ? FALSE : TRUE;
-
-	ini_free(conf);
-
+	UVPATCH = conf.GetInteger("", "UV_PATCH", 0);
+	DIRECT_IO = conf.GetInteger("", "DIRECT_IO", 0);
+	LOG = conf.GetInteger("", "LOG", 0);
+	DEBUG_PATCH = conf.GetInteger("", "MORE_DEBUG_OUTPUT_PATCH", 0);
+	BATTLE_CHARA = conf.GetInteger("", "BATTLE_CHARACTER", 0);
+	FIELD_ENTITY = conf.GetInteger("", "FIELD_ENTITY", 0);
+	BATTLE_HOOK = conf.GetInteger("", "BATTLE_HOOK_MONSTER_FIELDS", 0);
+	FIELD_BACKGROUND = conf.GetInteger("", "FIELD_BACKGROUND", 0);
+	WORLD_TEXTURES = conf.GetInteger("", "WORLD_TEXTURES", 0);
+	TEXTURE_PATCH = conf.GetInteger("", "TEXTURE_PATCH", 1); //this one lacks actual demaster.conf so default to 1
 }
 
 BOOL WINAPI DllMain(
@@ -152,8 +154,9 @@ BOOL WINAPI DllMain(
 	InitTest();
 	ReadConfigFile();
 
-	IMAGE_BASE = GetModuleHandleA("FFVIII_EFIGS");
-	OPENGL_HANDLE = GetModuleHandleA("OPENGL32");
+	HMODULE IMG_BASE = GetModuleHandleA("FFVIII_EFIGS");
+	IMAGE_BASE = (long long)IMG_BASE;
+	OPENGL_HANDLE = (long long)GetModuleHandleA("OPENGL32");
 	char localn[256];
 	sprintf(localn, "IMAGE_BASE at: %d; OPENGL at: %d\n", IMAGE_BASE, OPENGL_HANDLE);
 	OutputDebug(localn);

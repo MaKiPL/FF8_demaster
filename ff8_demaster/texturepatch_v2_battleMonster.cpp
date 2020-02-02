@@ -4,10 +4,10 @@
 void ApplyBattleMonsterPatch()
 {
 	//step 1. Patch calls to our struct instead of vanilla to avoid GetHdTexInfo: id error.
-	InjectDWORD(IMAGE_BASE + 0x15FF3D0, &TexFuncMonsterTexProvider->filename);
-	InjectDWORD(IMAGE_BASE + 0x15FF3DA, TexFuncMonsterTexProvider);
-	InjectDWORD(IMAGE_BASE + 0x15FF3F9, &TexFuncMonsterTexProvider->filename);
-	InjectDWORD(IMAGE_BASE + 0x15FF400, &TexFuncMonsterTexProvider->filename);
+	InjectDWORD(IMAGE_BASE + 0x15FF3D0, (DWORD)&TexFuncMonsterTexProvider->filename);
+	InjectDWORD(IMAGE_BASE + 0x15FF3DA, (DWORD)TexFuncMonsterTexProvider);
+	InjectDWORD(IMAGE_BASE + 0x15FF3F9, (DWORD)&TexFuncMonsterTexProvider->filename);
+	InjectDWORD(IMAGE_BASE + 0x15FF400, (DWORD)&TexFuncMonsterTexProvider->filename);
 	//InjectDWORD(IMAGE_BASE + 0x1601CE2, TexFuncMonsterTexProvider);
 	//InjectDWORD(IMAGE_BASE + 0x1601CFE, TexFuncMonsterTexProvider);
 
@@ -36,7 +36,7 @@ void ApplyBattleMonsterPatch()
 	*(WORD*)(IMAGE_BASE + 0x1601E06) = 0x9000;
 
 
-	InjectDWORD(IMAGE_BASE + 0x1601CFE, TexFuncMonsterTexProvider);
+	InjectDWORD(IMAGE_BASE + 0x1601CFE, (DWORD)TexFuncMonsterTexProvider);
 
 	//battlemonster struct
 	//InjectDWORD(IMAGE_BASE + 0x157DCD5 + 2, &BattleHookProvider->filename);

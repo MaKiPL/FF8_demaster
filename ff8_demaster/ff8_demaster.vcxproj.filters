@@ -15,43 +15,40 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="uvpatch.c">
+    <ClCompile Include="dllmain.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="patch.c">
+    <ClCompile Include="iopatch.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="iopatch.c">
+    <ClCompile Include="patch.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="dllmain.c">
+    <ClCompile Include="texturepatch_v2.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="texturepatch_v2.c">
+    <ClCompile Include="texturepatch_v2_battleCharacter.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="texturepatch_v2_battleCharacter.c">
+    <ClCompile Include="texturepatch_v2_battleHooks.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="texturepatch_v2_fieldChara.c">
+    <ClCompile Include="texturepatch_v2_battleMonster.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="texturepatch_v2_battleMonster.c">
+    <ClCompile Include="texturepatch_v2_battleScenery.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="texturepatch_v2_fieldBackground.c">
+    <ClCompile Include="texturepatch_v2_fieldBackground.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="texturepatch_v2_battleScenery.c">
+    <ClCompile Include="texturepatch_v2_fieldChara.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="texturepatch_v2_battleHooks.c">
+    <ClCompile Include="texturepatch_v2_world.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="texturepatch_v2_world.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="ini.c">
+    <ClCompile Include="uvpatch.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
   </ItemGroup>

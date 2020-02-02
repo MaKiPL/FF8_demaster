@@ -19,8 +19,8 @@ char* GetFieldBackgroundFile()
 {
 	char localn[256];
 	OutputDebug("GetFieldBackgroundFile()\n");
-	DWORD* dc = IMAGE_BASE + 0x189559C;
-	char* c = *dc + 0x118;
+	DWORD* dc = (DWORD*)(IMAGE_BASE + 0x189559C);
+	char* c = (char*)(*dc + 0x118);
 
 	strcpy(maplist, c);
 
@@ -39,7 +39,7 @@ char* GetFieldBackgroundFile()
 	}
 
 	if (del == NULL)
-		return "ERROR";
+		return (char*)"ERROR";
 
 	char dirName[3];
 	memcpy(dirName, del, 2); //warning- yes, I know- but it doesn't matter. IO_func is set to load null.png if not found

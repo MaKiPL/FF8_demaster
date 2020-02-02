@@ -1,5 +1,6 @@
 #include "coreHeader.h"
 #include <gl/GL.h>
+#include "stb_image.h"
 
 DWORD _bspBackAdd1;
 DWORD _bspBackAdd2;
@@ -30,13 +31,13 @@ struct battleSceneryStructure
 
 struct battleSceneryStructure bss[] =
 {
-	{"", 16, -1, -1,-1,-1,FALSE},
-	{"", 17, -1, -1,-1,-1,FALSE},
-	{"", 18, -1, -1,-1,-1,FALSE},
-	{"", 19, -1, -1,-1,-1,FALSE},
-	{"", 20, -1, -1,-1,-1,FALSE},
-	{"", 21, -1, -1,-1,-1,FALSE},
-	{"", 22, -1, -1,-1,-1,FALSE}
+	{"", 16, NULL, -1,-1,-1,FALSE},
+	{"", 17, NULL, -1,-1,-1,FALSE},
+	{"", 18, NULL, -1,-1,-1,FALSE},
+	{"", 19, NULL, -1,-1,-1,FALSE},
+	{"", 20, NULL, -1,-1,-1,FALSE},
+	{"", 21, NULL, -1,-1,-1,FALSE},
+	{"", 22, NULL, -1,-1,-1,FALSE}
 };
 
 void bssInvalidateTexPath(DWORD tPage);
@@ -53,7 +54,7 @@ void _bspGl()
 	sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.png", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
 	int width_, height_, channels;
 	unsigned char* buffer;
-	if (bss[tPage - 16].buffer == -1) //texture never loaded
+	if (bss[tPage - 16].buffer == NULL) //texture never loaded
 	{
 		buffer = stbi_load(localn, &width_, &height_, &channels, 0);
 		bss[tPage - 16].bActive = TRUE;
@@ -221,13 +222,13 @@ __declspec(naked) void _bspFree()
 void ApplyBattleFieldPatch()
 {
 	OutputDebug("Applying battle field patch\n");
-	ds_free = IMAGE_BASE + 0x166b2a8;
-	ds_teximg = IMAGE_BASE + 0x166b4a0;
+	ds_free = (DWORD**)(IMAGE_BASE + 0x166b2a8);
+	ds_teximg = (DWORD**)(IMAGE_BASE + 0x166b4a0);
 	char localn[256];
 	sprintf(localn, "ApplyBattleFieldPatch():ds_free is at: %08X and ds_teximg is at: %08X", ds_free, ds_teximg);
 	OutputDebug(localn);
-	_bspBackAdd1 = InjectJMP(IMAGE_BASE + 0x1573AFF, (DWORD)_bsp, 38);
-	_bspBackAdd2 = InjectJMP(IMAGE_BASE + 0x1573B54, (DWORD)_bspFree, 9);
+	_bspBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + 0x1573AFF, (DWORD)_bsp, 38);
+	_bspBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + 0x1573B54, (DWORD)_bspFree, 9);
 
 	//this disables textureLimit for resolution
 	InjectJMP(IMAGE_BASE + 0x156CED4, (DWORD)(IMAGE_BASE + 0x156D30B), 6);
