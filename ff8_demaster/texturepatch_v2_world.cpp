@@ -7,6 +7,7 @@
 DWORD _wtpBackAdd1;
 DWORD _wtpBackAdd2;
 DWORD _wtpBackAdd3;
+DWORD _wtpBackAdd4;
 
 
 struct worldTextureStructure
@@ -369,9 +370,56 @@ DWORD _wtpCheck()
 	return 1;
 }
 
+DWORD _wtp00_SizeConfirm;
+DWORD _wtp00_OffsetTexl;
+
+void _wtp00()
+{
+	char localn[256];
+	sprintf(localn, "WorldModule::GetTexl.obj- Offset: %08X\tSize: %08X\t ID: %d\n", _wtp00_OffsetTexl, _wtp00_SizeConfirm, _wtp00_OffsetTexl/0x12800);
+	OutputDebug(localn);
+}
+
+__declspec(naked) void _wtp()
+{
+	__asm
+	{
+		MOV EAX, [ESP+8]
+		MOV _wtp00_SizeConfirm, EAX
+		MOV EAX, [ESP+4]
+		MOV _wtp00_OffsetTexl, EAX
+		CALL _wtp00
+		MOV EAX, OFFSET IMAGE_BASE
+		MOV EAX, [EAX]
+		ADD EAX, 0x155F3F0
+		CALL EAX
+		JMP _wtpBackAdd1
+	}
+}
+
+__declspec(naked) void _wtp01()
+{
+	__asm
+	{
+		MOV EAX, [ESP + 8]
+		MOV _wtp00_SizeConfirm, EAX
+		MOV EAX, [ESP + 4]
+		MOV _wtp00_OffsetTexl, EAX
+		CMP _wtp00_SizeConfirm, 0x12800
+		JNE _notTexl
+		CALL _wtp00
+		_notTexl:
+		MOV EAX, OFFSET IMAGE_BASE
+		MOV EAX, [EAX]
+		ADD EAX, 0x155F3F0
+		CALL EAX
+		JMP _wtpBackAdd2
+	}
+}
+
 void ApplyWorldPatch()
 {
-	//_wtpBackAdd1 = InjectJMP(IMAGE_BASE + 0x1591847, (DWORD)_wtp, 6); //this is to force bHdAvailable on wm tex
-	//_wtpBackAdd2 = InjectJMP(IMAGE_BASE + 0x16065F4, (DWORD)_wtpReplace, 5); //this is to pre-select PNG if available
+	_wtpBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + 0x09107BD, (DWORD)_wtp, 5); //this is to dump data from pre-texl.obj
+	_wtpBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + 0x09101F1, (DWORD)_wtp01, 5); //this is to pre-select PNG if available
 	//_wtpBackAdd3 = InjectJMP(IMAGE_BASE + 0x155F504, (DWORD)_wtpGetEax, 6); //I don't know which texId to load due to the way wm is constructed
 }

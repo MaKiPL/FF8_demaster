@@ -1,7 +1,27 @@
-﻿#include <stdio.h>
+﻿#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <Windows.h>
+#include <stdio.h>
 #include <Windows.h>
 #include "coreHeader.h"
 #include "ini.h"
+
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
+
+#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
+#include <GL/gl3w.h>    // Initialize with gl3wInit()
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
+#include <GL/glew.h>    // Initialize with glewInit()
+#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
+#include <glad/glad.h>  // Initialize with gladLoadGL()
+#else
+#include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
+#endif
+
+#include <GLFW/glfw3.h>
 
 /*
 KURSE ALL SEEDS!
@@ -45,11 +65,57 @@ void OutputDebug(const char* c)
 	
 }
 
+DWORD _dllmainBackAddr1;
+DWORD _dllmainBackAddr2;
+
+const char* windowTitle = "FINAL FANTASY VIII Remastered - Demaster patch by Maki [1.2.5] BETA";
+
+__declspec(naked) void _dllMain2()
+{
+	__asm
+	{
+		PUSH windowTitle
+		JMP _dllmainBackAddr2
+	}
+}
+
+GLFWwindow* FF8Window;
+
+	void _dllMain1()
+	{
+		ImGui_ImplGlfw_InitForOpenGL(FF8Window, true);
+		const char* glsl = "#version 130";
+		GLint major, minor;
+		glGetIntegerv(GL_MAJOR_VERSION, &major);
+		glGetIntegerv(GL_MINOR_VERSION, &minor);
+		ImGui_ImplOpenGL3_Init(glsl);
+	}
+
+__declspec(naked) void _dllMain0()
+{
+	__asm
+	{
+		MOV FF8Window, EAX
+		MOV[EBX + 0x350], EAX
+		CALL _dllMain1
+		JMP _dllmainBackAddr1
+	}
+}
+
+void CreateImGui()
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	gl3wInit();
+
+	_dllmainBackAddr1 = (DWORD)InjectJMP(IMAGE_BASE + 0x160107E, (DWORD)_dllMain0, 6);
+	_dllmainBackAddr2 = (DWORD)InjectJMP(IMAGE_BASE + 0x1601065, (DWORD)_dllMain2, 5);
+	
+}
 
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
 EXPORT void InitTest()
 {
-	printf("test");
 	OutputDebug("DEMASTER ENGINE LOADED!\n");
 	return;
 }
@@ -112,6 +178,38 @@ void ApplyDebugOutputPatch()
 	ReplaceCALLWithNOP(0x15824B6);
 }
 
+DWORD _deb00_ECX;
+DWORD _deb00_EAX;
+
+void DEB_JMPv2_00()
+{
+	const char* format = "FSArchive:: %s - %s\n";
+	char localn[256];
+	sprintf(localn, format, _deb00_EAX, _deb00_ECX);
+	OutputDebug(localn);
+}
+
+__declspec(naked) void DEB_JMPv2()
+{
+	__asm
+	{
+		MOV _deb00_ECX, ECX
+		MOV _deb00_EAX, EAX
+		CALL DEB_JMPv2_00
+		MOV EAX, OFFSET IMAGE_BASE
+		MOV EAX, [EAX]
+		ADD EAX, 0x1692994
+		PUSH EAX
+		JMP DEB_backAdd
+	}
+}
+
+void ApplyDebugOutputPatchV2()
+{
+	DEB_backAdd = (DWORD)InjectJMP(IMAGE_BASE + 0x1581270, (DWORD)DEB_JMPv2, 5);
+
+}
+
 
 
 
@@ -161,6 +259,8 @@ BOOL WINAPI DllMain(
 	sprintf(localn, "IMAGE_BASE at: %d; OPENGL at: %d\n", IMAGE_BASE, OPENGL_HANDLE);
 	OutputDebug(localn);
 
+	CreateImGui();
+
 	//LET'S GET THE HACKING DONE
 	if(DIRECT_IO)
 		ApplyDirectIO();
@@ -168,8 +268,12 @@ BOOL WINAPI DllMain(
 		ApplyUVPatch();
 	if(TEXTURE_PATCH && DIRECT_IO)
 		ReplaceTextureFunction();
-	if(DEBUG_PATCH)
-		ApplyDebugOutputPatch(); //they have hella of debug info shit, but then function is nullsub-
+	if (DEBUG_PATCH)
+	{
+		ApplyDebugOutputPatchV2();
+	}
+	//if(DEBUG_PATCH)
+	//	ApplyDebugOutputPatch(); //they have hella of debug info shit, but then function is nullsub-
 							//quite usual- vanilla ff8 from 2000 had the same for harata battle debug
 							//but worry not- we can write such function from scratch
 													//ApplyTextureUpscaleMod();
