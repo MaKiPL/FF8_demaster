@@ -48,6 +48,7 @@ int currentStage = -1;
 DWORD* langIdent_ESI;
 BOOL UVPATCH, DIRECT_IO, TEXTURE_PATCH, DEBUG_PATCH, LOG;
 BOOL BATTLE_CHARA, FIELD_ENTITY, BATTLE_HOOK, FIELD_BACKGROUND, WORLD_TEXTURES;
+BOOL LINEAR_PATCH;
 
 
 void OutputDebug(const char* c)
@@ -83,7 +84,9 @@ GLFWwindow* FF8Window;
 
 	void _dllMain1()
 	{
+		gl3wInit();
 		ImGui_ImplGlfw_InitForOpenGL(FF8Window, true);
+		glfwMakeContextCurrent(FF8Window);
 		const char* glsl = "#version 130";
 		GLint major, minor;
 		glGetIntegerv(GL_MAJOR_VERSION, &major);
@@ -110,8 +113,26 @@ void CreateImGui()
 
 	_dllmainBackAddr1 = (DWORD)InjectJMP(IMAGE_BASE + 0x160107E, (DWORD)_dllMain0, 6);
 	_dllmainBackAddr2 = (DWORD)InjectJMP(IMAGE_BASE + 0x1601065, (DWORD)_dllMain2, 5);
-	
 }
+
+//	======================	IMGUI SEGMENT
+void _wtp03()
+{
+	/*int gl3wt= gl3wInit();
+	int glfwt = glfwInit();
+	int imgl = ImGui_ImplGlfw_InitForOpenGL(FF8Window, true);
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+	ImGui::Begin("WORLD DEVELOPER MENU");
+	ImGui::Text("FPS: %.1f", 1000.0f / ImGui::GetIO().Framerate);
+	ImGui::End();
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());*/
+}
+
+
+//			END OF IMGUI SEGMENTS ===============
 
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
 EXPORT void InitTest()
@@ -210,6 +231,44 @@ void ApplyDebugOutputPatchV2()
 
 }
 
+//force GL_LINEAR with non-fixed UV was a d*k move ...
+void ApplyFilteringPatch()
+{
+	//InjectDWORD(IMAGE_BASE + 0x1564D97 + 1, 0x2600); //main indirect
+	//InjectDWORD(IMAGE_BASE + 0x1564D86 + 1, 0x2600);
+
+	//InjectDWORD(IMAGE_BASE + 0x1564F23 + 1, 0x2600); //main indirect
+	//InjectDWORD(IMAGE_BASE + 0x1564F34 + 1, 0x2600);
+
+
+	//InjectDWORD(IMAGE_BASE + 0x156505E + 1, 0x2600); //unknown glDrawElements
+	//InjectDWORD(IMAGE_BASE + 0x1565073 + 1, 0x2600);
+	//
+	//InjectDWORD(IMAGE_BASE + 0x1566ED5 + 1, 0x2600); //as above fxaa2
+	//InjectDWORD(IMAGE_BASE + 0x1566EE6 + 1, 0x2600);
+
+
+
+	//InjectDWORD(IMAGE_BASE + 0x15686D3 + 1, 0x2600);
+	//InjectDWORD(IMAGE_BASE + 0x15686E4 + 1, 0x2600);
+
+	//InjectDWORD(IMAGE_BASE + 0x1568805 + 1, 0x2600);
+	//InjectDWORD(IMAGE_BASE + 0x1568816 + 1, 0x2600);
+
+	//InjectDWORD(IMAGE_BASE + 0x15689C9 + 1, 0x2600);
+	//InjectDWORD(IMAGE_BASE + 0x15689DA + 1, 0x2600);
+
+	InjectDWORD(IMAGE_BASE + 0x15693EF + 1, 0x2600);
+	InjectDWORD(IMAGE_BASE + 0x1569409 + 1, 0x2600);
+	InjectDWORD(IMAGE_BASE + 0x156A348 + 1, 0x2600);
+	InjectDWORD(IMAGE_BASE + 0x156A359 + 1, 0x2600);
+
+	//InjectDWORD(IMAGE_BASE + 0x156D47F + 1, 0x2600);
+	//InjectDWORD(IMAGE_BASE + 0x156D490 + 1, 0x2600);
+
+	//InjectDWORD(IMAGE_BASE + 0x156D830 + 1, 0x2600);
+	//InjectDWORD(IMAGE_BASE + 0x156D841 + 1, 0x2600);
+}
 
 
 
@@ -236,6 +295,7 @@ void ReadConfigFile()
 	FIELD_BACKGROUND = conf.GetInteger("", "FIELD_BACKGROUND", 0);
 	WORLD_TEXTURES = conf.GetInteger("", "WORLD_TEXTURES", 0);
 	TEXTURE_PATCH = conf.GetInteger("", "TEXTURE_PATCH", 1); //this one lacks actual demaster.conf so default to 1
+	LINEAR_PATCH = conf.GetInteger("", "LINEAR_PATCH", 1);
 }
 
 BOOL WINAPI DllMain(
@@ -269,9 +329,10 @@ BOOL WINAPI DllMain(
 	if(TEXTURE_PATCH && DIRECT_IO)
 		ReplaceTextureFunction();
 	if (DEBUG_PATCH)
-	{
 		ApplyDebugOutputPatchV2();
-	}
+	if (LINEAR_PATCH)
+		ApplyFilteringPatch();
+
 	//if(DEBUG_PATCH)
 	//	ApplyDebugOutputPatch(); //they have hella of debug info shit, but then function is nullsub-
 							//quite usual- vanilla ff8 from 2000 had the same for harata battle debug

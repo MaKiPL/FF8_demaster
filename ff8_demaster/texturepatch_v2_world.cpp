@@ -75,7 +75,8 @@ void _wtpGl()
 		sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", width_, height_, channels);
 		OutputDebugStringA(localn);
 	}
-
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ws[texIndex].width, ws[texIndex].height, 0, ws[texIndex].channels == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, ws[texIndex].buffer);
 	return;
 }
@@ -196,9 +197,28 @@ __declspec(naked) void _wtp01()
 	}
 }
 
+__declspec(naked) void _wtp02()
+{
+	__asm
+	{
+		PUSH ECX
+		PUSH EDX
+		PUSH ESI
+		CALL _wtp03
+		POP ESI
+		POP EDX
+		POP ECX
+		MOV EAX, OFFSET IMAGE_BASE
+		MOV EAX, [EAX]
+		ADD EAX, 0x16CB5A0
+		MOV EAX, [EAX]
+		JMP _wtpBackAdd3
+	}
+}
+
 void ApplyWorldPatch()
 {
-	_wtpBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + 0x09107BD, (DWORD)_wtp, 5); //this is to dump data from pre-texl.obj
-	_wtpBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + 0x09101F1, (DWORD)_wtp01, 5); //this is to pre-select PNG if available
-	//_wtpBackAdd3 = InjectJMP(IMAGE_BASE + 0x155F504, (DWORD)_wtpGetEax, 6); //I don't know which texId to load due to the way wm is constructed
+	_wtpBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + 0x09107BD, (DWORD)_wtp, 5); //
+	_wtpBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + 0x09101F1, (DWORD)_wtp01, 5); //
+	_wtpBackAdd3 = (DWORD)InjectJMP(IMAGE_BASE + 0x09108C4, (DWORD)_wtp02, 5); //imgui
 }

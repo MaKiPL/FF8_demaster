@@ -59,6 +59,9 @@ extern int currentStage;
 extern FILE* logFile;
 void OutputDebug(const char* c);
 
+
+void _wtp03();
+
 #define EXPORT __declspec(dllexport)
 #pragma warning(disable:4996)
 #endif

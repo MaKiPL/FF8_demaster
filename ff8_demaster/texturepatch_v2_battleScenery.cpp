@@ -145,8 +145,11 @@ DWORD** ds_free;
 DWORD** ds_teximg;
 
 //this function hooks the pre-upload to VRAM data. Add new cases below for other modules
+GLint MINFILTER, MAGFILTER;
 __declspec(naked) void _bsp()
 {
+	//glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &MINFILTER);
+	//glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &MAGFILTER);
 	__asm
 	{
 		MOV DWORD PTR[ebp + 0x8], EAX
