@@ -184,9 +184,13 @@ __declspec(naked) void _bsp()
 			_out :
 		JMP _bspBackAdd1
 
-				_wtpOk:
+			_wtpOk:
+			MOV EAX, OFFSET IMAGE_BASE
+			MOV EAX, [EAX]
+			ADD EAX, 0x166B2A8
 			PUSH DWORD PTR[EBP+0x10]
-			CALL DWORD PTR DS:0x1166B2A8
+			CALL [EAX]
+			//CALL DWORD PTR DS:0x1166B2A8
 			MOV bAlreadyFreed, 1
 			CALL _wtpGl
 			JMP _out
