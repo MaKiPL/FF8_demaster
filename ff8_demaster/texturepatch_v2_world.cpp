@@ -197,28 +197,8 @@ __declspec(naked) void _wtp01()
 	}
 }
 
-__declspec(naked) void _wtp02()
-{
-	__asm
-	{
-		PUSH ECX
-		PUSH EDX
-		PUSH ESI
-		CALL _wtp03
-		POP ESI
-		POP EDX
-		POP ECX
-		MOV EAX, OFFSET IMAGE_BASE
-		MOV EAX, [EAX]
-		ADD EAX, 0x16CB5A0
-		MOV EAX, [EAX]
-		JMP _wtpBackAdd3
-	}
-}
-
 void ApplyWorldPatch()
 {
 	_wtpBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + 0x09107BD, (DWORD)_wtp, 5); //
 	_wtpBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + 0x09101F1, (DWORD)_wtp01, 5); //
-	_wtpBackAdd3 = (DWORD)InjectJMP(IMAGE_BASE + 0x09108C4, (DWORD)_wtp02, 5); //imgui
 }

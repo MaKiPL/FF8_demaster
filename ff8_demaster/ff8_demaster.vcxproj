@@ -98,15 +98,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="GL\gl3w.c" />
-    <ClCompile Include="imgui\imgui.cpp" />
-    <ClCompile Include="imgui\imgui_demo.cpp" />
-    <ClCompile Include="imgui\imgui_draw.cpp" />
-    <ClCompile Include="imgui\imgui_impl_glfw.cpp" />
-    <ClCompile Include="imgui\imgui_impl_glut.cpp" />
-    <ClCompile Include="imgui\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="iopatch.cpp" />
+    <ClCompile Include="openglHook.cpp" />
     <ClCompile Include="patch.cpp" />
     <ClCompile Include="texturepatch_v2.cpp" />
     <ClCompile Include="texturepatch_v2_battleCharacter.cpp" />
@@ -120,15 +113,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="coreHeader.h" />
-    <ClInclude Include="GL\gl3w.h" />
-    <ClInclude Include="GL\glcorearb.h" />
-    <ClInclude Include="imgui\imconfig.h" />
-    <ClInclude Include="imgui\imgui.h" />
-    <ClInclude Include="imgui\imgui_impl_glfw.h" />
-    <ClInclude Include="imgui\imgui_impl_glut.h" />
-    <ClInclude Include="imgui\imgui_impl_opengl3.h" />
-    <ClInclude Include="imgui\imgui_internal.h" />
-    <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="ini.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="stb_image_write.h" />

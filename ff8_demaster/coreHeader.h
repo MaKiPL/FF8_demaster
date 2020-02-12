@@ -14,7 +14,7 @@ void InjectDWORD(DWORD address, DWORD value);
 DWORD bspVoid(UINT textures, int a2, char* pixels);
 
 extern long long IMAGE_BASE;
-extern DWORD OPENGL_HANDLE;
+extern long long OPENGL_HANDLE;
 extern DWORD attr;
 extern const char* DIRECT_IO_EXPORT_DIR;
 extern DWORD DIRECT_IO_EXPORT_DIR_LEN;
@@ -30,6 +30,7 @@ void ApplyBattleMonsterPatch();
 void ApplyBattleFieldPatch();
 void ApplyFieldBackgroundPatch();
 void ApplyWorldPatch();
+void HookOpenGL();
 
 extern char texPath[256];
 extern int lastWidth;

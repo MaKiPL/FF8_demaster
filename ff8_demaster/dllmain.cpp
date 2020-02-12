@@ -7,22 +7,6 @@
 #include "coreHeader.h"
 #include "ini.h"
 
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_glfw.h"
-#include "imgui/imgui_impl_opengl3.h"
-
-#if defined(IMGUI_IMPL_OPENGL_LOADER_GL3W)
-#include <GL/gl3w.h>    // Initialize with gl3wInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLEW)
-#include <GL/glew.h>    // Initialize with glewInit()
-#elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
-#include <glad/glad.h>  // Initialize with gladLoadGL()
-#else
-#include IMGUI_IMPL_OPENGL_LOADER_CUSTOM
-#endif
-
-#include <GLFW/glfw3.h>
-
 /*
 KURSE ALL SEEDS!
 */
@@ -33,7 +17,7 @@ KURSE ALL SEEDS!
 *
 */
 long long IMAGE_BASE = 0;
-DWORD OPENGL_HANDLE = 0;
+long long OPENGL_HANDLE = 0;
 const char * DIRECT_IO_EXPORT_DIR = "DEMASTER_EXP\\";
 FILE* logFile = NULL;
 DWORD* tex_header = 0;
@@ -48,7 +32,7 @@ int currentStage = -1;
 DWORD* langIdent_ESI;
 BOOL UVPATCH, DIRECT_IO, TEXTURE_PATCH, DEBUG_PATCH, LOG;
 BOOL BATTLE_CHARA, FIELD_ENTITY, BATTLE_HOOK, FIELD_BACKGROUND, WORLD_TEXTURES;
-BOOL LINEAR_PATCH;
+BOOL LINEAR_PATCH, OPENGL_HOOK;
 
 
 void OutputDebug(const char* c)
@@ -80,59 +64,11 @@ __declspec(naked) void _dllMain2()
 	}
 }
 
-GLFWwindow* FF8Window;
 
-	void _dllMain1()
-	{
-		gl3wInit();
-		ImGui_ImplGlfw_InitForOpenGL(FF8Window, true);
-		glfwMakeContextCurrent(FF8Window);
-		const char* glsl = "#version 130";
-		GLint major, minor;
-		glGetIntegerv(GL_MAJOR_VERSION, &major);
-		glGetIntegerv(GL_MINOR_VERSION, &minor);
-		ImGui_ImplOpenGL3_Init(glsl);
-	}
-
-__declspec(naked) void _dllMain0()
+void GetWindow()
 {
-	__asm
-	{
-		MOV FF8Window, EAX
-		MOV[EBX + 0x350], EAX
-		CALL _dllMain1
-		JMP _dllmainBackAddr1
-	}
-}
-
-void CreateImGui()
-{
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	gl3wInit();
-
-	_dllmainBackAddr1 = (DWORD)InjectJMP(IMAGE_BASE + 0x160107E, (DWORD)_dllMain0, 6);
 	_dllmainBackAddr2 = (DWORD)InjectJMP(IMAGE_BASE + 0x1601065, (DWORD)_dllMain2, 5);
 }
-
-//	======================	IMGUI SEGMENT
-void _wtp03()
-{
-	/*int gl3wt= gl3wInit();
-	int glfwt = glfwInit();
-	int imgl = ImGui_ImplGlfw_InitForOpenGL(FF8Window, true);
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
-	ImGui::Begin("WORLD DEVELOPER MENU");
-	ImGui::Text("FPS: %.1f", 1000.0f / ImGui::GetIO().Framerate);
-	ImGui::End();
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());*/
-}
-
-
-//			END OF IMGUI SEGMENTS ===============
 
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
 EXPORT void InitTest()
@@ -296,6 +232,7 @@ void ReadConfigFile()
 	WORLD_TEXTURES = conf.GetInteger("", "WORLD_TEXTURES", 0);
 	TEXTURE_PATCH = conf.GetInteger("", "TEXTURE_PATCH", 1); //this one lacks actual demaster.conf so default to 1
 	LINEAR_PATCH = conf.GetInteger("", "LINEAR_PATCH", 1);
+	OPENGL_HOOK = conf.GetInteger("", "OPENGL_HOOK", 1);
 }
 
 BOOL WINAPI DllMain(
@@ -316,10 +253,10 @@ BOOL WINAPI DllMain(
 	IMAGE_BASE = (long long)IMG_BASE;
 	OPENGL_HANDLE = (long long)GetModuleHandleA("OPENGL32");
 	char localn[256];
-	sprintf(localn, "IMAGE_BASE at: %d; OPENGL at: %d\n", IMAGE_BASE, OPENGL_HANDLE);
+	sprintf(localn, "IMAGE_BASE at: %lX; OPENGL at: %lX\n", IMAGE_BASE, OPENGL_HANDLE);
 	OutputDebug(localn);
 
-	CreateImGui();
+	GetWindow();
 
 	//LET'S GET THE HACKING DONE
 	if(DIRECT_IO)
@@ -332,6 +269,8 @@ BOOL WINAPI DllMain(
 		ApplyDebugOutputPatchV2();
 	if (LINEAR_PATCH)
 		ApplyFilteringPatch();
+	if (OPENGL_HOOK)
+		HookOpenGL();
 
 	//if(DEBUG_PATCH)
 	//	ApplyDebugOutputPatch(); //they have hella of debug info shit, but then function is nullsub-
