@@ -7,7 +7,7 @@
 extern BOOL UVPATCH, DIRECT_IO, TEXTURE_PATCH, DEBUG_PATCH, LOG;
 extern BOOL BATTLE_CHARA, FIELD_ENTITY, BATTLE_HOOK, FIELD_BACKGROUND, WORLD_TEXTURES;
 
-BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize);
+BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize = 5);
 BOOL modPage(DWORD address, int size);
 void ReplaceCALLWithNOP(DWORD address);
 void InjectDWORD(DWORD address, DWORD value);

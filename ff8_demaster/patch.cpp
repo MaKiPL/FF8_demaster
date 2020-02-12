@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include "coreHeader.h"
 
-BOOL modPage(DWORD address, int size)
+BOOL modPage(DWORD address, int size = 5)
 {
 	DWORD lastProtect = 0;
 	DWORD failure = VirtualProtect((LPVOID)address, size, PAGE_EXECUTE_READWRITE, &lastProtect);
