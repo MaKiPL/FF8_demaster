@@ -138,11 +138,21 @@ void ApplyDebugOutputPatch()
 DWORD _deb00_ECX;
 DWORD _deb00_EAX;
 
+bool DEBUG_reverseWm = true;
+
 void DEB_JMPv2_00()
 {
 	const char* format = "FSArchive:: %s - %s\n";
+	char* path = (char*)_deb00_EAX;
 	char localn[256];
-	sprintf(localn, format, _deb00_EAX, _deb00_ECX);
+	sprintf(localn, format, path, _deb00_ECX);
+	if (DEBUG_reverseWm) 
+	{
+		std::string pathStr(path);
+		std::size_t fnd = pathStr.find("wmsetus.obj", 0);
+		//if (fnd != std::string::npos)
+		//	DebugBreak();
+	}
 	OutputDebug(localn);
 }
 

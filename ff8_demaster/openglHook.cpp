@@ -1,5 +1,7 @@
 #include "coreHeader.h"
 #include <GL/GL.h>
+#include "stb_image.h"
+#include "stb_image_write.h"
 
 //could someone explain why the hell DWORD[10] when referenced by DWORD PTR is actually dumped to BYTE*????
 DWORD params[10];
@@ -274,15 +276,16 @@ __declspec(naked) void _glOrtho()
 		JMP jglOrtho
 	}
 }
-
+int glteximagept;
 void __glTexImage2D()
 {
 	
-	char localn[256];
-	sprintf(localn, "glTexImage2D: target: %X level: %X internal: %X width: %X height: %X border: %X format: %X type: %X data: %X\n",
-		params[0], params[1], params[2], params[3],
-		params[4], params[5], params[6], params[7], params[8], params[9]);
-	OutputDebug(localn);
+	//char localn[256];
+	//sprintf(localn, "glTexImage2D: target: %X level: %X internal: %X width: %X height: %X border: %X format: %X type: %X data: %X\n",
+	//	params[0], params[1], params[2], params[3],
+	//	params[4], params[5], params[6], params[7], params[8], params[9]);
+	//OutputDebug(localn);
+
 	return;
 }
 __declspec(naked) void _glTexImage2D()
