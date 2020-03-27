@@ -126,7 +126,7 @@ DWORD _bspCheck()
 	DWORD tPage = gl_textures[50];
 	if (tPage < 16)
 		return 0;
-	if (tPage > 28)
+	if (tPage > 21)
 		return 0;
 	char localn[256];
 	sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.png", DIRECT_IO_EXPORT_DIR, currentStage, tPage);

@@ -53,7 +53,7 @@ void OutputDebug(const char* c)
 DWORD _dllmainBackAddr1;
 DWORD _dllmainBackAddr2;
 
-const char* windowTitle = "FINAL FANTASY VIII Remastered - Demaster patch by Maki [1.2.6] BETA";
+const char* windowTitle = "FINAL FANTASY VIII Remastered - Demaster patch by Maki [1.2.8] BETA";
 
 __declspec(naked) void _dllMain2()
 {

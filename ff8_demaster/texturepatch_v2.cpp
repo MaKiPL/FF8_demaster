@@ -82,6 +82,8 @@ void _cltVoid()
 		return;
 	if (textureType == 18 && (tPage <= 15 || tPage>=28))
 		return;
+	if (textureType == 57) //field
+		return;
 	sprintf(n, "common_load_texture: tex_type: %s, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n", GetTextureType(textureType), palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
 	OutputDebug(n);
 

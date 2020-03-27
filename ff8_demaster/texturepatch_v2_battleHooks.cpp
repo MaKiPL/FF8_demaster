@@ -73,7 +73,7 @@ BYTE _bhpVoid()
 
 	//currentStage = -1;
 
-	if (bhpChechker == 'a')
+	if (bhpChechker == 'a' && !strncmp("A0STG", _bhpStrPointer, 5))
 	{
 		char stageId[4];
 		strncpy(stageId, &_bhpStrPointer[5], 3);

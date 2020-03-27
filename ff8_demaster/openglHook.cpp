@@ -221,6 +221,67 @@ void HookOpenGL()
 	jglTexImage2D = (DWORD)InjectJMP(dGlTexImage2D, (DWORD)_glTexImage2D);
 	jglLoadMatrixf = (DWORD)InjectJMP(dGlLoadMatrixf, (DWORD)_glLoadMatrixf);
 	jglOrtho = (DWORD)InjectJMP(dGlOrtho, (DWORD)_glOrtho);
+	jglDrawElements = (DWORD)InjectJMP(dGlDrawElements, (DWORD)_glDrawElements);
+}
+
+void __glDrawElements()
+{
+	//char localn[256];
+	//sprintf(localn, "glDrawElements: %d %d %08X %08X\n", *(DWORD*)params[0], *(DWORD*)params[1],
+	//	*(DWORD*)params[2], *(DWORD*)params[3]);
+	//OutputDebug(localn);
+
+	//DWORD count = *(DWORD*)params[1];
+	//if (count > 64)
+	//{
+	//	GLfloat proj[16];
+	//	glGetFloatv(GL_PROJECTION_MATRIX, proj);
+	//	char localn[256];
+	//	sprintf(localn, "projmatrix: \n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
+	//		proj[0], proj[1], proj[2], proj[3],
+	//		proj[4], proj[5], proj[6], proj[7],
+	//		proj[8], proj[9], proj[10], proj[11],
+	//		proj[12], proj[13], proj[14], proj[15]);
+	//	OutputDebug(localn);
+	//}
+	//*(DWORD*)params[1] = count;
+	
+	return;
+}
+__declspec(naked) void _glDrawElements()
+{
+	__asm
+	{
+		LEA EAX, [ESP + 4] //mode
+		MOV params[0], EAX
+		LEA EAX, [ESP + 8] //count
+		MOV params[4], EAX
+		LEA EAX, [ESP + 0xC] //type
+		MOV params[8], EAX
+		LEA EAX, [ESP + 0x10] //indices
+		MOV params[12], EAX
+
+		CALL __glDrawElements
+
+		MOV EAX, params[12]
+		MOV EAX, [EAX]
+		MOV [ESP+0x10], EAX
+		MOV EAX, params[8]
+		MOV EAX, [EAX]
+		MOV[ESP + 0xC], EAX
+		MOV EAX, params[4]
+		MOV EAX, [EAX]
+		MOV[ESP + 0x8], EAX
+		MOV EAX, params[0]
+		MOV EAX, [EAX]
+		MOV[ESP + 0x4], EAX
+
+		NOP
+		NOP
+		PUSH EBP
+		MOV EBP, ESP
+		JMP jglDrawElements
+	}
 }
 
 void __glOrtho()
