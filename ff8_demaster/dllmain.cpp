@@ -242,7 +242,7 @@ void ReadConfigFile()
 	WORLD_TEXTURES = conf.GetInteger("", "WORLD_TEXTURES", 0);
 	TEXTURE_PATCH = conf.GetInteger("", "TEXTURE_PATCH", 1); //this one lacks actual demaster.conf so default to 1
 	LINEAR_PATCH = conf.GetInteger("", "LINEAR_PATCH", 1);
-	OPENGL_HOOK = conf.GetInteger("", "OPENGL_HOOK", 1);
+	OPENGL_HOOK = conf.GetInteger("", "OPENGL_HOOK", 0);
 }
 
 BOOL WINAPI DllMain(
@@ -251,6 +251,7 @@ BOOL WINAPI DllMain(
 	DWORD fdwReason, // reason for calling function
 	LPVOID lpReserved) // reserved
 {
+	//MessageBoxA(0, "DLL loaded at DllMain- Maki", "test", MB_OK);
 	if (fdwReason != DLL_PROCESS_ATTACH) //fail if not on app-init. Attaching is not recommended, should be loaded at startup by import
 		return 0;
 	AllocConsole();
