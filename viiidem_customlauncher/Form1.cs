@@ -15,7 +15,6 @@ namespace viiidem_customlauncher
 {
     public partial class Form1 : Form
     {
-        Bitmap logoBmp;
         public Form1()
         {
             ServicePointManager.Expect100Continue = true;
@@ -100,7 +99,7 @@ namespace viiidem_customlauncher
                     bUnpackedAllSuccess = false;
                 if (!File.Exists("DEMASTER_EXP\\data\\sound\\audio.dat"))
                     bUnpackedAllSuccess = false;
-                if (!File.Exists("DEMASTER_EXP\\textures\\null.png"))
+                if (!File.Exists("DEMASTER_EXP\\textures\\null.png") || !File.Exists("DEMASTER_EXP\\textures\\null.dds"))
                     bUnpackedAllSuccess = false;
             }
             if (!bUnpackedAllSuccess)

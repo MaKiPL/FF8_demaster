@@ -21,3 +21,12 @@ Default steam install: `C:\Program Files (x86)\Steam\steamapps\common\FINAL FANT
 
 
 ![Properties Page in Visual Studio 2017](https://cdn.discordapp.com/attachments/622172784667394052/628892957327753216/unknown.png)
+
+## Third Party Libraries
+
+| Library                                    | License               |
+| ------------------------------------------ |:---------------------:|
+| [BX](https://github.com/bkaradzic/bx)      | BSD 2-Clause          |
+| [BIMG](https://github.com/bkaradzic/bimg)  | BSD 2-Clause          |
+| [GLEW](https://github.com/nigels-com/glew) | Khronos License (MIT) |
+| [inih](https://github.com/jtilly/inih)     | New BSD               |

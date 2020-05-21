@@ -1,5 +1,4 @@
 #include "coreHeader.h"
-#include "stb_image.h"
 
 int width_fcp = 768;
 int height_fcp = 768;
@@ -31,32 +30,39 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 	BOOL bNonHdParent = FALSE;
 
 	char testPath[256];
-	sprintf(testPath, "%s%s.png", texPath, tempSprint);
+	sprintf(testPath, "%s%s.dds", texPath, tempSprint);
+	if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
+		sprintf(testPath, "%s%s.png", texPath, tempSprint);
 	attr = GetFileAttributesA(testPath);
 	if (attr == INVALID_FILE_ATTRIBUTES)
-		sprintf(testPath, "%s_new%s.png", texPath, tempSprint);
+	{
+		sprintf(testPath, "%s_new%s.dds", texPath, tempSprint);
+		if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
+			sprintf(testPath, "%s_new%s.png", texPath, tempSprint);
+	}
 	else
 		bNonHdParent = TRUE;
 	attr = GetFileAttributesA(testPath);
 	if (attr == INVALID_FILE_ATTRIBUTES)
-		sprintf(testPath, "%s_new\\d000_0.png", tempPath); //ERROR !!!!
+	{
+		sprintf(testPath, "%s_new\\d000_0.dds", tempPath); //ERROR !!!!
+		if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
+			sprintf(testPath, "%s_new\\d000_0.png", tempPath); //ERROR !!!!
+	}
 
 	strcpy(texPath, testPath); //establish path
 
 
-	int width_, height_, channels;
-	char * buffer = (char*)stbi_load(texPath, &width_, &height_, &channels, 4);
+	bimg::ImageContainer* img = LoadImageFromFile(texPath);
 
 	//the most important is height here
-	height_fcp = height_ * 2;
-	int scale = height_ / 384; //normally should be always 1
+	height_fcp = img->m_height * 2;
+	int scale = img->m_height / 384; //normally should be always 1
 	
 
 
-	stbi_image_free(buffer);
-	char out[256];
-	sprintf(out, "_fcpObtainTextureDatas:: width=%d, height=%d, filename=%s\n", width_fcp, height_fcp, texPath);
-	OutputDebug(out);
+	bimg::imageFree(img);
+	OutputDebug("_fcpObtainTextureDatas:: width=%d, height=%d, filename=%s\n", width_fcp, height_fcp, texPath);
 	return;
 }
 

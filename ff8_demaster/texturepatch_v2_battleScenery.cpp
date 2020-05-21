@@ -1,6 +1,4 @@
 #include "coreHeader.h"
-#include <gl/GL.h>
-#include "stb_image.h"
 
 DWORD _bspBackAdd1;
 DWORD _bspBackAdd2;
@@ -22,7 +20,7 @@ struct battleSceneryStructure
 {
 	char localPath[256];
 	DWORD tpage;
-	unsigned char* buffer;
+	bimg::ImageContainer* buffer;
 	int width;
 	int height;
 	int channels;
@@ -48,64 +46,62 @@ void _bspGl()
 	int palette = tex_header[52];
 	char localn[256];
 
-	sprintf(localn, "_bspGl()::Stage: %d, Tpage: %d, Palette: %d\n", currentStage, tPage, palette);
-	OutputDebug(localn);
+	OutputDebug("_bspGl()::Stage: %d, Tpage: %d, Palette: %d\n", currentStage, tPage, palette);
 
-	sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.png", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
-	int width_, height_, channels;
-	unsigned char* buffer;
+	sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.dds", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+		sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.png", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
+
 	if (bss[tPage - 16].buffer == NULL) //texture never loaded
 	{
-		buffer = stbi_load(localn, &width_, &height_, &channels, 0);
+		bimg::ImageContainer* img = LoadImageFromFile(localn);
 		bss[tPage - 16].bActive = TRUE;
-		bss[tPage - 16].width = width_;
-		bss[tPage - 16].height = height_;
-		bss[tPage - 16].channels = channels;
+		bss[tPage - 16].width = img->m_width;
+		bss[tPage - 16].height = img->m_width;
+		bss[tPage - 16].channels = img->m_hasAlpha ? 4 : 3;
 		bssInvalidateTexPath(tPage);
 		strcpy(bss[tPage - 16].localPath, localn);
-		bss[tPage - 16].buffer = buffer;
+		bss[tPage - 16].buffer = img;
 		bss[tPage - 16].tpage = tPage;
-		sprintf(localn, "\tbspGl():bss - First time init battle texture for page: %d", tPage);
-		OutputDebug(localn);
-		sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", width_, height_, channels);
-		OutputDebug(localn);
+		OutputDebug("\tbspGl():bss - First time init battle texture for page: %d", tPage);
+		OutputDebug("\tstbi::w: %d; h: %d; channels: %d\n", bss[tPage - 16].width, bss[tPage - 16].height, bss[tPage - 16].channels);
 	}
 	else
 	{
 		if (strcmp(bss[tPage - 16].localPath, localn)) //there is new texture- the filepath are not the same
 		{
 			//first step is to invalidate last buffer
-			stbi_image_free(bss[tPage - 16].buffer); //let's release memory from unused texture
+			bimg::imageFree(bss[tPage - 16].buffer); //let's release memory from unused texture
 			bssInvalidateTexPath(tPage);
 			strcpy(bss[tPage - 16].localPath, localn);
-			buffer = stbi_load(localn, &width_, &height_, &channels, 0);
-			bss[tPage - 16].width = width_;
-			bss[tPage - 16].height = height_;
-			bss[tPage - 16].channels = channels;
-			bss[tPage - 16].buffer = buffer;
-			sprintf(localn, "\tbspGl():bss - replacing cached texture with new one for tPage: %d", tPage);
-			OutputDebug(localn);
-			sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", width_, height_, channels);
-			OutputDebug(localn);
+			bimg::ImageContainer* img = LoadImageFromFile(localn);
+			bss[tPage - 16].width = img->m_width;
+			bss[tPage - 16].height = img->m_height;
+			bss[tPage - 16].channels = img->m_hasAlpha ? 4 : 3;
+			bss[tPage - 16].buffer = img;
+			OutputDebug("\tbspGl():bss - replacing cached texture with new one for tPage: %d", tPage);
+			OutputDebug("\tstbi::w: %d; h: %d; channels: %d\n", bss[tPage - 16].width, bss[tPage - 16].height, bss[tPage - 16].channels);
 		}
 		else
 		{
 			 //uncomment for old behaviour laggy
-			//stbi_image_free(bss[tPage - 16].buffer); //let's release memory from unused texture
+			//bimg::imageFree(bss[tPage - 16].buffer); //let's release memory from unused texture
 			//bssInvalidateTexPath(tPage);
 			//strcpy(bss[tPage - 16].localPath, localn);
-			//buffer = stbi_load(localn, &width_, &height_, &channels, 0);
-			//bss[tPage - 16].width = width_;
-			//bss[tPage - 16].height = height_;
-			//bss[tPage - 16].channels = channels;
-			//bss[tPage - 16].buffer = buffer;
-			//sprintf(localn, "\tbspGl():bss - what happens during force-reload?: %d", tPage);
-			//OutputDebug(localn);
-			//sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", width_, height_, channels);
-			//OutputDebug(localn);
+			//bimg::ImageContainer* img = LoadImageFromFile(localn);
+			//bss[tPage - 16].width = img->m_width;
+			//bss[tPage - 16].height = img->m_height;
+			//bss[tPage - 16].channels = img->m_hasAlpha ? 4 : 3;
+			//bss[tPage - 16].buffer = img;
+			//OutputDebug("\tbspGl():bss - what happens during force-reload?: %d", tPage);
+			//OutputDebug("\tstbi::w: %d; h: %d; channels: %d\n", bss[tPage - 16].width, bss[tPage - 16].height, bss[tPage - 16].channels);
 		}
 	}
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bss[tPage - 16].width, bss[tPage - 16].height, 0, GL_RGBA, GL_UNSIGNED_BYTE, bss[tPage - 16].buffer);
+	TextureFormatInfo& texInfo = s_textureFormat[bss[tPage - 16].buffer->m_format];
+	if (bimg::isCompressed(bss[tPage - 16].buffer->m_format))
+		RenderCompressedTexture(bss[tPage - 16].buffer, texInfo);
+	else
+		RenderUncompressedTexture(bss[tPage - 16].buffer, texInfo);
 	//we no longer free the buffer here
 	return;
 }
@@ -129,15 +125,16 @@ DWORD _bspCheck()
 	if (tPage > 21)
 		return 0;
 	char localn[256];
-	sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.png", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
+	sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.dds", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+		sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.png", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
 	DWORD attr = GetFileAttributesA(localn);
 	if (attr == INVALID_FILE_ATTRIBUTES)
 	{
-		sprintf(localn, "_bspCheck FAILED ON TEXTURE!; Expected: a0stg%03d_%d.png\n", currentStage, tPage);
-		OutputDebug(localn);
+		OutputDebug("_bspCheck FAILED ON TEXTURE!; Expected: a0stg%03d_%d.(dds|png)\n", currentStage, tPage);
 		return 0;
 	}
-	sprintf(localn, "_bspCheck: Happy at a0stg%03d_%d.png\n", currentStage, tPage);
+	sprintf(localn, "_bspCheck: Happy at a0stg%03d_%d.(dds|png)\n", currentStage, tPage);
 	return 1;
 }
 
@@ -231,9 +228,7 @@ void ApplyBattleFieldPatch()
 	OutputDebug("Applying battle field patch\n");
 	ds_free = (DWORD**)(IMAGE_BASE + 0x166b2a8);
 	ds_teximg = (DWORD**)(IMAGE_BASE + 0x166b4a0);
-	char localn[256];
-	sprintf(localn, "ApplyBattleFieldPatch():ds_free is at: %08X and ds_teximg is at: %08X", ds_free, ds_teximg);
-	OutputDebug(localn);
+	OutputDebug("ApplyBattleFieldPatch():ds_free is at: %08X and ds_teximg is at: %08X\n", ds_free, ds_teximg);
 	_bspBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + 0x1573AFF, (DWORD)_bsp, 38);
 	_bspBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + 0x1573B54, (DWORD)_bspFree, 9);
 

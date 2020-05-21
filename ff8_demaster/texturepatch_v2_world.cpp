@@ -1,8 +1,4 @@
 #include "coreHeader.h"
-#include <gl/GL.h>
-#include "stb_image.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
 
 DWORD _wtpBackAdd1;
 DWORD _wtpBackAdd2;
@@ -14,7 +10,7 @@ struct worldTextureStructure
 {
 	char localPath[256];
 	DWORD tpage;
-	unsigned char* buffer;
+	bimg::ImageContainer* buffer;
 	int width;
 	int height;
 	int channels;
@@ -68,25 +64,35 @@ void _wtpGl()
 	int getTexIndex = GetTextureIndex();
 	if (getTexIndex < 20 && (tPage > 14 && tPage < 26))
 	{
-		sprintf(localn, "%stextures\\world\\dat\\texl\\texl_%03d_0.png", DIRECT_IO_EXPORT_DIR, /*tPage*/texIndex);
+		sprintf(localn, "%stextures\\world\\dat\\texl\\texl_%03d_0.dds", DIRECT_IO_EXPORT_DIR, /*tPage*/texIndex);
+		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+			sprintf(localn, "%stextures\\world\\dat\\texl\\texl_%03d_0.png", DIRECT_IO_EXPORT_DIR, /*tPage*/ texIndex);
 		if (ws[texIndex].bActive == FALSE || ws[texIndex].buffer == NULL)
 		{
-			int width_, height_, channels;
-			unsigned char* buffer = stbi_load(localn, &width_, &height_, &channels, 0);
-			ws[texIndex].width = width_; ws[texIndex].height = height_; ws[texIndex].channels = channels;
+			bimg::ImageContainer* img = LoadImageFromFile(localn);
+			ws[texIndex].width = img->m_width;
+			ws[texIndex].height = img->m_height;
+			ws[texIndex].channels = img->m_hasAlpha ? 4 : 3;
 			strcpy(ws[texIndex].localPath, localn);
-			ws[texIndex].buffer = buffer;
+			ws[texIndex].buffer = img;
 			ws[texIndex].bActive = TRUE;
-			sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", width_, height_, channels);
+			sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", ws[texIndex].width, ws[texIndex].height, ws[texIndex].channels);
 			OutputDebugStringA(localn);
 		}
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ws[texIndex].width, ws[texIndex].height, 0, ws[texIndex].channels == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, ws[texIndex].buffer);
+
+		TextureFormatInfo& texInfo = s_textureFormat[ws[texIndex].buffer->m_format];
+		if (bimg::isCompressed(ws[texIndex].buffer->m_format))
+			RenderCompressedTexture(ws[texIndex].buffer, texInfo);
+		else
+			RenderUncompressedTexture(ws[texIndex].buffer, texInfo);
 	}
 	else
 	{
-		sprintf(localn, "%stextures\\world\\dat\\wmset\\wmset_%03d_0.png", DIRECT_IO_EXPORT_DIR, getTexIndex);
+		sprintf(localn, "%stextures\\world\\dat\\wmset\\wmset_%03d_0.dds", DIRECT_IO_EXPORT_DIR, getTexIndex);
+		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+			sprintf(localn, "%stextures\\world\\dat\\wmset\\wmset_%03d_0.png", DIRECT_IO_EXPORT_DIR, getTexIndex);
 		int wmStructPointer = -1;
 		switch (getTexIndex)
 		{
@@ -103,21 +109,26 @@ void _wtpGl()
 			wmStructPointer = 21;
 			break;
 		}
-		int width_, height_, channels;
+
 		if (!ws[wmStructPointer].bActive)
 		{
-		unsigned char* buffer = stbi_load(localn, &width_, &height_, &channels, 0);
-		sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", width_, height_, channels);
-		OutputDebugStringA(localn);
-		ws[wmStructPointer].buffer = buffer;
-		ws[wmStructPointer].channels = channels;
-		ws[wmStructPointer].height = height_;
-		ws[wmStructPointer].width = width_;
-		ws[wmStructPointer].bActive = true;
+			bimg::ImageContainer* img = LoadImageFromFile(localn);
+			ws[wmStructPointer].buffer = img;
+			ws[wmStructPointer].channels = img->m_hasAlpha ? 4 : 3;
+			ws[wmStructPointer].height = img->m_height;
+			ws[wmStructPointer].width = img->m_width;
+			ws[wmStructPointer].bActive = true;
+			sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", ws[wmStructPointer].width, ws[wmStructPointer].height, ws[wmStructPointer].channels);
+			OutputDebugStringA(localn);
 		}
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ws[wmStructPointer].width, ws[wmStructPointer].height, 0, ws[wmStructPointer].channels == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE, ws[wmStructPointer].buffer);
+
+		TextureFormatInfo& texInfo = s_textureFormat[ws[texIndex].buffer->m_format];
+		if (bimg::isCompressed(ws[texIndex].buffer->m_format))
+			RenderCompressedTexture(ws[texIndex].buffer, texInfo);
+		else
+			RenderUncompressedTexture(ws[texIndex].buffer, texInfo);
 	}
 	return;
 }
@@ -183,14 +194,24 @@ DWORD _wtpCheck()
 	char localn[256];
 	int textureIndex = GetTextureIndex();
 	if (textureIndex < 20 && (tPage > 14 && tPage < 26))
-		sprintf(localn, "%stextures\\world\\dat\\texl\\texl_%03d_0.png", DIRECT_IO_EXPORT_DIR, textureIndex);
+	{
+		sprintf(localn, "%stextures\\world\\dat\\texl\\texl_%03d_0.dds", DIRECT_IO_EXPORT_DIR, textureIndex);
+		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+			sprintf(localn, "%stextures\\world\\dat\\texl\\texl_%03d_0.png", DIRECT_IO_EXPORT_DIR, textureIndex);
+	}
 	else
-		sprintf(localn, "%stextures\\world\\dat\\wmset\\wmset_%03d_0.png", DIRECT_IO_EXPORT_DIR, textureIndex);
+	{
+		sprintf(localn, "%stextures\\world\\dat\\wmset\\wmset_%03d_0.dds", DIRECT_IO_EXPORT_DIR, textureIndex);
+		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+			sprintf(localn, "%stextures\\world\\dat\\wmset\\wmset_%03d_0.png", DIRECT_IO_EXPORT_DIR, textureIndex);
+	}
 
 	DWORD attr = GetFileAttributesA(localn);
 	if (attr == INVALID_FILE_ATTRIBUTES)
 	{
-		sprintf(localn, "_wtpCheck FAILED ON TEXTURE!; Expected: a0stg%03d_%d.png", currentStage, tPage);
+		sprintf(localn, "_wtpCheck FAILED ON TEXTURE!; Expected: a0stg%03d_%d.dds", currentStage, tPage);
+		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+			sprintf(localn, "_wtpCheck FAILED ON TEXTURE!; Expected: a0stg%03d_%d.png", currentStage, tPage);
 		return 0;
 	}
 	return 1;

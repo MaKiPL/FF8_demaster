@@ -1,7 +1,4 @@
 #include "coreHeader.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#include <gl/GL.h>
 
 
 //const DWORD TEXPATCH1 = 0x16054FE; //first: 0x15A992F;
@@ -84,8 +81,7 @@ void _cltVoid()
 		return;
 	if (textureType == 57) //field
 		return;
-	sprintf(n, "common_load_texture: tex_type: %s, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n", GetTextureType(textureType), palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
-	OutputDebug(n);
+	OutputDebug("common_load_texture: tex_type: %s, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n", GetTextureType(textureType), palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
 
 	return;
 }

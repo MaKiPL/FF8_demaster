@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <Windows.h>
 #include "coreHeader.h"
 
 BOOL modPage(DWORD address, int size = 5)

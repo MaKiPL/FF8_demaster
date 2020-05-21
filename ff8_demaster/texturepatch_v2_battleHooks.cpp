@@ -19,7 +19,9 @@ DWORD _bhpMonsterStructVoid()
 	if (batId < 0 || batId>144)
 		return -1;
 	char localn[256];
-	sprintf(localn, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.png", DIRECT_IO_EXPORT_DIR, batId);
+	sprintf(localn, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.dds", DIRECT_IO_EXPORT_DIR, batId);
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+		sprintf(localn, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.png", DIRECT_IO_EXPORT_DIR, batId);
 	int maxPal = 0;
 	int _strlen = strlen(localn);
 	while (1)
@@ -30,16 +32,14 @@ DWORD _bhpMonsterStructVoid()
 		{
 			if (maxPal == 0)
 			{
-				sprintf(localn, "_bhpMonsterStructVoid::Not found entry of c0m%03d_0.png- treating as null;\n", batId);
-				OutputDebug(localn);
+				OutputDebug("_bhpMonsterStructVoid::Not found entry of c0m%03d_0.(dds|png)- treating as null;\n", batId);
 				return -1;
 			}
 			break;
 		}
 		maxPal++;
 	}
-	sprintf(localn, "_bhpMonsterStructVoid::Custom worker- found C0M%03d that have %d pages\n", batId, maxPal);
-	OutputDebug(localn);
+	OutputDebug("_bhpMonsterStructVoid::Custom worker- found C0M%03d that have %d pages\n", batId, maxPal);
 	return maxPal;
 }
 
@@ -63,10 +63,8 @@ __declspec(naked) void _bhpMonsterStruct()
 
 BYTE _bhpVoid()
 {
-	char localn[256];
 	char localPath[256];
-	sprintf(localn, "texturepatchv2::battleHooks::BhpVoid(%s)\n", _bhpStrPointer);
-	OutputDebug(localn);
+	OutputDebug("texturepatchv2::battleHooks::BhpVoid(%s)\n", _bhpStrPointer);
 	
 	char bhpChechker = _bhpStrPointer[0];
 	bhpChechker = tolower(bhpChechker);
@@ -103,7 +101,9 @@ BYTE _bhpVoid()
 		monsId[3] = '\0';
 		int intMonsId = atoi(monsId);
 
-		sprintf(localPath, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.png", DIRECT_IO_EXPORT_DIR, intMonsId);
+		sprintf(localPath, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.dds", DIRECT_IO_EXPORT_DIR, intMonsId);
+		if (GetFileAttributesA(localPath) == INVALID_FILE_ATTRIBUTES)
+			sprintf(localPath, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.png", DIRECT_IO_EXPORT_DIR, intMonsId);
 		DWORD attr = GetFileAttributesA(localPath);
 		if (attr == INVALID_FILE_ATTRIBUTES) //file doesn't exist, so please do not replace textures
 			return 0;
