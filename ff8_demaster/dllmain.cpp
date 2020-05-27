@@ -1,11 +1,4 @@
-﻿#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <Windows.h>
-#include <stdio.h>
-#include <Windows.h>
-#include "coreHeader.h"
-#include "ini.h"
+﻿#include "coreHeader.h"
 
 /*
 KURSE ALL SEEDS!
@@ -16,8 +9,8 @@ KURSE ALL SEEDS!
 *
 *
 */
-long long IMAGE_BASE = 0;
-long long OPENGL_HANDLE = 0;
+DWORD IMAGE_BASE = 0;
+DWORD OPENGL_HANDLE = 0;
 const char * DIRECT_IO_EXPORT_DIR = "DEMASTER_EXP\\";
 FILE* logFile = NULL;
 DWORD* tex_header = 0;
@@ -34,20 +27,25 @@ BOOL UVPATCH, DIRECT_IO, TEXTURE_PATCH, DEBUG_PATCH, LOG;
 BOOL BATTLE_CHARA, FIELD_ENTITY, BATTLE_HOOK, FIELD_BACKGROUND, WORLD_TEXTURES;
 BOOL LINEAR_PATCH, OPENGL_HOOK;
 
+// REQUIRED BY BIMG FILE DECODING
+bx::DefaultAllocator texAllocator;
 
-void OutputDebug(const char* c)
+void OutputDebug(const char* fmt, ...)
 {
-	printf(c);
-	if (LOG)
+	va_list args;
+	char tmp_str[1024];
+
+	va_start(args, fmt);
+	vsnprintf(tmp_str, sizeof(tmp_str), fmt, args);
+	va_end(args);
+
+	printf(tmp_str);
+
+	if (logFile != NULL)
 	{
-		logFile = fopen("demasterlog.txt", "a+");
-		if (logFile != NULL)
-		{
-			fwrite(c, sizeof(char), strlen(c), logFile);
-			fclose(logFile);
-		}
+		fwrite(tmp_str, sizeof(char), strlen(tmp_str), logFile);
+		fflush(logFile);
 	}
-	
 }
 
 DWORD _dllmainBackAddr1;
@@ -77,7 +75,6 @@ EXPORT void InitTest()
 	return;
 }
 
-char DEB_buf[256];
 DWORD lastJMP;
 
 void DEB_JMP(char* c, DWORD a, DWORD b, DWORD cc, DWORD d, DWORD e)
@@ -86,7 +83,7 @@ void DEB_JMP(char* c, DWORD a, DWORD b, DWORD cc, DWORD d, DWORD e)
 		return;
 	char localD[32];
 	localD[0] = '\0';
-	sprintf(localD, "Wrong address at: %08X\n", c);
+	sprintf(localD, "Wrong address at: %08x\n", (unsigned int)c);
 	if (IsBadReadPtr(c, 4)) 
 	{
 		//OutputDebugStringA(localD);
@@ -103,8 +100,7 @@ void DEB_JMP(char* c, DWORD a, DWORD b, DWORD cc, DWORD d, DWORD e)
 			INT 3
 		}
 	}
-	sprintf(DEB_buf, c, a, b, cc, d, e);
-	OutputDebug(DEB_buf);
+	OutputDebug(c, a, b, cc, d, e);
 	return;
 }
 
@@ -144,8 +140,6 @@ void DEB_JMPv2_00()
 {
 	const char* format = "FSArchive:: %s - %s\n";
 	char* path = (char*)_deb00_EAX;
-	char localn[256];
-	sprintf(localn, format, path, _deb00_ECX);
 	if (DEBUG_reverseWm) 
 	{
 		std::string pathStr(path);
@@ -153,7 +147,7 @@ void DEB_JMPv2_00()
 		//if (fnd != std::string::npos)
 		//	DebugBreak();
 	}
-	OutputDebug(localn);
+	OutputDebug(format, path, _deb00_ECX);
 }
 
 __declspec(naked) void DEB_JMPv2()
@@ -216,8 +210,6 @@ void ApplyFilteringPatch()
 	//InjectDWORD(IMAGE_BASE + 0x156D841 + 1, 0x2600);
 }
 
-
-
 void ReadConfigFile()
 {
 	DWORD attr = GetFileAttributesA("demaster.conf");
@@ -245,6 +237,120 @@ void ReadConfigFile()
 	OPENGL_HOOK = conf.GetInteger("", "OPENGL_HOOK", 0);
 }
 
+LONG WINAPI ExceptionHandler(EXCEPTION_POINTERS* ep)
+{
+	DemasteredStackWalker sw;
+
+	OutputDebug("*** Exception 0x%x, address 0x%x ***\n", ep->ExceptionRecord->ExceptionCode, ep->ExceptionRecord->ExceptionAddress);
+	sw.ShowCallstack(
+		GetCurrentThread(),
+		ep->ContextRecord
+	);
+
+	// show cursor in case it was hidden
+	ShowCursor(true);
+
+	MessageBoxA(0, "Oops! Something very bad happened.\n\nPlease provide a copy of demasterlog.txt when reporting this error at https://github.com/MaKiPL/FF8_demastered/issues.\n", "Error", MB_OK);
+
+	// let OS handle the crash
+	SetUnhandledExceptionFilter(0);
+	return EXCEPTION_CONTINUE_EXECUTION;
+}
+
+bimg::ImageContainer* LoadImageFromFile(char* filename)
+{
+	static bool glewLoaded = false;
+
+	if (!glewLoaded)
+	{
+		glewLoaded = true;
+
+		// INIT GLEW - Add recent OpenGL extension support ( required for Texture Compression )
+		GLenum err = glewInit();
+		if (GLEW_OK != err)
+		{
+			/* Problem: glewInit failed, something is seriously wrong. */
+			OutputDebug("GLEW Error: %s\n", glewGetErrorString(err));
+		}
+	}
+
+	bimg::ImageContainer* img = nullptr;
+	char msg[1024]{ 0 };
+
+	OutputDebug("Opening file: %s\n", filename);
+
+	FILE* file = fopen(filename, "rb");
+
+	if (file)
+	{
+		size_t filesize = 0;
+		char* buffer = nullptr;
+
+		fseek(file, 0, SEEK_END);
+		filesize = ftell(file);
+
+		buffer = (char*)malloc(filesize + 1);
+		fseek(file, 0, SEEK_SET);
+		fread(buffer, filesize, 1, file);
+
+		fclose(file);
+
+		// ==================================
+
+		if (buffer != nullptr)
+		{
+			img = bimg::imageParse(&texAllocator, buffer, filesize + 1);
+
+			free(buffer);
+		}
+	}
+
+	return img;
+}
+
+void RenderUncompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo)
+{
+	uint32_t width = img->m_width;
+	uint32_t height = img->m_height;
+	uint32_t depth = img->m_depth;
+	const uint8_t startLod = bx::min<uint8_t>(0, img->m_numMips - 1);
+
+	for (uint8_t lod = 0, num = img->m_numMips; lod < num; ++lod)
+	{
+		width = bx::uint32_max(1, width);
+		height = bx::uint32_max(1, height);
+		depth = 1;
+
+		bimg::ImageMip mip;
+		if (bimg::imageGetRawData(*img, 0, lod + startLod, img->m_data, img->m_size, mip))
+			glTexImage2D(GL_TEXTURE_2D, lod, texInfo.m_internalFmt, img->m_width, img->m_height, 0, texInfo.m_fmt, texInfo.m_type, mip.m_data);
+	}
+}
+
+void RenderCompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo)
+{
+	if (GLEW_ARB_texture_compression)
+	{
+		uint32_t width = img->m_width;
+		uint32_t height = img->m_height;
+		uint32_t depth = img->m_depth;
+		const uint8_t startLod = bx::min<uint8_t>(0, img->m_numMips - 1);
+
+		for (uint8_t lod = 0, num = img->m_numMips; lod < num; ++lod)
+		{
+			width = bx::uint32_max(1, width);
+			height = bx::uint32_max(1, height);
+			depth = 1;
+
+			bimg::ImageMip mip;
+			if (bimg::imageGetRawData(*img, 0, lod + startLod, img->m_data, img->m_size, mip))
+				glCompressedTexImage2D(GL_TEXTURE_2D, lod, texInfo.m_internalFmt, img->m_width, img->m_height, 0, mip.m_size, mip.m_data);
+		}
+	}
+	else
+		OutputDebug("Texture is compressed, but compression is not supported on your GPU. Skipping draw.");
+}
+
 BOOL WINAPI DllMain(
 
 	HINSTANCE hinstDLL, // handle to DLL module
@@ -254,18 +360,20 @@ BOOL WINAPI DllMain(
 	//MessageBoxA(0, "DLL loaded at DllMain- Maki", "test", MB_OK);
 	if (fdwReason != DLL_PROCESS_ATTACH) //fail if not on app-init. Attaching is not recommended, should be loaded at startup by import
 		return 0;
+
+	SetUnhandledExceptionFilter(ExceptionHandler);
+
 	AllocConsole();
 	freopen("CONOUT$", "w", stdout);
 	freopen("CON", "r", stdin);
 	InitTest();
 	ReadConfigFile();
+	if (LOG) logFile = fopen("demasterlog.txt", "wb");
 
 	HMODULE IMG_BASE = GetModuleHandleA("FFVIII_EFIGS");
 	IMAGE_BASE = (long long)IMG_BASE;
 	OPENGL_HANDLE = (long long)GetModuleHandleA("OPENGL32");
-	char localn[256];
-	sprintf(localn, "IMAGE_BASE at: %lX; OPENGL at: %lX\n", IMAGE_BASE, OPENGL_HANDLE);
-	OutputDebug(localn);
+	OutputDebug("IMAGE_BASE at: %lX; OPENGL at: %lX\n", IMAGE_BASE, OPENGL_HANDLE);
 
 	GetWindow();
 
@@ -290,4 +398,3 @@ BOOL WINAPI DllMain(
 													//ApplyTextureUpscaleMod();
 	return 1; //all success
 }
-

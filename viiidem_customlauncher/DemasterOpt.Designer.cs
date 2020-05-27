@@ -124,9 +124,9 @@
 
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.DataGridView dataGridView1;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Name;
+        new private System.Windows.Forms.DataGridViewTextBoxColumn Name;
         private System.Windows.Forms.DataGridViewTextBoxColumn Description;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn Enabled;
+        new private System.Windows.Forms.DataGridViewCheckBoxColumn Enabled;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button1;
     }

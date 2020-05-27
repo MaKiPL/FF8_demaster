@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <Windows.h>
 #include "coreHeader.h"
 
 
@@ -36,13 +34,16 @@ __declspec(naked) void directIO_fopenReroute()
 
 	strcpy(IO_backlogFilePath, DIRECT_IO_EXPORT_DIR); //VS automatically does the ESP math
 	strcpy(IO_backlogFilePath + DIRECT_IO_EXPORT_DIR_LEN, (char*)filePathBuffer); //same for this, no local vars so no ESP--
-	OutputDebug(IO_backlogFilePath);
-	OutputDebug("\n");
 
 	attr = GetFileAttributesA(IO_backlogFilePath);
 	if (attr == INVALID_FILE_ATTRIBUTES)
-		sprintf(IO_backlogFilePath, "%stextures\\null.png", DIRECT_IO_EXPORT_DIR);
+	{
+		sprintf(IO_backlogFilePath, "%stextures\\null.dds", DIRECT_IO_EXPORT_DIR);
+		if (GetFileAttributesA(IO_backlogFilePath) == INVALID_FILE_ATTRIBUTES)
+			sprintf(IO_backlogFilePath, "%stextures\\null.png", DIRECT_IO_EXPORT_DIR);
+	}
 
+	OutputDebug("%s: %s\n", __func__, IO_backlogFilePath);
 
 	__asm
 	{
@@ -123,7 +124,7 @@ __declspec(naked) void directIO_fopenReroute3()
 
 void ApplyDirectIO()
 {
-	OutputDebug((char*)"Applying DIRECT_IO\n");
+	OutputDebug("Applying DIRECT_IO\n");
 	//let's see if the exp dir exists
 	DIRECT_IO_EXPORT_DIR_LEN = strlen(DIRECT_IO_EXPORT_DIR);
 	DWORD attrib = GetFileAttributesA(DIRECT_IO_EXPORT_DIR);

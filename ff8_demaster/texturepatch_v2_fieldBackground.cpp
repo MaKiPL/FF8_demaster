@@ -1,5 +1,4 @@
 #include "coreHeader.h"
-#include <gl/GL.h>
 
 BYTE* fbgBackAdd1;
 
@@ -17,7 +16,6 @@ char maplist[65535];
 
 char* GetFieldBackgroundFile()
 {
-	char localn[256];
 	OutputDebug("GetFieldBackgroundFile()\n");
 	DWORD* dc = (DWORD*)(IMAGE_BASE + 0x189559C);
 	char* c = (char*)(*dc + 0x118);
@@ -26,8 +24,7 @@ char* GetFieldBackgroundFile()
 
 	int fieldId = *(DWORD*)(IMAGE_BASE + 0x1782140) & 0xFFFF;
 	char* del = strtok(maplist, "\n");
-	sprintf(localn, "GetFieldBackgroundFile()::ReadyMapList at?: %s\n", del);
-	OutputDebug(localn);
+	OutputDebug("GetFieldBackgroundFile()::ReadyMapList at?: %s\n", del);
 	int currField = 0;
 
 	while (del != NULL)
@@ -48,8 +45,7 @@ char* GetFieldBackgroundFile()
 	char n[256];
 	n[0] = '\0';
 	sprintf(n, "field_bg\\%s\\%s\\%s_", dirName, del, del);
-	OutputDebug(n);
-	OutputDebug("\n");
+	OutputDebug("%s\n", n);
 	return n;
 }
 
@@ -62,10 +58,11 @@ char* _fbgHdInjectVoid()
 	n[0] = '\0';
 	strcat(n, GetFieldBackgroundFile());
 	int palette = tex_header[52];
-	sprintf(localn, "%stextures\\%s%u_%u.png", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette);
+	sprintf(localn, "%stextures\\%s%u_%u.dds", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette);
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+		sprintf(localn, "%stextures\\%s%u_%u.png", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage - 16, palette);
 	DWORD attr = GetFileAttributesA(localn);
-	sprintf(localn, "fbp_Requesting: %s\n", localn);
-	OutputDebug(localn);
+	OutputDebug("fbp_Requesting: %s\n", localn);
 	if (attr == INVALID_FILE_ATTRIBUTES)
 	{
 		strcat(n, "%u");
@@ -111,12 +108,10 @@ __declspec(naked) void _fbgHdInject()
 DWORD _fbgCheckHdAvailableVoid()
 {
 	OutputDebug("_fbgCheckHdAvailable()\n");
-	char n[256];
-	n[0] = '\0';
-	strcat(n, DIRECT_IO_EXPORT_DIR);
-	strcat(n, "textures\\");
-	strcat(n, GetFieldBackgroundFile());
-	strcat(n, "0.png");
+	char n[256]{ 0 };
+	sprintf(n, "%stextures\\%s0.dds", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundFile());
+	if (GetFileAttributesA(n) == INVALID_FILE_ATTRIBUTES)
+		sprintf(n, "%stextures\\%s0.png", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundFile());
 	DWORD attrib = GetFileAttributesA(n);
 	if (attrib == INVALID_FILE_ATTRIBUTES)
 		return 0;

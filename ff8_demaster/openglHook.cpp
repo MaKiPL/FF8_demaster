@@ -1,7 +1,4 @@
 #include "coreHeader.h"
-#include <GL/GL.h>
-#include "stb_image.h"
-#include "stb_image_write.h"
 
 //could someone explain why the hell DWORD[10] when referenced by DWORD PTR is actually dumped to BYTE*????
 DWORD params[10];
@@ -226,23 +223,18 @@ void HookOpenGL()
 
 void __glDrawElements()
 {
-	//char localn[256];
-	//sprintf(localn, "glDrawElements: %d %d %08X %08X\n", *(DWORD*)params[0], *(DWORD*)params[1],
-	//	*(DWORD*)params[2], *(DWORD*)params[3]);
-	//OutputDebug(localn);
+	//OutputDebug("glDrawElements: %d %d %08X %08X\n", *(DWORD*)params[0], *(DWORD*)params[1], *(DWORD*)params[2], *(DWORD*)params[3]);
 
 	//DWORD count = *(DWORD*)params[1];
 	//if (count > 64)
 	//{
 	//	GLfloat proj[16];
 	//	glGetFloatv(GL_PROJECTION_MATRIX, proj);
-	//	char localn[256];
-	//	sprintf(localn, "projmatrix: \n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
-	//		proj[0], proj[1], proj[2], proj[3],
-	//		proj[4], proj[5], proj[6], proj[7],
-	//		proj[8], proj[9], proj[10], proj[11],
-	//		proj[12], proj[13], proj[14], proj[15]);
-	//	OutputDebug(localn);
+	//	OutputDebug("projmatrix: \n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
+	//    proj[0], proj[1], proj[2], proj[3],
+	//    proj[4], proj[5], proj[6], proj[7],
+	//    proj[8], proj[9], proj[10], proj[11],
+	//    proj[12], proj[13], proj[14], proj[15]);
 	//}
 	//*(DWORD*)params[1] = count;
 	
@@ -295,22 +287,17 @@ void __glOrtho()
 	//double* top = left + 3;
 	//double* zNear = left + 4;
 	//double* zFar = left + 5;
-	//char localn[256];
-	//sprintf(localn, "glOrtho: left: %lf right: %lf bottom: %lf top: %lf zNear: %lf zFar: %lf\n",
-	//	*left, *right, *bottom, *top, *zNear, *zFar);
-	//OutputDebug(localn);
-	//sprintf(localn, "glOrtho/MODELVIEW: \n  %f %f %f %f\n  %f %f %f %f\n  %f %f %f %f\n  %f %f %f %f\n",
+	//OutputDebug("glOrtho: left: %lf right: %lf bottom: %lf top: %lf zNear: %lf zFar: %lf\n", *left, *right, *bottom, *top, *zNear, *zFar);
+	//OutputDebug("glOrtho/MODELVIEW: \n  %f %f %f %f\n  %f %f %f %f\n  %f %f %f %f\n  %f %f %f %f\n",
 	//	matrixModel[0], matrixModel[1], matrixModel[2], matrixModel[3],
 	//	matrixModel[4], matrixModel[5], matrixModel[6], matrixModel[7],
 	//	matrixModel[8], matrixModel[9], matrixModel[10], matrixModel[11],
 	//	matrixModel[12], matrixModel[13], matrixModel[14], matrixModel[15]);
-	//OutputDebug(localn);
-	//sprintf(localn, "glOrtho/PROJECTION: \n  %f %f %f %f\n  %f %f %f %f\n  %f %f %f %f\n  %f %f %f %f\n",
+	//OutputDebug("glOrtho/PROJECTION: \n  %f %f %f %f\n  %f %f %f %f\n  %f %f %f %f\n  %f %f %f %f\n",
 	//	matrixProjection[0], matrixProjection[1], matrixProjection[2], matrixProjection[3],
 	//	matrixProjection[4], matrixProjection[5], matrixProjection[6], matrixProjection[7],
 	//	matrixProjection[8], matrixProjection[9], matrixProjection[10], matrixProjection[11],
 	//	matrixProjection[12], matrixProjection[13], matrixProjection[14], matrixProjection[15]);
-	//OutputDebug(localn);
 	return;
 }
 __declspec(naked) void _glOrtho()
@@ -340,12 +327,9 @@ __declspec(naked) void _glOrtho()
 int glteximagept;
 void __glTexImage2D()
 {
-	
-	//char localn[256];
-	//sprintf(localn, "glTexImage2D: target: %X level: %X internal: %X width: %X height: %X border: %X format: %X type: %X data: %X\n",
+	//OutputDebug("glTexImage2D: target: %X level: %X internal: %X width: %X height: %X border: %X format: %X type: %X data: %X\n",
 	//	params[0], params[1], params[2], params[3],
 	//	params[4], params[5], params[6], params[7], params[8], params[9]);
-	//OutputDebug(localn);
 
 	return;
 }
@@ -382,7 +366,6 @@ __declspec(naked) void _glTexImage2D()
 
 void __glLoadMatrixf()
 {
-	//char localn[256];
 	//float* m11 = (float*)params[0];
 	//float* m12 = m11 + 1;
 	//float* m13 = m11 + 2;
@@ -399,9 +382,8 @@ void __glLoadMatrixf()
 	//float* m42 = m11 + 13;
 	//float* m43 = m11 + 14;
 	//float* m44 = m11 + 15;
-	//sprintf(localn, "glLoadMatrix:\n %f %f %f %f\n %f %f %f %f\n %f %f %f %f\n %f %f %f %f\n",
+	//OutputDebug("glLoadMatrix:\n %f %f %f %f\n %f %f %f %f\n %f %f %f %f\n %f %f %f %f\n",
 	//	m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44);
-	//OutputDebug(localn);
 	return;
 }
 __declspec(naked) void _glLoadMatrixf()
@@ -423,9 +405,7 @@ __declspec(naked) void _glLoadMatrixf()
 
 void __glClearColor()
 {
-	//char localn[256];
-	//sprintf(localn, "glClearColor: %d %d %d %d\n", params[0], params[1], params[2], params[3]);
-	//OutputDebug(localn);
+	//OutputDebug("glClearColor: %d %d %d %d\n", params[0], params[1], params[2], params[3]);
 	//params[2] = 0x3F800000;
 	return;
 }

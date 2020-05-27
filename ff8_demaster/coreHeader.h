@@ -1,8 +1,16 @@
 #pragma once
+
+#include <iostream>
+#include <sstream>
+#include <fstream>
 #include <stdio.h>
 #include <Windows.h>
-#ifndef COMMONDEF
-#define COMMONDEF
+#include <StackWalker.h>
+#include <INIReader.h>
+#include "renderer.h"
+
+#define EXPORT __declspec(dllexport)
+
 //CONFIG
 extern BOOL UVPATCH, DIRECT_IO, TEXTURE_PATCH, DEBUG_PATCH, LOG;
 extern BOOL BATTLE_CHARA, FIELD_ENTITY, BATTLE_HOOK, FIELD_BACKGROUND, WORLD_TEXTURES;
@@ -11,13 +19,15 @@ BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize = 5);
 BOOL modPage(DWORD address, int size);
 void ReplaceCALLWithNOP(DWORD address);
 void InjectDWORD(DWORD address, DWORD value);
-DWORD bspVoid(UINT textures, int a2, char* pixels);
 
-extern long long IMAGE_BASE;
-extern long long OPENGL_HANDLE;
+extern DWORD IMAGE_BASE;
+extern DWORD OPENGL_HANDLE;
 extern DWORD attr;
 extern const char* DIRECT_IO_EXPORT_DIR;
 extern DWORD DIRECT_IO_EXPORT_DIR_LEN;
+
+extern bx::DefaultAllocator texAllocator;
+bimg::ImageContainer* LoadImageFromFile(char* filename);
 
 void ApplyDirectIO();
 void ApplyUVPatch();
@@ -46,8 +56,6 @@ extern DWORD texturesPtr;
 
 extern DWORD TEX_TYPE;
 
-
-
 DWORD _wtpCheck();
 void _wtpGl();
 
@@ -58,11 +66,24 @@ extern DWORD* langIdent_ESI;
 extern int currentStage;
 
 extern FILE* logFile;
-void OutputDebug(const char* c);
+void OutputDebug(const char* fmt, ...);
 
+void RenderUncompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo);
+void RenderCompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo);
 
-void _wtp03();
+//CLASS
+class DemasteredStackWalker : public StackWalker
+{
+public:
+	DemasteredStackWalker() : StackWalker() {}
+protected:
+	virtual void OnDbgHelpErr(LPCSTR szFuncName, DWORD gle, DWORD64 addr)
+	{
+		// Silence is golden.
+	}
 
-#define EXPORT __declspec(dllexport)
-#pragma warning(disable:4996)
-#endif
+	virtual void OnOutput(LPCSTR szText)
+	{
+		OutputDebug(szText);
+	}
+};

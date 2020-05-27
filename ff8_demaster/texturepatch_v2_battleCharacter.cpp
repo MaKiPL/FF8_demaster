@@ -1,5 +1,4 @@
 #include "coreHeader.h"
-#include "stb_image.h"
 //#include "texturepatch_battle_data.h"
 
 
@@ -14,16 +13,17 @@ BYTE* bcpBackAdd3;
 void _bcpObtainTextureDatas(int aIndex)
 {
 	char n[256];
-	int width_, height_, channels;
-	sprintf(n, "%stextures\\battle.fs\\hd_new\\d%xc%03u_0.png", DIRECT_IO_EXPORT_DIR, (aIndex - 4097) / 100, (aIndex - 4097) % 100);
-	unsigned char* buffer = stbi_load(n, &width_, &height_, &channels, 0); //chara 0
-	width_bcp = width_ * 2;
-	height_bcp = height_ * 2;
 
-	char out[256];
-	sprintf(out, "_bcpObtainTextureDatas:: width=%d, height=%d, filename=%s\n", width_bcp, height_bcp, n);
-	OutputDebug(out);
-	stbi_image_free(buffer);
+	sprintf(n, "%stextures\\battle.fs\\hd_new\\d%xc%03u_0.dds", DIRECT_IO_EXPORT_DIR, (aIndex - 4097) / 100, (aIndex - 4097) % 100);
+	if (GetFileAttributesA(n) == INVALID_FILE_ATTRIBUTES)
+		sprintf(n, "%stextures\\battle.fs\\hd_new\\d%xc%03u_0.png", DIRECT_IO_EXPORT_DIR, (aIndex - 4097) / 100, (aIndex - 4097) % 100);
+
+	bimg::ImageContainer* img = LoadImageFromFile(n); //chara 0
+	width_bcp = img->m_width * 2;
+	height_bcp = img->m_height * 2;
+
+	OutputDebug("_bcpObtainTextureDatas:: width=%d, height=%d, filename=%s\n", width_bcp, height_bcp, n);
+	bimg::imageFree(img);
 	return;
 }
 
