@@ -10,9 +10,9 @@ BYTE* fcpBackAdd3;
 //casual is 384x384 or 768x768, therefore the final should be 1st height * 2
 void _fcpObtainTextureDatas(int bIndex, int aIndex)
 {
-	char texPath[256];
-	char tempPath[256];
-	char tempSprint[256];
+	char texPath[256]{ 0 };
+	char tempPath[256]{ 0 };
+	char tempSprint[256]{ 0 };
 	sprintf(texPath, "%stextures\\field.fs\\field_hd", DIRECT_IO_EXPORT_DIR);
 
 	if (aIndex >= 0xC19)
@@ -29,7 +29,7 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 
 	BOOL bNonHdParent = FALSE;
 
-	char testPath[256];
+	char testPath[256]{ 0 };
 	sprintf(testPath, "%s%s.dds", texPath, tempSprint);
 	if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
 		sprintf(testPath, "%s%s.png", texPath, tempSprint);

@@ -18,7 +18,7 @@ DWORD _bhpMonsterStructVoid()
 	batId -= 1000;
 	if (batId < 0 || batId>144)
 		return -1;
-	char localn[256];
+	char localn[256]{ 0 };
 	sprintf(localn, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.dds", DIRECT_IO_EXPORT_DIR, batId);
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 		sprintf(localn, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.png", DIRECT_IO_EXPORT_DIR, batId);
@@ -63,7 +63,7 @@ __declspec(naked) void _bhpMonsterStruct()
 
 BYTE _bhpVoid()
 {
-	char localPath[256];
+	char localPath[256]{ 0 };
 	OutputDebug("texturepatchv2::battleHooks::BhpVoid(%s)\n", _bhpStrPointer);
 	
 	char bhpChechker = _bhpStrPointer[0];

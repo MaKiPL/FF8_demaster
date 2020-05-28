@@ -18,7 +18,7 @@ DWORD lastStage;
 
 struct battleSceneryStructure
 {
-	char localPath[256];
+	char localPath[256]{ 0 };
 	DWORD tpage;
 	bimg::ImageContainer* buffer;
 	int width;
@@ -44,7 +44,7 @@ void _bspGl()
 {
 	DWORD tPage = gl_textures[50];
 	int palette = tex_header[52];
-	char localn[256];
+	char localn[256]{ 0 };
 
 	OutputDebug("_bspGl()::Stage: %d, Tpage: %d, Palette: %d\n", currentStage, tPage, palette);
 
@@ -124,7 +124,7 @@ DWORD _bspCheck()
 		return 0;
 	if (tPage > 21)
 		return 0;
-	char localn[256];
+	char localn[256]{ 0 };
 	sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.dds", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 		sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.png", DIRECT_IO_EXPORT_DIR, currentStage, tPage);

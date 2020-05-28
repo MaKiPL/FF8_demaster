@@ -8,7 +8,7 @@ DWORD _wtpBackAdd4;
 
 struct worldTextureStructure
 {
-	char localPath[256];
+	char localPath[256]{ 0 };
 	DWORD tpage;
 	bimg::ImageContainer* buffer;
 	int width;
@@ -55,7 +55,7 @@ void _wtpGl()
 {
 	DWORD tPage = gl_textures[50];
 	int palette = tex_header[52];
-	char localn[256];
+	char localn[256]{ 0 };
 
 	DWORD unk = *(DWORD*)(IMAGE_BASE + 0x17424B4);
 	int texIndex = lastKnownTextureId;
@@ -191,7 +191,7 @@ DWORD _wtpCheck()
 
 	DWORD tPage = gl_textures[50];
 
-	char localn[256];
+	char localn[256]{ 0 };
 	int textureIndex = GetTextureIndex();
 	if (textureIndex < 20 && (tPage > 14 && tPage < 26))
 	{

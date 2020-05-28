@@ -12,7 +12,7 @@ BYTE* bcpBackAdd3;
 //casual is 384x384, therefore the final should be 1st texture *2
 void _bcpObtainTextureDatas(int aIndex)
 {
-	char n[256];
+	char n[256]{ 0 };
 
 	sprintf(n, "%stextures\\battle.fs\\hd_new\\d%xc%03u_0.dds", DIRECT_IO_EXPORT_DIR, (aIndex - 4097) / 100, (aIndex - 4097) % 100);
 	if (GetFileAttributesA(n) == INVALID_FILE_ATTRIBUTES)

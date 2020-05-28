@@ -42,7 +42,7 @@ char* GetFieldBackgroundFile()
 	memcpy(dirName, del, 2); //warning- yes, I know- but it doesn't matter. IO_func is set to load null.png if not found
 	dirName[2] = '\0';
 
-	char n[256];
+	char n[256]{ 0 };
 	n[0] = '\0';
 	sprintf(n, "field_bg\\%s\\%s\\%s_", dirName, del, del);
 	OutputDebug("%s\n", n);
@@ -53,8 +53,8 @@ DWORD fbpRequestedTpage;
 
 char* _fbgHdInjectVoid()
 {
-	char n[256];
-	char localn[256];
+	char n[256]{ 0 };
+	char localn[256]{ 0 };
 	n[0] = '\0';
 	strcat(n, GetFieldBackgroundFile());
 	int palette = tex_header[52];

@@ -6,7 +6,7 @@ DWORD IO_backAddress = 0;
 DWORD IO_backAddress2 = 0;
 DWORD IO_backAddress3 = 0;
 DWORD filePathBuffer, filePathStrlen;
-char IO_backlogFilePath[256];
+char IO_backlogFilePath[256]{ 0 };
 
 const DWORD IO_FUNC1 = 0x364CC;//first: 0x15D41EB
 const DWORD IO_FUNC2 = 0x36B37;//first: 0x15D4797;
