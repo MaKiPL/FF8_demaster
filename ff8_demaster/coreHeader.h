@@ -43,7 +43,6 @@ void ApplyFieldBackgroundPatch();
 void ApplyWorldPatch();
 void HookOpenGL();
 
-extern char texPath[256]{ 0 };
 extern int lastWidth;
 extern int lastHeight;
 extern UCHAR* lastrgbBuffer;
