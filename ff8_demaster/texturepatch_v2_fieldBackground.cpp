@@ -30,9 +30,8 @@ void GetFieldBackgroundFile(char* buffer)
 	if (del == NULL)
 		return;
 
-	char dirName[3];
+	char dirName[3]{ 0 };
 	memcpy(dirName, del, 2); //warning- yes, I know- but it doesn't matter. IO_func is set to load null.png if not found
-	dirName[2] = '\0';
 
 	sprintf(buffer, "field_bg\\%s\\%s\\%s_", dirName, del, del);
 	OutputDebug("%s\n", buffer);
@@ -59,13 +58,8 @@ char* _fbgHdInjectVoid()
 		strcat(n, "%u");
 		return n;
 	}
-	else
-	{
-		strcat(n, "%u_");
-		strcpy(localn, n);
-		sprintf(n, "%s%u", localn, palette);
-		return n;
-	}
+	
+	return localn;
 }
 
 __declspec(naked) void _fbgHdInject()
