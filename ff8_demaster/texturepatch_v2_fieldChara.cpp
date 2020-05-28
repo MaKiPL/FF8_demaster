@@ -13,6 +13,7 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 	char texPath[256]{ 0 };
 	char tempPath[256]{ 0 };
 	char tempSprint[256]{ 0 };
+
 	sprintf(texPath, "%stextures\\field.fs\\field_hd", DIRECT_IO_EXPORT_DIR);
 
 	if (aIndex >= 0xC19)

@@ -1,22 +1,14 @@
 #include "coreHeader.h"
 
 BYTE* fbgBackAdd1;
-
 BYTE* fbgBackAdd3;
 BYTE* fbgBackAdd4;
-
-
 DWORD thisGlSegment;
-
-
-
-
 
 char maplist[65535];
 
-char* GetFieldBackgroundFile()
+void GetFieldBackgroundFile(char* buffer)
 {
-	OutputDebug("GetFieldBackgroundFile()\n");
 	DWORD* dc = (DWORD*)(IMAGE_BASE + 0x189559C);
 	char* c = (char*)(*dc + 0x118);
 
@@ -24,7 +16,7 @@ char* GetFieldBackgroundFile()
 
 	int fieldId = *(DWORD*)(IMAGE_BASE + 0x1782140) & 0xFFFF;
 	char* del = strtok(maplist, "\n");
-	OutputDebug("GetFieldBackgroundFile()::ReadyMapList at?: %s\n", del);
+	OutputDebug("%s()::ReadyMapList at?: %s\n", __func__, del);
 	int currField = 0;
 
 	while (del != NULL)
@@ -36,17 +28,14 @@ char* GetFieldBackgroundFile()
 	}
 
 	if (del == NULL)
-		return (char*)"ERROR";
+		return;
 
 	char dirName[3];
 	memcpy(dirName, del, 2); //warning- yes, I know- but it doesn't matter. IO_func is set to load null.png if not found
 	dirName[2] = '\0';
 
-	char n[256]{ 0 };
-	n[0] = '\0';
-	sprintf(n, "field_bg\\%s\\%s\\%s_", dirName, del, del);
-	OutputDebug("%s\n", n);
-	return n;
+	sprintf(buffer, "field_bg\\%s\\%s\\%s_", dirName, del, del);
+	OutputDebug("%s\n", buffer);
 }
 
 DWORD fbpRequestedTpage;
@@ -57,7 +46,7 @@ char* _fbgHdInjectVoid()
 	char localn[256]{ 0 };
 	int palette = tex_header[52];
 
-	strcpy(n, GetFieldBackgroundFile());
+	GetFieldBackgroundFile(n);
 	
 	sprintf(localn, "%stextures\\%s%u_%u.dds", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette);
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
@@ -112,7 +101,7 @@ DWORD _fbgCheckHdAvailableVoid()
 	char n[256]{ 0 };
 	char localn[256]{ 0 };
 
-	strcpy(n, GetFieldBackgroundFile());
+	GetFieldBackgroundFile(n);
 	
 	sprintf(localn, "%stextures\\%s0.dds", DIRECT_IO_EXPORT_DIR, n);
 
