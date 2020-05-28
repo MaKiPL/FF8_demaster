@@ -22,7 +22,6 @@ void InjectDWORD(DWORD address, DWORD value);
 
 extern DWORD IMAGE_BASE;
 extern DWORD OPENGL_HANDLE;
-extern DWORD attr;
 extern const char* DIRECT_IO_EXPORT_DIR;
 extern DWORD DIRECT_IO_EXPORT_DIR_LEN;
 

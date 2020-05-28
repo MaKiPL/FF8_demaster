@@ -128,8 +128,7 @@ DWORD _bspCheck()
 	sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.dds", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 		sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.png", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
-	DWORD attr = GetFileAttributesA(localn);
-	if (attr == INVALID_FILE_ATTRIBUTES)
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
 		OutputDebug("_bspCheck FAILED ON TEXTURE!; Expected: a0stg%03d_%d.(dds|png)\n", currentStage, tPage);
 		return 0;

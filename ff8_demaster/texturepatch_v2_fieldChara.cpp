@@ -33,8 +33,7 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 	sprintf(testPath, "%s%s.dds", texPath, tempSprint);
 	if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
 		sprintf(testPath, "%s%s.png", texPath, tempSprint);
-	attr = GetFileAttributesA(testPath);
-	if (attr == INVALID_FILE_ATTRIBUTES)
+	if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
 	{
 		sprintf(testPath, "%s_new%s.dds", texPath, tempSprint);
 		if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
@@ -42,8 +41,8 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 	}
 	else
 		bNonHdParent = TRUE;
-	attr = GetFileAttributesA(testPath);
-	if (attr == INVALID_FILE_ATTRIBUTES)
+
+	if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
 	{
 		sprintf(testPath, "%s_new\\d000_0.dds", tempPath); //ERROR !!!!
 		if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)

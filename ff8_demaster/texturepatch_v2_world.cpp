@@ -206,8 +206,7 @@ DWORD _wtpCheck()
 			sprintf(localn, "%stextures\\world\\dat\\wmset\\wmset_%03d_0.png", DIRECT_IO_EXPORT_DIR, textureIndex);
 	}
 
-	DWORD attr = GetFileAttributesA(localn);
-	if (attr == INVALID_FILE_ATTRIBUTES)
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
 		sprintf(localn, "_wtpCheck FAILED ON TEXTURE!; Expected: a0stg%03d_%d.dds", currentStage, tPage);
 		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)

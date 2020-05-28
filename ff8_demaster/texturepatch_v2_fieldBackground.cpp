@@ -61,9 +61,8 @@ char* _fbgHdInjectVoid()
 	sprintf(localn, "%stextures\\%s%u_%u.dds", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette);
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 		sprintf(localn, "%stextures\\%s%u_%u.png", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage - 16, palette);
-	DWORD attr = GetFileAttributesA(localn);
 	OutputDebug("fbp_Requesting: %s\n", localn);
-	if (attr == INVALID_FILE_ATTRIBUTES)
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
 		strcat(n, "%u");
 		return n;
@@ -112,8 +111,7 @@ DWORD _fbgCheckHdAvailableVoid()
 	sprintf(n, "%stextures\\%s0.dds", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundFile());
 	if (GetFileAttributesA(n) == INVALID_FILE_ATTRIBUTES)
 		sprintf(n, "%stextures\\%s0.png", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundFile());
-	DWORD attrib = GetFileAttributesA(n);
-	if (attrib == INVALID_FILE_ATTRIBUTES)
+	if (GetFileAttributesA(n) == INVALID_FILE_ATTRIBUTES)
 		return 0;
 	else return 1;
 }

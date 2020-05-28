@@ -212,8 +212,7 @@ void ApplyFilteringPatch()
 
 void ReadConfigFile()
 {
-	DWORD attr = GetFileAttributesA("demaster.conf");
-	if (attr == INVALID_FILE_ATTRIBUTES)
+	if (GetFileAttributesA("demaster.conf") == INVALID_FILE_ATTRIBUTES)
 	{
 		OutputDebug("File demaster.ini not found- all failed\n");
 		return;
