@@ -55,13 +55,16 @@ char* _fbgHdInjectVoid()
 {
 	char n[256]{ 0 };
 	char localn[256]{ 0 };
-	n[0] = '\0';
-	strcat(n, GetFieldBackgroundFile());
 	int palette = tex_header[52];
+
+	strcpy(n, GetFieldBackgroundFile());
+	
 	sprintf(localn, "%stextures\\%s%u_%u.dds", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette);
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 		sprintf(localn, "%stextures\\%s%u_%u.png", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage - 16, palette);
-	OutputDebug("fbp_Requesting: %s\n", localn);
+
+	OutputDebug("%s: %s\n", __func__, localn);
+	
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
 		strcat(n, "%u");
@@ -106,14 +109,22 @@ __declspec(naked) void _fbgHdInject()
 //it to individually control fields- pretty cool
 DWORD _fbgCheckHdAvailableVoid()
 {
-	OutputDebug("_fbgCheckHdAvailable()\n");
 	char n[256]{ 0 };
-	sprintf(n, "%stextures\\%s0.dds", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundFile());
-	if (GetFileAttributesA(n) == INVALID_FILE_ATTRIBUTES)
-		sprintf(n, "%stextures\\%s0.png", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundFile());
-	if (GetFileAttributesA(n) == INVALID_FILE_ATTRIBUTES)
+	char localn[256]{ 0 };
+
+	strcpy(n, GetFieldBackgroundFile());
+	
+	sprintf(localn, "%stextures\\%s0.dds", DIRECT_IO_EXPORT_DIR, n);
+
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+		sprintf(localn, "%stextures\\%s0.png", DIRECT_IO_EXPORT_DIR, n);
+
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 		return 0;
-	else return 1;
+
+	OutputDebug("%s: %s\n", __func__, localn);
+	
+	return 1;
 }
 
 __declspec(naked) void _fbgCheckHdAvailable()
