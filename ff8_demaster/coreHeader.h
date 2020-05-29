@@ -11,6 +11,8 @@
 
 #define EXPORT __declspec(dllexport)
 
+#define DEMASTER_CONF "demaster.conf"
+
 //CONFIG
 extern BOOL UVPATCH, DIRECT_IO, TEXTURE_PATCH, DEBUG_PATCH, LOG;
 extern BOOL BATTLE_CHARA, FIELD_ENTITY, BATTLE_HOOK, FIELD_BACKGROUND, WORLD_TEXTURES;
@@ -22,7 +24,6 @@ void InjectDWORD(DWORD address, DWORD value);
 
 extern DWORD IMAGE_BASE;
 extern DWORD OPENGL_HANDLE;
-extern DWORD attr;
 extern const char* DIRECT_IO_EXPORT_DIR;
 extern DWORD DIRECT_IO_EXPORT_DIR_LEN;
 
@@ -42,7 +43,6 @@ void ApplyFieldBackgroundPatch();
 void ApplyWorldPatch();
 void HookOpenGL();
 
-extern char texPath[256];
 extern int lastWidth;
 extern int lastHeight;
 extern UCHAR* lastrgbBuffer;

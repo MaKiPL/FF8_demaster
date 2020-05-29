@@ -8,7 +8,7 @@ DWORD _wtpBackAdd4;
 
 struct worldTextureStructure
 {
-	char localPath[256];
+	char localPath[256]{ 0 };
 	DWORD tpage;
 	bimg::ImageContainer* buffer;
 	int width;
@@ -55,7 +55,7 @@ void _wtpGl()
 {
 	DWORD tPage = gl_textures[50];
 	int palette = tex_header[52];
-	char localn[256];
+	char localn[256]{ 0 };
 
 	DWORD unk = *(DWORD*)(IMAGE_BASE + 0x17424B4);
 	int texIndex = lastKnownTextureId;
@@ -191,7 +191,7 @@ DWORD _wtpCheck()
 
 	DWORD tPage = gl_textures[50];
 
-	char localn[256];
+	char localn[256]{ 0 };
 	int textureIndex = GetTextureIndex();
 	if (textureIndex < 20 && (tPage > 14 && tPage < 26))
 	{
@@ -206,8 +206,7 @@ DWORD _wtpCheck()
 			sprintf(localn, "%stextures\\world\\dat\\wmset\\wmset_%03d_0.png", DIRECT_IO_EXPORT_DIR, textureIndex);
 	}
 
-	DWORD attr = GetFileAttributesA(localn);
-	if (attr == INVALID_FILE_ATTRIBUTES)
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
 		sprintf(localn, "_wtpCheck FAILED ON TEXTURE!; Expected: a0stg%03d_%d.dds", currentStage, tPage);
 		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)

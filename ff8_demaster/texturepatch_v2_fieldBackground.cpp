@@ -1,22 +1,14 @@
 #include "coreHeader.h"
 
 BYTE* fbgBackAdd1;
-
 BYTE* fbgBackAdd3;
 BYTE* fbgBackAdd4;
-
-
 DWORD thisGlSegment;
-
-
-
-
 
 char maplist[65535];
 
-char* GetFieldBackgroundFile()
+void GetFieldBackgroundFile(char* buffer)
 {
-	OutputDebug("GetFieldBackgroundFile()\n");
 	DWORD* dc = (DWORD*)(IMAGE_BASE + 0x189559C);
 	char* c = (char*)(*dc + 0x118);
 
@@ -24,7 +16,7 @@ char* GetFieldBackgroundFile()
 
 	int fieldId = *(DWORD*)(IMAGE_BASE + 0x1782140) & 0xFFFF;
 	char* del = strtok(maplist, "\n");
-	OutputDebug("GetFieldBackgroundFile()::ReadyMapList at?: %s\n", del);
+	OutputDebug("%s()::ReadyMapList at?: %s\n", __func__, del);
 	int currField = 0;
 
 	while (del != NULL)
@@ -36,45 +28,38 @@ char* GetFieldBackgroundFile()
 	}
 
 	if (del == NULL)
-		return (char*)"ERROR";
+		return;
 
-	char dirName[3];
+	char dirName[3]{ 0 };
 	memcpy(dirName, del, 2); //warning- yes, I know- but it doesn't matter. IO_func is set to load null.png if not found
-	dirName[2] = '\0';
 
-	char n[256];
-	n[0] = '\0';
-	sprintf(n, "field_bg\\%s\\%s\\%s_", dirName, del, del);
-	OutputDebug("%s\n", n);
-	return n;
+	sprintf(buffer, "field_bg\\%s\\%s\\%s_", dirName, del, del);
+	OutputDebug("%s\n", buffer);
 }
 
 DWORD fbpRequestedTpage;
 
 char* _fbgHdInjectVoid()
 {
-	char n[256];
-	char localn[256];
-	n[0] = '\0';
-	strcat(n, GetFieldBackgroundFile());
+	char n[256]{ 0 };
+	char localn[256]{ 0 };
 	int palette = tex_header[52];
+
+	GetFieldBackgroundFile(n);
+	
 	sprintf(localn, "%stextures\\%s%u_%u.dds", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette);
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 		sprintf(localn, "%stextures\\%s%u_%u.png", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage - 16, palette);
-	DWORD attr = GetFileAttributesA(localn);
-	OutputDebug("fbp_Requesting: %s\n", localn);
-	if (attr == INVALID_FILE_ATTRIBUTES)
+
+	OutputDebug("%s: %s\n", __func__, localn);
+	
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
 		strcat(n, "%u");
 		return n;
 	}
-	else
-	{
-		strcat(n, "%u_");
-		strcpy(localn, n);
-		sprintf(n, "%s%u", localn, palette);
-		return n;
-	}
+	
+	return localn;
 }
 
 __declspec(naked) void _fbgHdInject()
@@ -107,15 +92,22 @@ __declspec(naked) void _fbgHdInject()
 //it to individually control fields- pretty cool
 DWORD _fbgCheckHdAvailableVoid()
 {
-	OutputDebug("_fbgCheckHdAvailable()\n");
 	char n[256]{ 0 };
-	sprintf(n, "%stextures\\%s0.dds", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundFile());
-	if (GetFileAttributesA(n) == INVALID_FILE_ATTRIBUTES)
-		sprintf(n, "%stextures\\%s0.png", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundFile());
-	DWORD attrib = GetFileAttributesA(n);
-	if (attrib == INVALID_FILE_ATTRIBUTES)
+	char localn[256]{ 0 };
+
+	GetFieldBackgroundFile(n);
+	
+	sprintf(localn, "%stextures\\%s0.dds", DIRECT_IO_EXPORT_DIR, n);
+
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+		sprintf(localn, "%stextures\\%s0.png", DIRECT_IO_EXPORT_DIR, n);
+
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 		return 0;
-	else return 1;
+
+	OutputDebug("%s: %s\n", __func__, localn);
+	
+	return 1;
 }
 
 __declspec(naked) void _fbgCheckHdAvailable()

@@ -212,16 +212,15 @@ void ApplyFilteringPatch()
 
 void ReadConfigFile()
 {
-	DWORD attr = GetFileAttributesA("demaster.conf");
-	if (attr == INVALID_FILE_ATTRIBUTES)
+	if (GetFileAttributesA(DEMASTER_CONF) == INVALID_FILE_ATTRIBUTES)
 	{
-		OutputDebug("File demaster.ini not found- all failed\n");
+		OutputDebug("File " DEMASTER_CONF " not found- all failed\n");
 		return;
 	}
-	OutputDebug("Reading config file demaster.ini\n");
-	//ini_t* conf = ini_load("demaster.conf");
+	OutputDebug("Reading config file " DEMASTER_CONF "\n");
+	//ini_t* conf = ini_load(DEMASTER_CONF);
 
-	INIReader conf("demaster.conf");
+	INIReader conf(DEMASTER_CONF);
 
 	UVPATCH = conf.GetInteger("", "UV_PATCH", 0);
 	DIRECT_IO = conf.GetInteger("", "DIRECT_IO", 0);

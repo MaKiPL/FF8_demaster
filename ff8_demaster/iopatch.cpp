@@ -6,7 +6,7 @@ DWORD IO_backAddress = 0;
 DWORD IO_backAddress2 = 0;
 DWORD IO_backAddress3 = 0;
 DWORD filePathBuffer, filePathStrlen;
-char IO_backlogFilePath[256];
+char IO_backlogFilePath[256]{ 0 };
 
 const DWORD IO_FUNC1 = 0x364CC;//first: 0x15D41EB
 const DWORD IO_FUNC2 = 0x36B37;//first: 0x15D4797;
@@ -35,8 +35,7 @@ __declspec(naked) void directIO_fopenReroute()
 	strcpy(IO_backlogFilePath, DIRECT_IO_EXPORT_DIR); //VS automatically does the ESP math
 	strcpy(IO_backlogFilePath + DIRECT_IO_EXPORT_DIR_LEN, (char*)filePathBuffer); //same for this, no local vars so no ESP--
 
-	attr = GetFileAttributesA(IO_backlogFilePath);
-	if (attr == INVALID_FILE_ATTRIBUTES)
+	if (GetFileAttributesA(IO_backlogFilePath) == INVALID_FILE_ATTRIBUTES)
 	{
 		sprintf(IO_backlogFilePath, "%stextures\\null.dds", DIRECT_IO_EXPORT_DIR);
 		if (GetFileAttributesA(IO_backlogFilePath) == INVALID_FILE_ATTRIBUTES)
@@ -92,8 +91,7 @@ __declspec(naked) void directIO_fopenReroute3()
 			PUSH ECX
 			PUSH EDX
 	}
-	attr = GetFileAttributesA(IO_backlogFilePath);
-	if (attr == INVALID_FILE_ATTRIBUTES)
+	if (GetFileAttributesA(IO_backlogFilePath) == INVALID_FILE_ATTRIBUTES)
 		loc00 = -1;
 	else
 	{
@@ -127,8 +125,7 @@ void ApplyDirectIO()
 	OutputDebug("Applying DIRECT_IO\n");
 	//let's see if the exp dir exists
 	DIRECT_IO_EXPORT_DIR_LEN = strlen(DIRECT_IO_EXPORT_DIR);
-	DWORD attrib = GetFileAttributesA(DIRECT_IO_EXPORT_DIR);
-	if (attrib == INVALID_FILE_ATTRIBUTES)
+	if (GetFileAttributesA(DIRECT_IO_EXPORT_DIR) == INVALID_FILE_ATTRIBUTES)
 	{
 		OutputDebug("There is no export directory, so it looks like you didn't export the files from zzz files. Not applying patch\n");
 		DIRECT_IO = FALSE;

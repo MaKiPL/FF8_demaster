@@ -18,7 +18,7 @@ DWORD _bhpMonsterStructVoid()
 	batId -= 1000;
 	if (batId < 0 || batId>144)
 		return -1;
-	char localn[256];
+	char localn[256]{ 0 };
 	sprintf(localn, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.dds", DIRECT_IO_EXPORT_DIR, batId);
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 		sprintf(localn, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.png", DIRECT_IO_EXPORT_DIR, batId);
@@ -27,8 +27,7 @@ DWORD _bhpMonsterStructVoid()
 	while (1)
 	{
 		localn[_strlen - 5] = '0' + maxPal;
-		DWORD attr = GetFileAttributesA(localn);
-		if (attr == INVALID_FILE_ATTRIBUTES)
+		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 		{
 			if (maxPal == 0)
 			{
@@ -63,7 +62,7 @@ __declspec(naked) void _bhpMonsterStruct()
 
 BYTE _bhpVoid()
 {
-	char localPath[256];
+	char localPath[256]{ 0 };
 	OutputDebug("texturepatchv2::battleHooks::BhpVoid(%s)\n", _bhpStrPointer);
 	
 	char bhpChechker = _bhpStrPointer[0];
@@ -83,8 +82,7 @@ BYTE _bhpVoid()
 		//vanilla texture and if something bad happens- it will go back to default tex instead of black
 
 		//sprintf(localPath, "%stextures\\battle.fs\\hd_new\\a0stg%03d_16.png", DIRECT_IO_EXPORT_DIR, intStageId);
-		//DWORD attr = GetFileAttributesA(localPath);
-		//if (attr == INVALID_FILE_ATTRIBUTES) //file doesn't exist, so please do not replace textures 
+		//if (GetFileAttributesA(localPath) == INVALID_FILE_ATTRIBUTES) //file doesn't exist, so please do not replace textures 
 		//{
 		//	currentStage = -1;
 		//	return 0;
@@ -104,8 +102,7 @@ BYTE _bhpVoid()
 		sprintf(localPath, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.dds", DIRECT_IO_EXPORT_DIR, intMonsId);
 		if (GetFileAttributesA(localPath) == INVALID_FILE_ATTRIBUTES)
 			sprintf(localPath, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.png", DIRECT_IO_EXPORT_DIR, intMonsId);
-		DWORD attr = GetFileAttributesA(localPath);
-		if (attr == INVALID_FILE_ATTRIBUTES) //file doesn't exist, so please do not replace textures
+		if (GetFileAttributesA(localPath) == INVALID_FILE_ATTRIBUTES) //file doesn't exist, so please do not replace textures
 			return 0;
 
 		*texture_file_enemy_ex_Id = 1000 + intMonsId;
