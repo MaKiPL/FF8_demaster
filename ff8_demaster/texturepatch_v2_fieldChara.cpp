@@ -60,8 +60,8 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 	
 
 
+	OutputDebug("_fcpObtainTextureDatas:: width=%d, height=%d, width_fcp=%d, height_fcp=%d, filename=%s\n", img->m_width, img->m_height, width_fcp, height_fcp, texPath);
 	bimg::imageFree(img);
-	OutputDebug("_fcpObtainTextureDatas:: width=%d, height=%d, filename=%s\n", width_fcp, height_fcp, texPath);
 	return;
 }
 
