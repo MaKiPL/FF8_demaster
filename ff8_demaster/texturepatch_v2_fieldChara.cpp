@@ -57,7 +57,6 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 
 	//the most important is height here
 	height_fcp = img->m_height * 2;
-	int scale = img->m_height / 384; //normally should be always 1
 	
 
 
