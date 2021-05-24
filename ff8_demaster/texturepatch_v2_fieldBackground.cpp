@@ -41,8 +41,8 @@ DWORD fbpRequestedTpage;
 
 char* _fbgHdInjectVoid()
 {
-	char n[256]{ 0 };
-	char localn[256]{ 0 };
+	static char n[256]{ 0 };
+	static char localn[256]{ 0 };
 	int palette = tex_header[52];
 
 	GetFieldBackgroundFile(n);
