@@ -362,3 +362,6 @@ FodyWeavers.xsd
 ## CUSTOM
 .build/
 .dist/
+build/
+.idea/
+cmake-build*/
