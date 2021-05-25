@@ -1,5 +1,5 @@
 # Some of the lines in here can be removed. This is a series of trial and error.
-
+include(cmake/glew.cmake)
 add_library(${PROJECT_NAME}_demaster_dll SHARED
         dllmain.cpp
         iopatch.cpp
@@ -44,6 +44,7 @@ target_link_directories(${PROJECT_NAME}_demaster_dll
         )
 target_link_libraries(${PROJECT_NAME}_demaster_dll
         PRIVATE StackWalker.lib
+        PRIVATE glew_s
         PRIVATE glew32s.lib
         PRIVATE opengl32.lib
         PRIVATE psapi.lib
