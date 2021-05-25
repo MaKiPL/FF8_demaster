@@ -57,6 +57,7 @@
       <AdditionalDependencies>StackWalker.lib;glew32s.lib;opengl32.lib;psapi.lib;bxDebug.lib;bimgDebug.lib;bimg_decodeDebug.lib;bimg_encodeDebug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>MSVCRT;MSVCRTD;LIBCMT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
+      <AdditionalOptions>/ignore:4099 /ignore:4075 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).exp
