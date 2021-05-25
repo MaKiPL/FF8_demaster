@@ -25,18 +25,17 @@ target_link_options(${PROJECT_NAME}_demaster_dll
         PRIVATE /FORCE:MULTIPLE # fatal error LNK1169: one or more multiply defined symbols found
         #see https://docs.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4098?view=msvc-160&viewFallbackFrom=vs-2019
         PRIVATE /NODEFAULTLIB:MSVCRT # warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs
-        PRIVATE /NODEFAULTLIB:MSVCRTD # warning LNK4098: defaultlib 'MSVCRTD' conflicts with use of other libs
         PRIVATE /NODEFAULTLIB:LIBCMT # warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs
         PRIVATE /NODEFAULTLIB:LIBCMTD # warning LNK4098: defaultlib 'LIBCMTD' conflicts with use of other libs
-        #PRIVATE /DYNAMICBASE:NO
-        #PRIVATE /SUBSYSTEM:WINDOWS
-        #PRIVATE /NXCOMPAT
-        #PRIVATE /TLBID:1
-        #PRIVATE /MANIFESTUAC:NO
-        PRIVATE /DLL # required for DLL to be created.
-        #PRIVATE /MACHINE:X86
-        PRIVATE /ignore:4099 # HIDES missing PDB error.
-        PRIVATE /ignore:4075 # HIDES warning LNK4075: ignoring '/INCREMENTAL' due to '/FORCE' specification
+        PRIVATE /DYNAMICBASE:NO # Disable address space layout randomization
+        #PRIVATE /SUBSYSTEM:WINDOWS # WINDOWS is the default
+        #PRIVATE /NXCOMPAT # Compatible with Data Execution Prevention default enabled
+        #PRIVATE /TLBID:1 # Specify Resource ID for TypeLib default is 1
+        PRIVATE /MANIFESTUAC:NO # The linker doesn't embed UAC information in the program manifest.
+        PRIVATE /DLL # Builds a DLL.
+        PRIVATE /MACHINE:X86 # The /MACHINE option specifies the target platform for the program.
+        PRIVATE /ignore:4099 # HIDES warning LNK4099: PDB '*.pdb' was not found with *.lib, linking object as if no debug info.
+        PRIVATE /ignore:4075 # HIDES warning LNK4075: ignoring '/INCREMENTAL' due to '/FORCE' specification.
         )
 
 target_link_directories(${PROJECT_NAME}_demaster_dll
@@ -52,20 +51,20 @@ target_link_libraries(${PROJECT_NAME}_demaster_dll
         PRIVATE bimgDebug.lib
         PRIVATE bimg_decodeDebug.lib
         PRIVATE bimg_encodeDebug.lib
-        PRIVATE msvcrtd.lib
-#        PRIVATE kernel32.lib
-#        PRIVATE user32.lib
-#        PRIVATE gdi32.lib
-#        PRIVATE winspool.lib
-#        PRIVATE comdlg32.lib
-#        PRIVATE advapi32.lib
-#        PRIVATE shell32.lib
-#        PRIVATE ole32.lib
-#        PRIVATE oleaut32.lib
-#        PRIVATE uuid.lib
-#        PRIVATE odbc32.lib
-#        PRIVATE odbccp32.lib
-#        PRIVATE legacy_stdio_definitions.lib
+        PRIVATE msvcrtd.lib # /MTd requires this library
+        #        PRIVATE kernel32.lib
+        #        PRIVATE user32.lib
+        #        PRIVATE gdi32.lib
+        #        PRIVATE winspool.lib
+        #        PRIVATE comdlg32.lib
+        #        PRIVATE advapi32.lib
+        #        PRIVATE shell32.lib
+        #        PRIVATE ole32.lib
+        #        PRIVATE oleaut32.lib
+        #        PRIVATE uuid.lib
+        #        PRIVATE odbc32.lib
+        #        PRIVATE odbccp32.lib
+        #        PRIVATE legacy_stdio_definitions.lib
         )
 set_target_properties(${PROJECT_NAME}_demaster_dll PROPERTIES
         OUTPUT_NAME "ff8_demaster"
@@ -74,43 +73,43 @@ set_target_properties(${PROJECT_NAME}_demaster_dll PROPERTIES
         MSVC_RUNTIME_LIBRARY "MultiThreadedDebug" # cl : Command line warning D9025 : overriding '/MD' with '/MTd'
         )
 target_compile_options(${PROJECT_NAME}_demaster_dll
-#        PRIVATE /JMC
-#        PRIVATE /permissive-
-#        PRIVATE /GS
-#        PRIVATE /analyze-
-#        PRIVATE /W3
-#        PRIVATE /Zc:wchar_t
-#        #PRIVATE /ZI
-#        PRIVATE /Gm-
-#        PRIVATE /Od
-#        PRIVATE /Ob0
-#        PRIVATE /sdl
-#        PRIVATE /Zc:inline
-#        PRIVATE /fp:precise
-#        PRIVATE /errorReport:prompt
-#        PRIVATE /WX-
-#        PRIVATE /Zc:forScope
-#        PRIVATE /RTC1
-#        PRIVATE /Gd
-#        PRIVATE /Oy-
-#        PRIVATE /LDd
-#        PRIVATE /FC
-#        PRIVATE /EHsc
-#        PRIVATE /nologo
+        #        PRIVATE /JMC
+        #        PRIVATE /permissive-
+        #        PRIVATE /GS
+        #        PRIVATE /analyze-
+        #        PRIVATE /W3
+        #        PRIVATE /Zc:wchar_t
+        #        #PRIVATE /ZI
+        #        PRIVATE /Gm-
+        #        PRIVATE /Od # default suppresses code movement, it simplifies the debugging process.
+        #        PRIVATE /Ob0 # default with /0d, Disables inline expansions.
+        #        PRIVATE /sdl
+        #        PRIVATE /Zc:inline
+        #        PRIVATE /fp:precise
+        #        PRIVATE /errorReport:prompt
+        #        PRIVATE /WX-
+        #        PRIVATE /Zc:forScope
+        #        PRIVATE /RTC1
+        #        PRIVATE /Gd
+        #        PRIVATE /Oy-
+        #        PRIVATE /LDd
+        #        PRIVATE /FC
+        #        PRIVATE /EHsc
+        #        PRIVATE /nologo
         PRIVATE /diagnostics:column
         )
 target_compile_definitions(${PROJECT_NAME}_demaster_dll
-       PRIVATE NOMINMAX
-        PRIVATE GLEW_STATIC
-#        PRIVATE WIN32
-#        PRIVATE _DEBUG
-#        PRIVATE FF8DEMASTER_EXPORTS
-#        PRIVATE _WINDOWS
-#        PRIVATE _USRDLL
-#        PRIVATE _WINDLL
-#        PRIVATE _UNICODE
-#        PRIVATE UNICODE
-#        PRIVATE _CRT_SECURE_NO_WARNINGS
+        PRIVATE NOMINMAX # This will suppress the min and max definitions in Windef.h.
+        PRIVATE GLEW_STATIC # Required to not need GLEW.dll
+        #        PRIVATE WIN32
+        #        PRIVATE _DEBUG
+        #        PRIVATE FF8DEMASTER_EXPORTS
+        #        PRIVATE _WINDOWS
+        #        PRIVATE _USRDLL
+        #        PRIVATE _WINDLL
+        #        PRIVATE _UNICODE
+        #        PRIVATE UNICODE
+        #        PRIVATE _CRT_SECURE_NO_WARNINGS
         )
-set_target_properties(${PROJECT_NAME}_demaster_dll PROPERTIES CXX_STANDARD 14)
-set_target_properties(${PROJECT_NAME}_demaster_dll PROPERTIES C_STANDARD 99)
+#set_target_properties(${PROJECT_NAME}_demaster_dll PROPERTIES CXX_STANDARD 14)
+#set_target_properties(${PROJECT_NAME}_demaster_dll PROPERTIES C_STANDARD 99)
