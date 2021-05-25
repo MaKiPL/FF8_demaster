@@ -37,15 +37,16 @@ target_link_options(${PROJECT_NAME}_demaster_dll
         PRIVATE /ignore:4099 # HIDES warning LNK4099: PDB '*.pdb' was not found with *.lib, linking object as if no debug info.
         PRIVATE /ignore:4075 # HIDES warning LNK4075: ignoring '/INCREMENTAL' due to '/FORCE' specification.
         )
-
+message(STATUS "${glew_fetch_SOURCE_DIR}/include")
 target_link_directories(${PROJECT_NAME}_demaster_dll
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vendor/lib
         PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/vendor/lib/bgfx
+        PUBLIC "${glew_fetch_SOURCE_DIR}/include"
         )
 target_link_libraries(${PROJECT_NAME}_demaster_dll
         PRIVATE StackWalker.lib
-        PRIVATE glew_s
-        PRIVATE glew32s.lib
+        PRIVATE libglew_static
+        #PRIVATE glew32s.lib
         PRIVATE opengl32.lib
         PRIVATE psapi.lib
         PRIVATE bxDebug.lib
