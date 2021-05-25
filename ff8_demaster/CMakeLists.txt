@@ -1,3 +1,4 @@
+# Some of the lines in here can be removed. This is a series of trial and error.
 
 add_library(${PROJECT_NAME}_demaster_dll SHARED
         dllmain.cpp
@@ -22,19 +23,18 @@ target_include_directories(${PROJECT_NAME}_demaster_dll
         )
 target_link_options(${PROJECT_NAME}_demaster_dll
         PRIVATE /FORCE:MULTIPLE # fatal error LNK1169: one or more multiply defined symbols found
-        #MSVCRT;MSVCRTD;LIBCMT ARE IGNORED IN MSVC
+        #see https://docs.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4098?view=msvc-160&viewFallbackFrom=vs-2019
         PRIVATE /NODEFAULTLIB:MSVCRT # warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs
-        PRIVATE /NODEFAULTLIB:MSVCRTD
-        PRIVATE /NODEFAULTLIB:LIBCMT
+        PRIVATE /NODEFAULTLIB:MSVCRTD # warning LNK4098: defaultlib 'MSVCRTD' conflicts with use of other libs
+        PRIVATE /NODEFAULTLIB:LIBCMT # warning LNK4098: defaultlib 'LIBCMT' conflicts with use of other libs
         PRIVATE /NODEFAULTLIB:LIBCMTD # warning LNK4098: defaultlib 'LIBCMTD' conflicts with use of other libs
-        #PRIVATE /NODEFAULTLIB:LIBCPMTD
         #PRIVATE /DYNAMICBASE:NO
         #PRIVATE /SUBSYSTEM:WINDOWS
         #PRIVATE /NXCOMPAT
         #PRIVATE /TLBID:1
         #PRIVATE /MANIFESTUAC:NO
-        PRIVATE /DLL
-        PRIVATE /MACHINE:X86
+        PRIVATE /DLL # required for DLL to be created.
+        #PRIVATE /MACHINE:X86
         PRIVATE /ignore:4099 # HIDES missing PDB error.
         PRIVATE /ignore:4075 # HIDES warning LNK4075: ignoring '/INCREMENTAL' due to '/FORCE' specification
         )
@@ -53,7 +53,6 @@ target_link_libraries(${PROJECT_NAME}_demaster_dll
         PRIVATE bimg_decodeDebug.lib
         PRIVATE bimg_encodeDebug.lib
         PRIVATE msvcrtd.lib
-        #PRIVATE libcmtd.lib
 #        PRIVATE kernel32.lib
 #        PRIVATE user32.lib
 #        PRIVATE gdi32.lib
@@ -71,6 +70,8 @@ target_link_libraries(${PROJECT_NAME}_demaster_dll
 set_target_properties(${PROJECT_NAME}_demaster_dll PROPERTIES
         OUTPUT_NAME "ff8_demaster"
         #MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL"
+        #COMPILE_FLAGS /MTd
+        MSVC_RUNTIME_LIBRARY "MultiThreadedDebug" # cl : Command line warning D9025 : overriding '/MD' with '/MTd'
         )
 target_compile_options(${PROJECT_NAME}_demaster_dll
 #        PRIVATE /JMC
@@ -92,8 +93,6 @@ target_compile_options(${PROJECT_NAME}_demaster_dll
 #        PRIVATE /RTC1
 #        PRIVATE /Gd
 #        PRIVATE /Oy-
-#        #PRIVATE /MTd # CMake is setting /MDd by default and linker errors occur if not /MTd
-        PRIVATE /MTd
 #        PRIVATE /LDd
 #        PRIVATE /FC
 #        PRIVATE /EHsc
