@@ -86,7 +86,6 @@ void DEB_JMP(char* c, DWORD a, DWORD b, DWORD cc, DWORD d, DWORD e)
 	sprintf(localD, "Wrong address at: %08x\n", (unsigned int)c);
 	if (IsBadReadPtr(c, 4)) 
 	{
-		//OutputDebugStringA(localD);
 		__asm
 		{
 			//INT 3
