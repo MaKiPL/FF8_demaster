@@ -50,11 +50,11 @@ char* _fbgHdInjectVoid()
 
 	GetFieldBackgroundFile(n);
 	
-	sprintf(localn, "%stextures\\%s%u_%u.dds", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette/2);
-	sprintf(localn2, "%s%u_%u", n, fbpRequestedTpage - 16, palette/2);
+	sprintf(localn, "%stextures\\%s%u_%u.dds", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette);
+	sprintf(localn2, "%s%u_%u", n, fbpRequestedTpage - 16, palette);
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
-		sprintf(localn, "%stextures\\%s%u_%u.png", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage - 16, palette/2);
+		sprintf(localn, "%stextures\\%s%u_%u.png", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage - 16, palette);
 	}
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
