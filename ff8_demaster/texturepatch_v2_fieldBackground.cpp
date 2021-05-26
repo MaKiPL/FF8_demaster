@@ -42,8 +42,8 @@ DWORD fbpRequestedTpage;
 char* _fbgHdInjectVoid()
 {
 	//directIO_fopenReroute: DEMASTER_EXP\textures\DEMASTER_EXP\textures\field_bg\bv\bvtr_1\bvtr_1_0_2.png, file not found
-	static char n[256]{ 0 };
-	char n2[256]{ 0 };
+	char n[256]{ 0 };
+	static char n2[256]{ 0 };
 	char localn[256]{ 0 };
 	static char localn2[256]{ 0 };
 	int palette = tex_header[52];
