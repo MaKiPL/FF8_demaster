@@ -305,7 +305,7 @@ bimg::ImageContainer* LoadImageFromFile(const char* const filename)
 
 	return img;
 }
-//appends DDS checks if file exists and then returns false if atleast one exists.
+//appends DDS checks if file exists and then checks for PNG. returns false if atleast one exists. true on failure.
 bool DDSorPNG(char* buffer, size_t in_size, const char* fmt, ...)
 {
 	const size_t size = in_size - 4U; //for extension
