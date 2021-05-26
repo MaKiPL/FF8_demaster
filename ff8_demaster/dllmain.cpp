@@ -305,6 +305,17 @@ bimg::ImageContainer* LoadImageFromFile(char* filename)
 
 	return img;
 }
+void RenderTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo)
+{
+	if (bimg::isCompressed(img->m_format))
+	{
+		RenderCompressedTexture(img, texInfo);
+	}
+	else
+	{
+		RenderUncompressedTexture(img, texInfo);
+	}
+}
 
 void RenderUncompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo)
 {
