@@ -68,6 +68,7 @@ extern int currentStage;
 extern FILE* logFile;
 void OutputDebug(const char* fmt, ...);
 
+void RenderTexture(bimg::ImageContainer* img);
 void RenderUncompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo);
 void RenderCompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo);
 
