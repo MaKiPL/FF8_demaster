@@ -33,8 +33,8 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>vendor\include\;vendor\include\compat\msvc;$(IncludePath)</IncludePath>
     <LibraryPath>vendor\lib\;vendor\lib\bgfx;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir)\.dist\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)\.build\$(Configuration)\</IntDir>
+    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\FINAL FANTASY VIII Remastered\</OutDir>
+    <IntDir>$(SolutionDir).build\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -57,6 +57,7 @@
       <AdditionalDependencies>StackWalker.lib;glew32s.lib;opengl32.lib;psapi.lib;bxDebug.lib;bimgDebug.lib;bimg_decodeDebug.lib;bimg_encodeDebug.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>MSVCRT;MSVCRTD;LIBCMT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
+      <AdditionalOptions>/IGNORE:4075,4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
       <Command>del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).exp

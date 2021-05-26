@@ -50,7 +50,7 @@ int GetTextureIndex();
 //you can't just create new folder because >WEEP< - too lazy to find the cause
 
 DWORD lastKnownTextureId;
-
+#define DEBUG_LINE OutputDebug("%u, %s\n",__LINE__,__func__)
 void _wtpGl()
 {
 	DWORD tPage = gl_textures[50];
@@ -92,7 +92,9 @@ void _wtpGl()
 	{
 		sprintf(localn, "%stextures\\world\\dat\\wmset\\wmset_%03d_0.dds", DIRECT_IO_EXPORT_DIR, getTexIndex);
 		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+		{
 			sprintf(localn, "%stextures\\world\\dat\\wmset\\wmset_%03d_0.png", DIRECT_IO_EXPORT_DIR, getTexIndex);
+		}
 		int wmStructPointer = -1;
 		switch (getTexIndex)
 		{
@@ -109,7 +111,7 @@ void _wtpGl()
 			wmStructPointer = 21;
 			break;
 		}
-
+		DEBUG_LINE;
 		if (!ws[wmStructPointer].bActive)
 		{
 			bimg::ImageContainer* img = LoadImageFromFile(localn);
@@ -118,17 +120,26 @@ void _wtpGl()
 			ws[wmStructPointer].height = img->m_height;
 			ws[wmStructPointer].width = img->m_width;
 			ws[wmStructPointer].bActive = true;
-
+			DEBUG_LINE;
 			OutputDebug("\tstbi::w: %d; h: %d; channels: %d\n", ws[wmStructPointer].width, ws[wmStructPointer].height, ws[wmStructPointer].channels);
 		}
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-		TextureFormatInfo& texInfo = s_textureFormat[ws[texIndex].buffer->m_format];
-		if (bimg::isCompressed(ws[texIndex].buffer->m_format))
-			RenderCompressedTexture(ws[texIndex].buffer, texInfo);
+		DEBUG_LINE;
+		OutputDebug("\t%u\n", texIndex);
+		TextureFormatInfo& texInfo = s_textureFormat[ws[wmStructPointer].buffer->m_format];
+		DEBUG_LINE;
+		if (bimg::isCompressed(ws[wmStructPointer].buffer->m_format))
+		{
+			DEBUG_LINE;
+			RenderCompressedTexture(ws[wmStructPointer].buffer, texInfo);
+		}
 		else
-			RenderUncompressedTexture(ws[texIndex].buffer, texInfo);
+		{
+			DEBUG_LINE;
+			RenderUncompressedTexture(ws[wmStructPointer].buffer, texInfo);
+		}
 	}
 	return;
 }
