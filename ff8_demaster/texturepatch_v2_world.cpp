@@ -129,7 +129,7 @@ int GetTextureIndex()
 		case 15: //vehicles + character
 			return -1;
 		case 28: //water textures
-			return 28;
+			return -1;
 		case 29: //tracks, bridge, vehicle
 			return 29;
 		case 20:
