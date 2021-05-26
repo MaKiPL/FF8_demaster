@@ -269,14 +269,14 @@ bimg::ImageContainer* LoadImageFromFile(char* filename)
 		if (GLEW_OK != err)
 		{
 			/* Problem: glewInit failed, something is seriously wrong. */
-			OutputDebug("GLEW Error: %s\n", glewGetErrorString(err));
+			OutputDebug("%s - GLEW Error: %s\n", __func__, glewGetErrorString(err));
 		}
 	}
 
 	bimg::ImageContainer* img = nullptr;
 	char msg[1024]{ 0 };
 
-	OutputDebug("Opening file: %s\n", filename);
+	OutputDebug("%s - Opening File: %s\n", __func__, filename);
 
 	FILE* file = fopen(filename, "rb");
 
@@ -290,7 +290,7 @@ bimg::ImageContainer* LoadImageFromFile(char* filename)
 
 		buffer = (char*)malloc(filesize + 1);
 		fseek(file, 0, SEEK_SET);
-		fread(buffer, filesize, 1, file);
+		(void)fread(buffer, filesize, 1, file);
 
 		fclose(file);
 
@@ -363,8 +363,8 @@ BOOL WINAPI DllMain(
 	SetUnhandledExceptionFilter(ExceptionHandler);
 
 	AllocConsole();
-	freopen("CONOUT$", "w", stdout);
-	freopen("CON", "r", stdin);
+	(void)freopen("CONOUT$", "w", stdout);
+	(void)freopen("CON", "r", stdin);
 	InitTest();
 	ReadConfigFile();
 	if (LOG) logFile = fopen("demasterlog.txt", "wb");
