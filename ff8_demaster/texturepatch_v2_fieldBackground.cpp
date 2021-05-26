@@ -41,25 +41,34 @@ DWORD fbpRequestedTpage;
 
 char* _fbgHdInjectVoid()
 {
+	//directIO_fopenReroute: DEMASTER_EXP\textures\DEMASTER_EXP\textures\field_bg\bv\bvtr_1\bvtr_1_0_2.png, file not found
 	static char n[256]{ 0 };
-	static char localn[256]{ 0 };
+	char n2[256]{ 0 };
+	char localn[256]{ 0 };
+	static char localn2[256]{ 0 };
 	int palette = tex_header[52];
 
 	GetFieldBackgroundFile(n);
 	
-	sprintf(localn, "%stextures\\%s%u_%u.dds", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette);
-	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
-		sprintf(localn, "%stextures\\%s%u_%u.png", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage - 16, palette);
-
-	OutputDebug("%s: %s\n", __func__, localn);
-	
+	sprintf(localn, "%stextures\\%s%u_%u.dds", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette/2);
+	sprintf(localn2, "%s%u_%u", n, fbpRequestedTpage - 16, palette/2);
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
-		strcat(n, "%u");
-		return n;
+		sprintf(localn, "%stextures\\%s%u_%u.png", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage - 16, palette/2);
 	}
-	
-	return localn;
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+	{
+		OutputDebug("%s: %s, %s\n", __func__, localn, "palette not found");
+		strcat(n, "%u");
+		sprintf(n2, n, fbpRequestedTpage - 16);
+		OutputDebug("%s: %s\n", __func__, n2);
+		return n2;
+	}
+	else
+	{
+		OutputDebug("%s: %s\n", __func__, localn);
+		return localn2;
+	}
 }
 
 __declspec(naked) void _fbgHdInject()
@@ -98,12 +107,20 @@ DWORD _fbgCheckHdAvailableVoid()
 	GetFieldBackgroundFile(n);
 	
 	sprintf(localn, "%stextures\\%s0.dds", DIRECT_IO_EXPORT_DIR, n);
+	
 
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+	{
+		OutputDebug("%s: %s, %s\n", __func__, localn, "not found");
 		sprintf(localn, "%stextures\\%s0.png", DIRECT_IO_EXPORT_DIR, n);
+	}
+
 
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+	{
+		OutputDebug("%s: %s, %s\n", __func__, localn, "not found");
 		return 0;
+	}
 
 	OutputDebug("%s: %s\n", __func__, localn);
 	
