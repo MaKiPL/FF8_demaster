@@ -59,7 +59,8 @@ void _wtpGl()
 
 	DWORD unk = *(DWORD*)(IMAGE_BASE + 0x17424B4);
 	int texIndex = lastKnownTextureId;
-	OutputDebug("_wtpGl()::localEAX: %d, Tpage: %d, Palette: %d, TexIndex: %d\n", *(DWORD*)(IMAGE_BASE + 0x1780f88), tPage, palette, texIndex);
+	if(!(tPage == 29 && (palette == 0 || palette==2)))
+		OutputDebug("_wtpGl()::localEAX: %d, Tpage: %d, Palette: %d, TexIndex: %d\n", *(DWORD*)(IMAGE_BASE + 0x1780f88), tPage, palette, texIndex);
 
 	int getTexIndex = GetTextureIndex();
 	if (getTexIndex < 20 && (tPage > 14 && tPage < 26))
@@ -118,7 +119,7 @@ void _wtpGl()
 			ws[wmStructPointer].width = img->m_width;
 			ws[wmStructPointer].bActive = true;
 
-			OutputDebug("\tstbi::w: %d; h: %d; channels: %d; path: %s\n", ws[wmStructPointer].width, ws[wmStructPointer].height, ws[wmStructPointer].channels, localn);
+			OutputDebug("\tstbi::w: %d; h: %d; channels: %d\n", ws[wmStructPointer].width, ws[wmStructPointer].height, ws[wmStructPointer].channels);
 		}
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
