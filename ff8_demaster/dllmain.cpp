@@ -305,21 +305,24 @@ bimg::ImageContainer* LoadImageFromFile(const char* const filename)
 
 	return img;
 }
-//appends DDS checks if file exists and then 
-void DDSorPNG(char* buffer, size_t in_size, const char* fmt, ...)
+//appends DDS checks if file exists and then returns false if atleast one exists.
+bool DDSorPNG(char* buffer, size_t in_size, const char* fmt, ...)
 {
 	const size_t size = in_size - 4U; //for extension
 	va_list args;
-	va_start(args,fmt);
+	va_start(args, fmt);
 	vsnprintf(buffer, size, fmt, args);
 	strcat(buffer, ".dds");
+	va_end(args);
 	if (GetFileAttributesA(buffer) == INVALID_FILE_ATTRIBUTES)
 	{
+		va_start(args, fmt);
 		vsnprintf(buffer, size, fmt, args);
 		strcat(buffer,".png");
+		va_end(args);
+		return GetFileAttributesA(buffer) == INVALID_FILE_ATTRIBUTES;
 	}
-	va_end(args);
-
+	return false;
 }
 void RenderTexture(bimg::ImageContainer* img)
 {

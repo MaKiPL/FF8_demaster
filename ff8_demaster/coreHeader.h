@@ -67,7 +67,7 @@ extern int currentStage;
 
 extern FILE* logFile;
 void OutputDebug(const char* fmt, ...);
-void DDSorPNG(char* buffer, size_t size, const char* fmt, ...);
+bool DDSorPNG(char* buffer, size_t size, const char* fmt, ...);
 
 void RenderTexture(bimg::ImageContainer* img);
 void RenderUncompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo);

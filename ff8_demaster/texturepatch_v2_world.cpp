@@ -50,7 +50,7 @@ int GetTextureIndex();
 //you can't just create new folder because >WEEP< - too lazy to find the cause
 
 DWORD lastKnownTextureId;
-void LoadImageIntoStruct(size_t texIndex, const char *const localn)
+void LoadImageIntoWorldStruct(size_t texIndex, const char *const localn)
 {
 	if (ws[texIndex].bActive == FALSE || ws[texIndex].buffer == NULL)
 	{
@@ -79,7 +79,7 @@ void _wtpGl()
 	if (getTexIndex < 20 && (tPage > 14 && tPage < 26))
 	{
 		DDSorPNG(localn, 256,"%stextures\\world\\dat\\texl\\texl_%03d_0", DIRECT_IO_EXPORT_DIR, /*tPage*/texIndex);
-		LoadImageIntoStruct(texIndex, localn);
+		LoadImageIntoWorldStruct(texIndex, localn);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);		
 		RenderTexture(ws[texIndex].buffer);
@@ -100,7 +100,7 @@ void _wtpGl()
 			wmStructPointer = 21;
 			break;
 		}
-		LoadImageIntoStruct(wmStructPointer, localn);
+		LoadImageIntoWorldStruct(wmStructPointer, localn);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		RenderTexture(ws[wmStructPointer].buffer);
@@ -179,7 +179,7 @@ DWORD _wtpCheck()
 	}
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
-		OutputDebug("%s: %s, Failed to load!", __func__, localn);
+		//OutputDebug("%s: %s, Failed to load!\n", __func__, localn); //spamming message!
 		return 0;
 	}
 	
