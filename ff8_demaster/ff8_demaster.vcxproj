@@ -33,7 +33,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>vendor\include\;vendor\include\compat\msvc;$(IncludePath)</IncludePath>
     <LibraryPath>vendor\lib\;vendor\lib\bgfx;$(LibraryPath)</LibraryPath>
-    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\FINAL FANTASY VIII Remastered\</OutDir>
+    <OutDir>$(SolutionDir).dist\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir).build\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
