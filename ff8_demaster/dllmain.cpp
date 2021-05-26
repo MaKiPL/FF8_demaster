@@ -255,7 +255,7 @@ LONG WINAPI ExceptionHandler(EXCEPTION_POINTERS* ep)
 	return EXCEPTION_CONTINUE_EXECUTION;
 }
 
-bimg::ImageContainer* LoadImageFromFile(char* filename)
+bimg::ImageContainer* LoadImageFromFile(const char* const filename)
 {
 	static bool glewLoaded = false;
 
@@ -304,6 +304,22 @@ bimg::ImageContainer* LoadImageFromFile(char* filename)
 	}
 
 	return img;
+}
+//appends DDS checks if file exists and then 
+void DDSorPNG(char* buffer, size_t in_size, const char* fmt, ...)
+{
+	const size_t size = in_size - 4U; //for extension
+	va_list args;
+	va_start(args,fmt);
+	vsnprintf(buffer, size, fmt, args);
+	strcat(buffer, ".dds");
+	if (GetFileAttributesA(buffer) == INVALID_FILE_ATTRIBUTES)
+	{
+		vsnprintf(buffer, size, fmt, args);
+		strcat(buffer,".png");
+	}
+	va_end(args);
+
 }
 void RenderTexture(bimg::ImageContainer* img)
 {

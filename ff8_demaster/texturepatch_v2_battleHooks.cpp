@@ -19,9 +19,7 @@ DWORD _bhpMonsterStructVoid()
 	if (batId < 0 || batId>144)
 		return -1;
 	char localn[256]{ 0 };
-	sprintf(localn, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.dds", DIRECT_IO_EXPORT_DIR, batId);
-	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
-		sprintf(localn, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.png", DIRECT_IO_EXPORT_DIR, batId);
+	DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\c0m%03d_0", DIRECT_IO_EXPORT_DIR, batId);
 	int maxPal = 0;
 	int _strlen = strlen(localn);
 	while (1)
@@ -99,9 +97,7 @@ BYTE _bhpVoid()
 		monsId[3] = '\0';
 		int intMonsId = atoi(monsId);
 
-		sprintf(localPath, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.dds", DIRECT_IO_EXPORT_DIR, intMonsId);
-		if (GetFileAttributesA(localPath) == INVALID_FILE_ATTRIBUTES)
-			sprintf(localPath, "%stextures\\battle.fs\\hd_new\\c0m%03d_0.png", DIRECT_IO_EXPORT_DIR, intMonsId);
+		DDSorPNG(localPath, 256, "%stextures\\battle.fs\\hd_new\\c0m%03d_0", DIRECT_IO_EXPORT_DIR, intMonsId);
 		if (GetFileAttributesA(localPath) == INVALID_FILE_ATTRIBUTES) //file doesn't exist, so please do not replace textures
 			return 0;
 

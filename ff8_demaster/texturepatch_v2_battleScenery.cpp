@@ -48,9 +48,7 @@ void _bspGl()
 
 	OutputDebug("_bspGl()::Stage: %d, Tpage: %d, Palette: %d\n", currentStage, tPage, palette);
 
-	sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.dds", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
-	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
-		sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.png", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
+	DDSorPNG(localn,256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
 
 	if (bss[tPage - 16].buffer == NULL) //texture never loaded
 	{
@@ -97,11 +95,7 @@ void _bspGl()
 			//OutputDebug("\tstbi::w: %d; h: %d; channels: %d\n", bss[tPage - 16].width, bss[tPage - 16].height, bss[tPage - 16].channels);
 		}
 	}
-	TextureFormatInfo& texInfo = s_textureFormat[bss[tPage - 16].buffer->m_format];
-	if (bimg::isCompressed(bss[tPage - 16].buffer->m_format))
-		RenderCompressedTexture(bss[tPage - 16].buffer, texInfo);
-	else
-		RenderUncompressedTexture(bss[tPage - 16].buffer, texInfo);
+	RenderTexture(bss[tPage - 16].buffer);
 	//we no longer free the buffer here
 	return;
 }
@@ -125,9 +119,7 @@ DWORD _bspCheck()
 	if (tPage > 21)
 		return 0;
 	char localn[256]{ 0 };
-	sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.dds", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
-	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
-		sprintf(localn, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d.png", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
+	DDSorPNG(localn,256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
 		OutputDebug("_bspCheck FAILED ON TEXTURE!; Expected: a0stg%03d_%d.(dds|png)\n", currentStage, tPage);

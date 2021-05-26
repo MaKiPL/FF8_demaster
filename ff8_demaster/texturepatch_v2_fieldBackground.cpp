@@ -49,18 +49,14 @@ char* _fbgHdInjectVoid()
 	int palette = tex_header[52];
 
 	GetFieldBackgroundFile(n);
-	
-	sprintf(localn, "%stextures\\%s%u_%u.dds", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette);
+
 	sprintf(localn2, "%s%u_%u", n, fbpRequestedTpage - 16, palette);
-	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
-	{
-		sprintf(localn, "%stextures\\%s%u_%u.png", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage - 16, palette);
-	}
+	DDSorPNG(localn,256, "%stextures\\%s%u_%u", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette);
+
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
 		OutputDebug("%s: %s, %s\n", __func__, localn, "palette not found");
-		strcat(n, "%u");
-		sprintf(n2, n, fbpRequestedTpage - 16);
+		sprintf(n2, "%s%u",n, fbpRequestedTpage - 16);
 		OutputDebug("%s: %s\n", __func__, n2);
 		return n2;
 	}
@@ -101,20 +97,12 @@ __declspec(naked) void _fbgHdInject()
 //it to individually control fields- pretty cool
 DWORD _fbgCheckHdAvailableVoid()
 {
-	char n[256]{ 0 };
-	char localn[256]{ 0 };
+	const size_t s = 256U;
+	char n[s]{ 0 };
+	char localn[s]{ 0 };
 
 	GetFieldBackgroundFile(n);
-	
-	sprintf(localn, "%stextures\\%s0.dds", DIRECT_IO_EXPORT_DIR, n);
-	
-
-	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
-	{
-		OutputDebug("%s: %s, %s\n", __func__, localn, "not found");
-		sprintf(localn, "%stextures\\%s0.png", DIRECT_IO_EXPORT_DIR, n);
-	}
-
+	DDSorPNG(localn, s, "%stextures\\%s0", DIRECT_IO_EXPORT_DIR, n);
 
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
