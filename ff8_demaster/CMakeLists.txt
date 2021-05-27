@@ -1,5 +1,6 @@
 # Some of the lines in here can be removed. This is a series of trial and error.
 include(cmake/glew.cmake)
+include(cmake/stackwalker.cmake)
 add_library(${PROJECT_NAME}_demaster_dll SHARED
         dllmain.cpp
         iopatch.cpp
@@ -44,11 +45,13 @@ target_link_directories(${PROJECT_NAME}_demaster_dll
         PUBLIC "${glew_fetch_SOURCE_DIR}/include"
         )
 target_link_libraries(${PROJECT_NAME}_demaster_dll
-        PRIVATE StackWalker.lib
+        #PRIVATE StackWalker.lib
+        PRIVATE stackwalker_paths
+        #PRIVATE StackWalker
         PRIVATE libglew_static
         #PRIVATE glew32s.lib
-        PRIVATE opengl32.lib
-        PRIVATE psapi.lib
+        PRIVATE opengl32.lib # comes with msvc per https://www.opengl.org/archives/resources/faq/technical/gettingstarted.htm
+        PRIVATE psapi.lib # Process Status API https://docs.microsoft.com/en-us/windows/win32/psapi/process-status-helper
         PRIVATE bxDebug.lib
         PRIVATE bimgDebug.lib
         PRIVATE bimg_decodeDebug.lib
