@@ -4,6 +4,8 @@
 #include <sstream>
 #include <fstream>
 #include <stdio.h>
+#include <string>
+#include <vector>
 #include <Windows.h>
 #include <StackWalker.h>
 #include <INIReader.h>
