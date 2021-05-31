@@ -61,15 +61,15 @@ char* GetFieldBackgroundReplacementTextureName()
 	static char localn2[256]{ 0 };
 	int palette = tex_header[52];
 
-	GetFieldBackgroundFile(n);
+	GetFieldBackgroundFilename(n);
 
-	sprintf(localn2, "%s%u_%u", n, fbpRequestedTpage - 16, palette);
-	DDSorPNG(localn,256, "%stextures\\%s%u_%u", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette);
+	sprintf(localn2, "%s%u_%u", n, fieldBackgroundRequestedTPage - 16, palette);
+	DDSorPNG(localn,256, "%stextures\\%s%u_%u", DIRECT_IO_EXPORT_DIR, n, fieldBackgroundRequestedTPage -16, palette);
 
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
 		OutputDebug("%s: %s, %s\n", __func__, localn, "palette not found");
-		sprintf(n2, "%s%u",n, fbpRequestedTpage - 16);
+		sprintf(n2, "%s%u",n, fieldBackgroundRequestedTPage - 16);
 		OutputDebug("%s: %s\n", __func__, n2);
 		return n2;
 	}
