@@ -22,25 +22,26 @@ BYTE* cltBackAdd1;
 BYTE* cltBackAdd2;
 DWORD* _thisFF8 = 0; //__thiscall, so this is ECX
 
-char* textureType[3];
 
-char* GetTextureType(int texType)
+
+const char* const GetTextureType(int texType)
 {
+	static char textureType[4]{0};
 	switch (texType)
 	{
 	case 11:
-		return (char*)"BATTLE";
+		return "BATTLE";
 	case 18:
-		return (char*)"WORLDMAP";
+		return "WORLDMAP";
 	case 25:
-		return (char*)"FIELDBG";
+		return "FIELDBG";
 	case 35:
-		return (char*)"BATTLECHARACTER";
+		return "BATTLECHARACTER";
 	case 57:
-		return (char*)"FIELDENTITY";
+		return "FIELDENTITY";
 	default:
-		sprintf((char*)textureType, "%02d", texType);
-		return (char*)textureType;
+		sprintf(textureType, "%02d", texType % 100);
+		return textureType;
 	}
 }
 
