@@ -24,9 +24,11 @@ Default steam install: `C:\Program Files (x86)\Steam\steamapps\common\FINAL FANT
 
 ## Third Party Libraries
 
-| Library                                    | License               |
-| ------------------------------------------ |:---------------------:|
-| [BX](https://github.com/bkaradzic/bx)      | BSD 2-Clause          |
-| [BIMG](https://github.com/bkaradzic/bimg)  | BSD 2-Clause          |
-| [GLEW](https://github.com/nigels-com/glew) | Khronos License (MIT) |
-| [inih](https://github.com/jtilly/inih)     | New BSD               |
+| Library                                                      | License               |
+| ------------------------------------------------------------ |:---------------------:|
+| [BX](https://github.com/bkaradzic/bx)                        | BSD 2-Clause          |
+| [BIMG](https://github.com/bkaradzic/bimg)                    | BSD 2-Clause          |
+| [GLEW](https://github.com/nigels-com/glew)                   | Khronos License (MIT) |
+| [inih](https://github.com/jtilly/inih)                       | New BSD               |
+| [StackWalker](https://github.com/JochenKalmbach/StackWalker) | BSD-2-Clause          |
+| [TinySTL](https://github.com/mendsley/tinystl)               | BSD-2-Clause          |<!-- no longer used?-->
