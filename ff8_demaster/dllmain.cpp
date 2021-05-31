@@ -32,6 +32,7 @@ bx::DefaultAllocator texAllocator;
 
 void OutputDebug(const char* fmt, ...)
 {
+#if _DEBUG
 	va_list args;
 	char tmp_str[1024];
 
@@ -46,14 +47,15 @@ void OutputDebug(const char* fmt, ...)
 		fwrite(tmp_str, sizeof(char), strlen(tmp_str), logFile);
 		fflush(logFile);
 	}
+#endif
 }
 
 DWORD _dllmainBackAddr1;
 DWORD _dllmainBackAddr2;
 
-const char* windowTitle = "FINAL FANTASY VIII Remastered - Demaster patch by Maki [1.2.8] BETA";
+const char* windowTitle = "FINAL FANTASY VIII Remastered - Demaster patch by Maki [1.2.8b] BETA";
 
-__declspec(naked) void _dllMain2()
+__declspec(naked) void _asm_ReplaceWindowTitle()
 {
 	__asm
 	{
@@ -65,7 +67,7 @@ __declspec(naked) void _dllMain2()
 
 void GetWindow()
 {
-	_dllmainBackAddr2 = (DWORD)InjectJMP(IMAGE_BASE + 0x1601065, (DWORD)_dllMain2, 5);
+	_dllmainBackAddr2 = (DWORD)InjectJMP(IMAGE_BASE + 0x1601065, (DWORD)_asm_ReplaceWindowTitle, 5);
 }
 
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import

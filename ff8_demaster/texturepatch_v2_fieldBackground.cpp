@@ -1,82 +1,104 @@
 #include "coreHeader.h"
 
-BYTE* fbgBackAdd1;
-BYTE* fbgBackAdd3;
-BYTE* fbgBackAdd4;
-DWORD thisGlSegment;
+BYTE* _asm_FieldBgRetAddr1;
+BYTE* _asm_FieldBgRetAddr2;
+BYTE* _asm_FieldBgRetAddr3;
 
-char maplist[65535];
+static char maplist[65535] = {'\0'};
+std::vector<std::string> maplistVector;
 
-void GetFieldBackgroundFile(char* buffer)
+/// <summary>
+/// Gets field map name from maplist data
+/// </summary>
+/// <param name="buffer">[OUT] - places found mapname from maplist</param>
+void GetFieldBackgroundFilename(char* buffer)
 {
-	DWORD* dc = (DWORD*)(IMAGE_BASE + 0x189559C);
-	char* c = (char*)(*dc + 0x118);
+	OutputDebug("%s::%d\n", __func__, __LINE__);
 
-	strcpy(maplist, c);
+	char* gameMaplist = (char*)(*(DWORD*)(IMAGE_BASE + 0x189559C) + 0x118);
+
+	//no need to copy maplist every time
+	if(maplist[0] == '\0')
+		strcpy(maplist, gameMaplist);
 
 	int fieldId = *(DWORD*)(IMAGE_BASE + 0x1782140) & 0xFFFF;
-	char* del = strtok(maplist, "\n");
-	OutputDebug("%s()::ReadyMapList at?: %s\n", __func__, del);
-	int currField = 0;
-
-	while (del != NULL)
+	int currentFieldId = 0;
+	if (maplistVector.size() == 0)
 	{
-		if (currField == fieldId)
-			break;
-		currField++;
-		del = strtok(NULL, "\n");
+		char* mapName = strtok(maplist, "\n");
+		if(mapName != NULL)
+			maplistVector.push_back(std::string(mapName));
+		while (mapName != NULL)
+		{
+			mapName = strtok(NULL, "\n");
+			if (mapName != NULL)
+				maplistVector.push_back(std::string(mapName));
+		}
 	}
 
-	if (del == NULL)
-		return;
+	std::string mapName(maplistVector[fieldId]);
+	std::string dirName(mapName);
+	dirName.erase(2, dirName.length()-2); //get only two chars
 
-	char dirName[3]{ 0 };
-	memcpy(dirName, del, 2); //warning- yes, I know- but it doesn't matter. IO_func is set to load null.png if not found
 
-	sprintf(buffer, "field_bg\\%s\\%s\\%s_", dirName, del, del);
-	OutputDebug("%s\n", buffer);
+	sprintf(buffer, "field_bg\\%s\\%s\\%s_", dirName.c_str(), mapName.c_str(), mapName.c_str());
+	OutputDebug("%s::%d- %s\n", __func__, __LINE__,buffer);
 }
 
-DWORD fbpRequestedTpage;
+DWORD fieldBackgroundRequestedTPage;
+DWORD fieldReplacementFound;
 
-char* _fbgHdInjectVoid()
+/// <summary>
+/// 
+/// </summary>
+/// <returns>char* that points to texture of DDS or PNG</returns>
+char* GetFieldBackgroundReplacementTextureName()
 {
-	static char n[256]{ 0 };
-	static char localn[256]{ 0 };
+	OutputDebug("%s::%d\n", __func__, __LINE__);
+	fieldReplacementFound = 0;
+	static char fieldName[256] {0};
+	static char replacementFieldTextureFilename[256]{ 0 };
 	int palette = tex_header[52];
 
-	GetFieldBackgroundFile(n);
-	
-	sprintf(localn, "%stextures\\%s%u_%u.dds", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage-16, palette);
-	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
-		sprintf(localn, "%stextures\\%s%u_%u.png", DIRECT_IO_EXPORT_DIR, n, fbpRequestedTpage - 16, palette);
+	GetFieldBackgroundFilename(fieldName);
 
-	OutputDebug("%s: %s\n", __func__, localn);
+	OutputDebug("%s: %s\n", __func__, fieldName);
 	
-	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
-	{
-		strcat(n, "%u");
-		return n;
-	}
+	sprintf(replacementFieldTextureFilename, "%stextures\\%s%u_%u.dds", DIRECT_IO_EXPORT_DIR, fieldName, fieldBackgroundRequestedTPage-16, palette);
+	if (GetFileAttributesA(replacementFieldTextureFilename) == INVALID_FILE_ATTRIBUTES)
+		sprintf(replacementFieldTextureFilename, "%stextures\\%s%u_%u.png", DIRECT_IO_EXPORT_DIR, fieldName, fieldBackgroundRequestedTPage - 16, palette);
+
+	OutputDebug("%s: %s\n", __func__, replacementFieldTextureFilename);
 	
-	return localn;
+	//no replacement texture found- fallback to original
+	if (GetFileAttributesA(replacementFieldTextureFilename) == INVALID_FILE_ATTRIBUTES)
+		return strcat(fieldName, "%u");
+	
+	fieldReplacementFound = 1;
+	return replacementFieldTextureFilename;
 }
 
-__declspec(naked) void _fbgHdInject()
+__declspec(naked) void _asm_InjectFieldBackgroundModule()
 {
 	__asm
 	{
+	//save stack
 		PUSH EBX
 		PUSH EDX
 
+		//get requested tPage
 		MOV EAX, dword ptr[edi+0xC]
-		MOV fbpRequestedTpage, EAX
-		CALL _fbgHdInjectVoid
+		MOV fieldBackgroundRequestedTPage, EAX
 
+		
+		CALL GetFieldBackgroundReplacementTextureName
+
+		//restore stack
 		POP EDX
 		POP EBX
 
-		MOV ECX, fbpRequestedTpage
+		//original code restore
+		MOV ECX, fieldBackgroundRequestedTPage
 		SUB ECX, 16
 		PUSH ECX
 		
@@ -84,19 +106,22 @@ __declspec(naked) void _fbgHdInject()
 		LEA EAX, [EBP - 0x58]
 		PUSH EAX
 
-		JMP fbgBackAdd3
+		JMP _asm_FieldBgRetAddr2
 	}
 }
 
-//This is to make sure that user has PNGs- if not, then use original textures. You can use
-//it to individually control fields- pretty cool
-DWORD _fbgCheckHdAvailableVoid()
-{
+/// <summary>
+/// Passes the DWORD if either the replacement is found or not directly to the game engine
+/// </summary>
+/// <returns></returns>
+DWORD GetFieldBackgroundReplacementExist()
+{	
+	OutputDebug("%s::%d\n", __func__, __LINE__);
 	char n[256]{ 0 };
 	char localn[256]{ 0 };
 
-	GetFieldBackgroundFile(n);
-	
+	GetFieldBackgroundFilename(n);
+
 	sprintf(localn, "%stextures\\%s0.dds", DIRECT_IO_EXPORT_DIR, n);
 
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
@@ -105,31 +130,35 @@ DWORD _fbgCheckHdAvailableVoid()
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 		return 0;
 
-	OutputDebug("%s: %s\n", __func__, localn);
+	fieldReplacementFound = 1;
+
+	OutputDebug("%s: fieldReplacementFound: %d %s\n", __func__, fieldReplacementFound, localn);
 	
-	return 1;
+	return fieldReplacementFound;
 }
 
-__declspec(naked) void _fbgCheckHdAvailable()
+__declspec(naked) void _asm_CheckTextureReplacementExists()
 {
 	__asm 
 	{
+	//save stack
 		PUSH EAX
 		PUSH EBX
 		PUSH ECX
 		PUSH EDX
 
-		CALL _fbgCheckHdAvailableVoid
+		CALL GetFieldBackgroundReplacementExist //returns EAX
 		MOV EDX, OFFSET IMAGE_BASE
 		MOV EDX, [EDX]
 		ADD EDX, 0x1782080
-		MOV [EDX], EAX
+		MOV [EDX], EAX //pushes GetFieldBackgroundReplacementExist DWORD bool to [EDX]
 
+		//restore stack
 		POP EDX
 		POP ECX
 		POP EBX
 		POP EAX
-		JMP fbgBackAdd4
+		JMP _asm_FieldBgRetAddr3
 	}
 }
 
@@ -139,12 +168,12 @@ __declspec(naked) void _fbgCheckHdAvailable()
 
 void ApplyFieldBackgroundPatch()
 {
-	fbgBackAdd4 = InjectJMP(IMAGE_BASE + 0x1591B75, (DWORD)_fbgCheckHdAvailable, 20);
+	_asm_FieldBgRetAddr3 = InjectJMP(IMAGE_BASE + 0x1591B75, (DWORD)_asm_CheckTextureReplacementExists, 20);
 
 		//disable tpage 16&17 limit
 		modPage(IMAGE_BASE + 0x1606595, 1); 
 		*(BYTE*)(IMAGE_BASE + 0x1606595) = 0xEB;
 
 	//we now inject JMP when CMP fieldIfd, gover and do out stuff, then return to glSegment
-		fbgBackAdd3 = InjectJMP(IMAGE_BASE + 0x1606540, (DWORD)_fbgHdInject, 42);//169-11);
+		_asm_FieldBgRetAddr2 = InjectJMP(IMAGE_BASE + 0x1606540, (DWORD)_asm_InjectFieldBackgroundModule, 42);//169-11);
 }

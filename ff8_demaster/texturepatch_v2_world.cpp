@@ -1,9 +1,9 @@
 #include "coreHeader.h"
 
-DWORD _wtpBackAdd1;
-DWORD _wtpBackAdd2;
-DWORD _wtpBackAdd3;
-DWORD _wtpBackAdd4;
+DWORD _asm_WorldRetAddr1;
+DWORD _asm_WorldRetAddr2;
+DWORD _asm_WorldRetAddr3;
+DWORD _asm_WorldRetAddr4;
 
 
 struct worldTextureStructure
