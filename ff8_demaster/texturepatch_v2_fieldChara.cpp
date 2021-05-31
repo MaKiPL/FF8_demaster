@@ -31,23 +31,17 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 	BOOL bNonHdParent = FALSE;
 
 	char testPath[256]{ 0 };
-	sprintf(testPath, "%s%s.dds", texPath, tempSprint);
-	if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
-		sprintf(testPath, "%s%s.png", texPath, tempSprint);
+	DDSorPNG(testPath,256, "%s%s", texPath, tempSprint);
 	if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
 	{
-		sprintf(testPath, "%s_new%s.dds", texPath, tempSprint);
-		if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
-			sprintf(testPath, "%s_new%s.png", texPath, tempSprint);
+		DDSorPNG(testPath, 256,"%s_new%s", texPath, tempSprint);
 	}
 	else
 		bNonHdParent = TRUE;
 
 	if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
 	{
-		sprintf(testPath, "%s_new\\d000_0.dds", tempPath); //ERROR !!!!
-		if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
-			sprintf(testPath, "%s_new\\d000_0.png", tempPath); //ERROR !!!!
+		DDSorPNG(testPath,256, "%s_new\\d000_0", tempPath); //ERROR !!!!
 	}
 
 	strcpy(texPath, testPath); //establish path
@@ -57,12 +51,11 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 
 	//the most important is height here
 	height_fcp = img->m_height * 2;
-	int scale = img->m_height / 384; //normally should be always 1
 	
 
 
+	OutputDebug("_fcpObtainTextureDatas:: width=%d, height=%d, width_fcp=%d, height_fcp=%d, filename=%s\n", img->m_width, img->m_height, width_fcp, height_fcp, texPath);
 	bimg::imageFree(img);
-	OutputDebug("_fcpObtainTextureDatas:: width=%d, height=%d, filename=%s\n", width_fcp, height_fcp, texPath);
 	return;
 }
 

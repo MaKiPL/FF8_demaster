@@ -37,12 +37,13 @@ __declspec(naked) void directIO_fopenReroute()
 
 	if (GetFileAttributesA(IO_backlogFilePath) == INVALID_FILE_ATTRIBUTES)
 	{
-		sprintf(IO_backlogFilePath, "%stextures\\null.dds", DIRECT_IO_EXPORT_DIR);
-		if (GetFileAttributesA(IO_backlogFilePath) == INVALID_FILE_ATTRIBUTES)
-			sprintf(IO_backlogFilePath, "%stextures\\null.png", DIRECT_IO_EXPORT_DIR);
+		OutputDebug("%s: %s, %s\n", __func__, IO_backlogFilePath, "file not found");
+		DDSorPNG(IO_backlogFilePath,256U, "%stextures\\null", DIRECT_IO_EXPORT_DIR);
 	}
-
-	OutputDebug("%s: %s\n", __func__, IO_backlogFilePath);
+	else
+	{
+		OutputDebug("%s: %s\n", __func__, IO_backlogFilePath);
+	}
 
 	__asm
 	{

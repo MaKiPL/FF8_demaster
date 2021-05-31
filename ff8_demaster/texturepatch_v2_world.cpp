@@ -14,7 +14,7 @@ struct worldTextureStructure
 	int width;
 	int height;
 	int channels;
-	BOOL bActive;
+	bool bActive;
 };
 
 struct worldTextureStructure ws[] =
@@ -50,7 +50,20 @@ int GetTextureIndex();
 //you can't just create new folder because >WEEP< - too lazy to find the cause
 
 DWORD lastKnownTextureId;
-
+void LoadImageIntoWorldStruct(size_t texIndex, const char *const localn)
+{
+	if (ws[texIndex].bActive == FALSE || ws[texIndex].buffer == NULL)
+	{
+		bimg::ImageContainer* img = LoadImageFromFile(localn);
+		ws[texIndex].width = img->m_width;
+		ws[texIndex].height = img->m_height;
+		ws[texIndex].channels = img->m_hasAlpha ? 4 : 3;
+		ws[texIndex].buffer = img;
+		ws[texIndex].bActive = true;
+		strcpy(ws[texIndex].localPath, localn);
+		OutputDebug("\tstbi::w: %d; h: %d; channels: %d\n", ws[texIndex].width, ws[texIndex].height, ws[texIndex].channels);
+	}
+}
 void _wtpGl()
 {
 	DWORD tPage = gl_textures[50];
@@ -58,42 +71,23 @@ void _wtpGl()
 	char localn[256]{ 0 };
 
 	DWORD unk = *(DWORD*)(IMAGE_BASE + 0x17424B4);
-	int texIndex = lastKnownTextureId;
-	sprintf(localn, "_wtpGl()::localEAX: %d, Tpage: %d, Palette: %d, TexIndex: %d\n", *(DWORD*)(IMAGE_BASE + 0x1780f88), tPage, palette, texIndex);
-	OutputDebugStringA(localn);
+	size_t texIndex = lastKnownTextureId;
+	if(!(tPage == 29 && (palette == 0 || palette==2))) // prevents log from filling up.
+		OutputDebug("_wtpGl()::localEAX: %d, Tpage: %d, Palette: %d, TexIndex: %d\n", *(DWORD*)(IMAGE_BASE + 0x1780f88), tPage, palette, texIndex);
+
 	int getTexIndex = GetTextureIndex();
 	if (getTexIndex < 20 && (tPage > 14 && tPage < 26))
 	{
-		sprintf(localn, "%stextures\\world\\dat\\texl\\texl_%03d_0.dds", DIRECT_IO_EXPORT_DIR, /*tPage*/texIndex);
-		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
-			sprintf(localn, "%stextures\\world\\dat\\texl\\texl_%03d_0.png", DIRECT_IO_EXPORT_DIR, /*tPage*/ texIndex);
-		if (ws[texIndex].bActive == FALSE || ws[texIndex].buffer == NULL)
-		{
-			bimg::ImageContainer* img = LoadImageFromFile(localn);
-			ws[texIndex].width = img->m_width;
-			ws[texIndex].height = img->m_height;
-			ws[texIndex].channels = img->m_hasAlpha ? 4 : 3;
-			strcpy(ws[texIndex].localPath, localn);
-			ws[texIndex].buffer = img;
-			ws[texIndex].bActive = TRUE;
-			sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", ws[texIndex].width, ws[texIndex].height, ws[texIndex].channels);
-			OutputDebugStringA(localn);
-		}
+		DDSorPNG(localn, 256,"%stextures\\world\\dat\\texl\\texl_%03d_0", DIRECT_IO_EXPORT_DIR, /*tPage*/texIndex);
+		LoadImageIntoWorldStruct(texIndex, localn);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-		TextureFormatInfo& texInfo = s_textureFormat[ws[texIndex].buffer->m_format];
-		if (bimg::isCompressed(ws[texIndex].buffer->m_format))
-			RenderCompressedTexture(ws[texIndex].buffer, texInfo);
-		else
-			RenderUncompressedTexture(ws[texIndex].buffer, texInfo);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);		
+		RenderTexture(ws[texIndex].buffer);
 	}
 	else
 	{
-		sprintf(localn, "%stextures\\world\\dat\\wmset\\wmset_%03d_0.dds", DIRECT_IO_EXPORT_DIR, getTexIndex);
-		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
-			sprintf(localn, "%stextures\\world\\dat\\wmset\\wmset_%03d_0.png", DIRECT_IO_EXPORT_DIR, getTexIndex);
-		int wmStructPointer = -1;
+		DDSorPNG(localn, 256, "%stextures\\world\\dat\\wmset\\wmset_%03d_0", DIRECT_IO_EXPORT_DIR, getTexIndex);
+		int wmStructPointer = 21;
 		switch (getTexIndex)
 		{
 		case 14: //clouds
@@ -105,30 +99,11 @@ void _wtpGl()
 		case 29: //train tracks
 			wmStructPointer = 21;
 			break;
-		default:
-			wmStructPointer = 21;
-			break;
 		}
-
-		if (!ws[wmStructPointer].bActive)
-		{
-			bimg::ImageContainer* img = LoadImageFromFile(localn);
-			ws[wmStructPointer].buffer = img;
-			ws[wmStructPointer].channels = img->m_hasAlpha ? 4 : 3;
-			ws[wmStructPointer].height = img->m_height;
-			ws[wmStructPointer].width = img->m_width;
-			ws[wmStructPointer].bActive = true;
-			sprintf(localn, "\tstbi::w: %d; h: %d; channels: %d\n", ws[wmStructPointer].width, ws[wmStructPointer].height, ws[wmStructPointer].channels);
-			OutputDebugStringA(localn);
-		}
+		LoadImageIntoWorldStruct(wmStructPointer, localn);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-		TextureFormatInfo& texInfo = s_textureFormat[ws[texIndex].buffer->m_format];
-		if (bimg::isCompressed(ws[texIndex].buffer->m_format))
-			RenderCompressedTexture(ws[texIndex].buffer, texInfo);
-		else
-			RenderUncompressedTexture(ws[texIndex].buffer, texInfo);
+		RenderTexture(ws[wmStructPointer].buffer);
 	}
 	return;
 }
@@ -152,6 +127,7 @@ int GetTextureIndex()
 		case 14: //clouds
 			return 14;
 		case 15: //vehicles + character
+			return -1;
 		case 28: //water textures
 			return -1;
 		case 29: //tracks, bridge, vehicle
@@ -195,24 +171,18 @@ DWORD _wtpCheck()
 	int textureIndex = GetTextureIndex();
 	if (textureIndex < 20 && (tPage > 14 && tPage < 26))
 	{
-		sprintf(localn, "%stextures\\world\\dat\\texl\\texl_%03d_0.dds", DIRECT_IO_EXPORT_DIR, textureIndex);
-		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
-			sprintf(localn, "%stextures\\world\\dat\\texl\\texl_%03d_0.png", DIRECT_IO_EXPORT_DIR, textureIndex);
+		DDSorPNG(localn, 256, "%stextures\\world\\dat\\texl\\texl_%03d_0", DIRECT_IO_EXPORT_DIR, textureIndex);
 	}
 	else
 	{
-		sprintf(localn, "%stextures\\world\\dat\\wmset\\wmset_%03d_0.dds", DIRECT_IO_EXPORT_DIR, textureIndex);
-		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
-			sprintf(localn, "%stextures\\world\\dat\\wmset\\wmset_%03d_0.png", DIRECT_IO_EXPORT_DIR, textureIndex);
+		DDSorPNG(localn, 256,"%stextures\\world\\dat\\wmset\\wmset_%03d_0", DIRECT_IO_EXPORT_DIR, textureIndex);
 	}
-
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
-		sprintf(localn, "_wtpCheck FAILED ON TEXTURE!; Expected: a0stg%03d_%d.dds", currentStage, tPage);
-		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
-			sprintf(localn, "_wtpCheck FAILED ON TEXTURE!; Expected: a0stg%03d_%d.png", currentStage, tPage);
+		//OutputDebug("%s: %s, Failed to load!\n", __func__, localn); //spamming message!
 		return 0;
 	}
+	
 	return 1;
 }
 

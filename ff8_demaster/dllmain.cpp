@@ -88,7 +88,6 @@ void DEB_JMP(char* c, DWORD a, DWORD b, DWORD cc, DWORD d, DWORD e)
 	sprintf(localD, "Wrong address at: %08x\n", (unsigned int)c);
 	if (IsBadReadPtr(c, 4)) 
 	{
-		//OutputDebugStringA(localD);
 		__asm
 		{
 			//INT 3
@@ -258,7 +257,7 @@ LONG WINAPI ExceptionHandler(EXCEPTION_POINTERS* ep)
 	return EXCEPTION_CONTINUE_EXECUTION;
 }
 
-bimg::ImageContainer* LoadImageFromFile(char* filename)
+bimg::ImageContainer* LoadImageFromFile(const char* const filename)
 {
 	static bool glewLoaded = false;
 
@@ -271,14 +270,14 @@ bimg::ImageContainer* LoadImageFromFile(char* filename)
 		if (GLEW_OK != err)
 		{
 			/* Problem: glewInit failed, something is seriously wrong. */
-			OutputDebug("GLEW Error: %s\n", glewGetErrorString(err));
+			OutputDebug("%s - GLEW Error: %s\n", __func__, glewGetErrorString(err));
 		}
 	}
 
 	bimg::ImageContainer* img = nullptr;
 	char msg[1024]{ 0 };
 
-	OutputDebug("Opening file: %s\n", filename);
+	OutputDebug("%s - Opening File: %s\n", __func__, filename);
 
 	FILE* file = fopen(filename, "rb");
 
@@ -292,7 +291,7 @@ bimg::ImageContainer* LoadImageFromFile(char* filename)
 
 		buffer = (char*)malloc(filesize + 1);
 		fseek(file, 0, SEEK_SET);
-		fread(buffer, filesize, 1, file);
+		(void)fread(buffer, filesize, 1, file);
 
 		fclose(file);
 
@@ -307,6 +306,37 @@ bimg::ImageContainer* LoadImageFromFile(char* filename)
 	}
 
 	return img;
+}
+//appends DDS checks if file exists and then checks for PNG. returns false if atleast one exists. true on failure.
+bool DDSorPNG(char* buffer, size_t in_size, const char* fmt, ...)
+{
+	const size_t size = in_size - 4U; //for extension
+	va_list args;
+	va_start(args, fmt);
+	vsnprintf(buffer, size, fmt, args);
+	strcat(buffer, ".dds");
+	va_end(args);
+	if (GetFileAttributesA(buffer) == INVALID_FILE_ATTRIBUTES)
+	{
+		va_start(args, fmt);
+		vsnprintf(buffer, size, fmt, args);
+		strcat(buffer,".png");
+		va_end(args);
+		return GetFileAttributesA(buffer) == INVALID_FILE_ATTRIBUTES;
+	}
+	return false;
+}
+void RenderTexture(bimg::ImageContainer* img)
+{
+	TextureFormatInfo& texInfo = s_textureFormat[img->m_format];
+	if (bimg::isCompressed(img->m_format))
+	{
+		RenderCompressedTexture(img, texInfo);
+	}
+	else
+	{
+		RenderUncompressedTexture(img, texInfo);
+	}
 }
 
 void RenderUncompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo)
@@ -365,8 +395,8 @@ BOOL WINAPI DllMain(
 	SetUnhandledExceptionFilter(ExceptionHandler);
 
 	AllocConsole();
-	freopen("CONOUT$", "w", stdout);
-	freopen("CON", "r", stdin);
+	(void)freopen("CONOUT$", "w", stdout);
+	(void)freopen("CON", "r", stdin);
 	InitTest();
 	ReadConfigFile();
 	if (LOG) logFile = fopen("demasterlog.txt", "wb");

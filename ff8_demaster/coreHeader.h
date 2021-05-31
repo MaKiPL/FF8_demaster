@@ -30,7 +30,7 @@ extern const char* DIRECT_IO_EXPORT_DIR;
 extern DWORD DIRECT_IO_EXPORT_DIR_LEN;
 
 extern bx::DefaultAllocator texAllocator;
-bimg::ImageContainer* LoadImageFromFile(char* filename);
+bimg::ImageContainer* LoadImageFromFile(const char* const filename);
 
 void ApplyDirectIO();
 void ApplyUVPatch();
@@ -69,7 +69,9 @@ extern int currentStage;
 
 extern FILE* logFile;
 void OutputDebug(const char* fmt, ...);
+bool DDSorPNG(char* buffer, size_t size, const char* fmt, ...);
 
+void RenderTexture(bimg::ImageContainer* img);
 void RenderUncompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo);
 void RenderCompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo);
 

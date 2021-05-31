@@ -14,10 +14,8 @@ void _bcpObtainTextureDatas(int aIndex)
 {
 	char n[256]{ 0 };
 
-	sprintf(n, "%stextures\\battle.fs\\hd_new\\d%xc%03u_0.dds", DIRECT_IO_EXPORT_DIR, (aIndex - 4097) / 100, (aIndex - 4097) % 100);
-	if (GetFileAttributesA(n) == INVALID_FILE_ATTRIBUTES)
-		sprintf(n, "%stextures\\battle.fs\\hd_new\\d%xc%03u_0.png", DIRECT_IO_EXPORT_DIR, (aIndex - 4097) / 100, (aIndex - 4097) % 100);
-
+	DDSorPNG(n, 256, "%stextures\\battle.fs\\hd_new\\d%xc%03u_0", DIRECT_IO_EXPORT_DIR, (aIndex - 4097) / 100, (aIndex - 4097) % 100);
+	
 	bimg::ImageContainer* img = LoadImageFromFile(n); //chara 0
 	width_bcp = img->m_width * 2;
 	height_bcp = img->m_height * 2;

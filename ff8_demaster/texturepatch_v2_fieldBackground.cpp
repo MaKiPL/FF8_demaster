@@ -49,33 +49,35 @@ DWORD fieldBackgroundRequestedTPage;
 DWORD fieldReplacementFound;
 
 /// <summary>
-/// 
+///
 /// </summary>
 /// <returns>char* that points to texture of DDS or PNG</returns>
 char* GetFieldBackgroundReplacementTextureName()
 {
-	OutputDebug("%s::%d\n", __func__, __LINE__);
-	fieldReplacementFound = 0;
-	static char fieldName[256] {0};
-	static char replacementFieldTextureFilename[256]{ 0 };
+	//directIO_fopenReroute: DEMASTER_EXP\textures\DEMASTER_EXP\textures\field_bg\bv\bvtr_1\bvtr_1_0_2.png, file not found
+	char n[256]{ 0 };
+	static char n2[256]{ 0 };
+	char localn[256]{ 0 };
+	static char localn2[256]{ 0 };
 	int palette = tex_header[52];
 
-	GetFieldBackgroundFilename(fieldName);
+	GetFieldBackgroundFilename(n);
 
-	OutputDebug("%s: %s\n", __func__, fieldName);
-	
-	sprintf(replacementFieldTextureFilename, "%stextures\\%s%u_%u.dds", DIRECT_IO_EXPORT_DIR, fieldName, fieldBackgroundRequestedTPage-16, palette);
-	if (GetFileAttributesA(replacementFieldTextureFilename) == INVALID_FILE_ATTRIBUTES)
-		sprintf(replacementFieldTextureFilename, "%stextures\\%s%u_%u.png", DIRECT_IO_EXPORT_DIR, fieldName, fieldBackgroundRequestedTPage - 16, palette);
+	sprintf(localn2, "%s%u_%u", n, fieldBackgroundRequestedTPage - 16, palette);
+	DDSorPNG(localn,256, "%stextures\\%s%u_%u", DIRECT_IO_EXPORT_DIR, n, fieldBackgroundRequestedTPage -16, palette);
 
-	OutputDebug("%s: %s\n", __func__, replacementFieldTextureFilename);
-	
-	//no replacement texture found- fallback to original
-	if (GetFileAttributesA(replacementFieldTextureFilename) == INVALID_FILE_ATTRIBUTES)
-		return strcat(fieldName, "%u");
-	
-	fieldReplacementFound = 1;
-	return replacementFieldTextureFilename;
+	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+	{
+		OutputDebug("%s: %s, %s\n", __func__, localn, "palette not found");
+		sprintf(n2, "%s%u",n, fieldBackgroundRequestedTPage - 16);
+		OutputDebug("%s: %s\n", __func__, n2);
+		return n2;
+	}
+	else
+	{
+		OutputDebug("%s: %s\n", __func__, localn);
+		return localn2;
+	}
 }
 
 __declspec(naked) void _asm_InjectFieldBackgroundModule()
@@ -90,7 +92,7 @@ __declspec(naked) void _asm_InjectFieldBackgroundModule()
 		MOV EAX, dword ptr[edi+0xC]
 		MOV fieldBackgroundRequestedTPage, EAX
 
-		
+
 		CALL GetFieldBackgroundReplacementTextureName
 
 		//restore stack
@@ -101,7 +103,7 @@ __declspec(naked) void _asm_InjectFieldBackgroundModule()
 		MOV ECX, fieldBackgroundRequestedTPage
 		SUB ECX, 16
 		PUSH ECX
-		
+
 		PUSH EAX
 		LEA EAX, [EBP - 0x58]
 		PUSH EAX
@@ -115,31 +117,30 @@ __declspec(naked) void _asm_InjectFieldBackgroundModule()
 /// </summary>
 /// <returns></returns>
 DWORD GetFieldBackgroundReplacementExist()
-{	
+{
 	OutputDebug("%s::%d\n", __func__, __LINE__);
-	char n[256]{ 0 };
-	char localn[256]{ 0 };
-
+	const size_t s = 256U;
+	char n[s]{ 0 };
+	char localn[s]{ 0 };
 	GetFieldBackgroundFilename(n);
-
-	sprintf(localn, "%stextures\\%s0.dds", DIRECT_IO_EXPORT_DIR, n);
-
-	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
-		sprintf(localn, "%stextures\\%s0.png", DIRECT_IO_EXPORT_DIR, n);
+	DDSorPNG(localn, s, "%stextures\\%s0", DIRECT_IO_EXPORT_DIR, n);
 
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
+	{
+		OutputDebug("%s: %s, %s\n", __func__, localn, "not found");
 		return 0;
+	}
 
 	fieldReplacementFound = 1;
 
 	OutputDebug("%s: fieldReplacementFound: %d %s\n", __func__, fieldReplacementFound, localn);
-	
+
 	return fieldReplacementFound;
 }
 
 __declspec(naked) void _asm_CheckTextureReplacementExists()
 {
-	__asm 
+	__asm
 	{
 	//save stack
 		PUSH EAX
@@ -171,7 +172,7 @@ void ApplyFieldBackgroundPatch()
 	_asm_FieldBgRetAddr3 = InjectJMP(IMAGE_BASE + 0x1591B75, (DWORD)_asm_CheckTextureReplacementExists, 20);
 
 		//disable tpage 16&17 limit
-		modPage(IMAGE_BASE + 0x1606595, 1); 
+		modPage(IMAGE_BASE + 0x1606595, 1);
 		*(BYTE*)(IMAGE_BASE + 0x1606595) = 0xEB;
 
 	//we now inject JMP when CMP fieldIfd, gover and do out stuff, then return to glSegment
