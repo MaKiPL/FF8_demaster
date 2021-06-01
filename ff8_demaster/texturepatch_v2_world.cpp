@@ -1,5 +1,5 @@
 #include "coreHeader.h"
-
+#define CRASHLOG OutputDebug("%s::Line %d\n", __func__, __LINE__)
 DWORD _asm_WorldRetAddr1;
 DWORD _asm_WorldRetAddr2;
 DWORD _asm_WorldRetAddr3;
@@ -42,18 +42,24 @@ struct worldTextureStructure ws[] =
 	{"", 20, NULL, -1,-1,-1,FALSE},
 	{"", 21, NULL, -1,-1,-1,FALSE}, //TRAIN TRACKS
 	{"", 22, NULL, -1,-1,-1,FALSE}, //CLOUDS
-	{"", 23, NULL, -1,-1,-1,FALSE} //MAP
+	{"", 23, NULL, -1,-1,-1,FALSE}, //MAP
+	{"", 24, NULL, -1,-1,-1,FALSE}, //moon texture + fx
+	{"", 25, NULL, -1,-1,-1,FALSE}, //WATER
+	{"", 26, NULL, -1,-1,-1,FALSE}, //15
+	{"", 27, NULL, -1,-1,-1,FALSE}, //16
 };
 
 int GetTextureIndex();
 
 //you can't just create new folder because >WEEP< - too lazy to find the cause
 
-DWORD lastKnownTextureId;
-void LoadImageIntoWorldStruct(size_t texIndex, const char *const localn)
+DWORD lastKnownTextureId{0};
+void LoadImageIntoWorldStruct(size_t texIndex, const char* const localn, int tPage, int palette)
 {
+
 	if (ws[texIndex].bActive == FALSE || ws[texIndex].buffer == NULL)
 	{
+
 		bimg::ImageContainer* img = LoadImageFromFile(localn);
 		ws[texIndex].width = img->m_width;
 		ws[texIndex].height = img->m_height;
@@ -61,7 +67,13 @@ void LoadImageIntoWorldStruct(size_t texIndex, const char *const localn)
 		ws[texIndex].buffer = img;
 		ws[texIndex].bActive = true;
 		strcpy(ws[texIndex].localPath, localn);
-		OutputDebug("\tstbi::w: %d; h: %d; channels: %d\n", ws[texIndex].width, ws[texIndex].height, ws[texIndex].channels);
+
+		OutputDebug("\t%s::localEAX: %d, Tpage: %d, Palette: %d, TexIndex: %d\n", __func__, *(DWORD*)(IMAGE_BASE + 0x1780f88), tPage, palette, texIndex);
+		OutputDebug("\t%s::w: %d; h: %d; channels: %d\n", __func__, ws[texIndex].width, ws[texIndex].height, ws[texIndex].channels);
+	}
+	else if (strcmp(ws[texIndex].localPath, localn) != 0)
+	{
+		OutputDebug("%s::WARNIING texture:\n\t%s\n\t!=\n\t%s\n", __func__, localn, ws[texIndex].localPath);
 	}
 }
 void _wtpGl()
@@ -72,38 +84,72 @@ void _wtpGl()
 
 	DWORD unk = *(DWORD*)(IMAGE_BASE + 0x17424B4);
 	size_t texIndex = lastKnownTextureId;
-	if(!(tPage == 29 && (palette == 0 || palette==2))) // prevents log from filling up.
-		OutputDebug("_wtpGl()::localEAX: %d, Tpage: %d, Palette: %d, TexIndex: %d\n", *(DWORD*)(IMAGE_BASE + 0x1780f88), tPage, palette, texIndex);
 
 	int getTexIndex = GetTextureIndex();
-	if (getTexIndex < 20 && (tPage > 14 && tPage < 26))
+	if (getTexIndex <= 0) return;
+
+	if (texIndex != getTexIndex
+		/*getTexIndex == 13 ||
+		getTexIndex == 14 ||
+		getTexIndex == 15 ||
+		getTexIndex == 16 ||
+		getTexIndex == 24 ||
+		getTexIndex == 28 ||
+		getTexIndex == 29 ||
+		texIndex == 0*/
+		)
 	{
-		DDSorPNG(localn, 256,"%stextures\\world\\dat\\texl\\texl_%03d_0", DIRECT_IO_EXPORT_DIR, /*tPage*/texIndex);
-		LoadImageIntoWorldStruct(texIndex, localn);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);		
-		RenderTexture(ws[texIndex].buffer);
-	}
-	else
-	{
-		DDSorPNG(localn, 256, "%stextures\\world\\dat\\wmset\\wmset_%03d_0", DIRECT_IO_EXPORT_DIR, getTexIndex);
+
+		if (DDSorPNG(localn, 256, "%stextures\\world\\dat\\wmset\\wmset_%03d_0", DIRECT_IO_EXPORT_DIR, getTexIndex))
+		{
+			OutputDebug("%s::%d::Failed to Load: %s\n\tgetTexIndex: %d\n", __func__, __LINE__, localn, getTexIndex);
+			return;
+		}
+
 		int wmStructPointer = 21;
 		switch (getTexIndex)
 		{
+		case 13: //moon texture + fx
+			wmStructPointer = 24;
+			break;
 		case 14: //clouds
 			wmStructPointer = 22;
 			break;
+		case 15: //
+			wmStructPointer = 26;
+			break;
+		case 16: //
+			wmStructPointer = 27;
+			break;
 		case 24:
 			wmStructPointer = 23;
+			break;
+		case 28: // water
+			wmStructPointer = 25;
 			break;
 		case 29: //train tracks
 			wmStructPointer = 21;
 			break;
 		}
-		LoadImageIntoWorldStruct(wmStructPointer, localn);
+
+		LoadImageIntoWorldStruct(wmStructPointer, localn, tPage, palette);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		RenderTexture(ws[wmStructPointer].buffer);
+	}
+	else  //if (getTexIndex < 20 && (tPage > 14 && tPage < 26) )
+	{
+
+		if (DDSorPNG(localn, 256, "%stextures\\world\\dat\\texl\\texl_%03d_0", DIRECT_IO_EXPORT_DIR, /*tPage*/texIndex))
+		{
+			OutputDebug("%s::%d::Failed to Load: %s\n\tgetTexIndex: %d, tPage: %d, texIndex: %d", __func__, __LINE__, localn, getTexIndex, tPage, texIndex);
+			return;
+		}
+
+		LoadImageIntoWorldStruct(texIndex, localn, tPage, palette);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		RenderTexture(ws[texIndex].buffer);
 	}
 	return;
 }
@@ -118,20 +164,12 @@ int GetTextureIndex()
 	DWORD texB = *(DWORD*)(IMAGE_BASE + 0x17424B4) + 1;
 	DWORD texC = *(DWORD*)(IMAGE_BASE + 0x17424B8) + 1;
 	DWORD texD = *(DWORD*)(IMAGE_BASE + 0x17424BC) + 1;
+
 	if (textureType == 18)
 	{
+		lastKnownTextureId = 0;
 		switch (tPage)
 		{
-		case 13: //moon texture + fx
-			return -1;
-		case 14: //clouds
-			return 14;
-		case 15: //vehicles + character
-			return -1;
-		case 28: //water textures
-			return -1;
-		case 29: //tracks, bridge, vehicle
-			return 29;
 		case 20:
 			lastKnownTextureId = texA;
 			return texA;
@@ -144,10 +182,29 @@ int GetTextureIndex()
 		case 26:
 			lastKnownTextureId = texD;
 			return texD;
+		case 13: //moon texture + fx
+		case 14: //clouds
+		case 28: //water textures
+		case 29: //tracks, bridge, vehicle
+		//case 16: //??? I see it trying to load this and don't see anything using it.
+		//case 15: //vehicles + character
+				 //this one is special the game mixes different textures into one and they overlap.
+			// character texture is top left. some cars are top left.
+			return tPage;
 		}
+		//OutputDebug("%s::tPage: %d\n", __func__, tPage);
+	}
+	else if (textureType == 196)
+	{
+		//tPage 13, 15, 28
+	}
+	else if (textureType == 201)
+	{
+		//tPage 13, 15, 28
 	}
 	else if (textureType == 0) //map
 	{
+		//OutputDebug("%s::%d::tPage: %d, textureType: %d, palette: %d\n", __func__, __LINE__, tPage, textureType, palette);
 		return -1;
 		//return 24;
 	}
@@ -169,23 +226,27 @@ DWORD _wtpCheck()
 
 	char localn[256]{ 0 };
 	int textureIndex = GetTextureIndex();
-	if (textureIndex < 20 && (tPage > 14 && tPage < 26))
+
+	if (textureIndex <= 0) //disabled textures are set to -1;
+		return 0;
+	if (lastKnownTextureId == textureIndex)//(textureIndex < 20 && (tPage > 14 && tPage < 26))
 	{
 		DDSorPNG(localn, 256, "%stextures\\world\\dat\\texl\\texl_%03d_0", DIRECT_IO_EXPORT_DIR, textureIndex);
 	}
 	else
 	{
-		DDSorPNG(localn, 256,"%stextures\\world\\dat\\wmset\\wmset_%03d_0", DIRECT_IO_EXPORT_DIR, textureIndex);
+		DDSorPNG(localn, 256, "%stextures\\world\\dat\\wmset\\wmset_%03d_0", DIRECT_IO_EXPORT_DIR, textureIndex);
 	}
+
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
-		//OutputDebug("%s: %s, Failed to load!\n", __func__, localn); //spamming message!
+		//OutputDebug("%s::Failed to Load: %s\n", __func__, localn); //spamming message!
 		return 0;
 	}
-	
 	return 1;
 }
 
 void ApplyWorldPatch()
 {
 }
+#undef CRASHLOG
