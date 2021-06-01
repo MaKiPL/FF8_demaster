@@ -44,7 +44,7 @@ void LoadImageIntoBattleSceneryStruct(const size_t index, const DWORD tPage, con
 {
 	int palette = tex_header[52];
 	//spamming so i put it here so it only logs when loading.
-	OutputDebug("_bspGl()::Stage: %d, Tpage: %d, Palette: %d\n", currentStage, tPage, palette);
+	OutputDebug("%s::Stage: %d, Tpage: %d, Palette: %d\n", __func__, currentStage, tPage, palette);
 	bimg::ImageContainer* img = LoadImageFromFile(localn);
 	bss[index].bActive = true;
 	bss[index].width = img->m_width;
@@ -54,8 +54,8 @@ void LoadImageIntoBattleSceneryStruct(const size_t index, const DWORD tPage, con
 	strcpy(bss[index].localPath, localn);
 	bss[index].buffer = img;
 	bss[index].tpage = tPage;
-	OutputDebug("\tbspGl():bss - First time init battle texture for page: %d", tPage);
-	OutputDebug("\tstbi::w: %d; h: %d; channels: %d\n", bss[index].width, bss[index].height, bss[index].channels);
+	OutputDebug("\t%s::Battle texture for page: %d", __func__, tPage);
+	OutputDebug("\t%s::w: %d; h: %d; channels: %d\n", __func__, bss[index].width, bss[index].height, bss[index].channels);
 }
 void _bspGl()
 {
