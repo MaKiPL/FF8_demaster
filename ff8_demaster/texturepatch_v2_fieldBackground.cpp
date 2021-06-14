@@ -17,7 +17,7 @@ bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 	const int fieldId = *(DWORD*)(IMAGE_BASE + 0x1782140) & 0xFFFF;
 	if (maplistVector.empty() || force_retry)
 	{
-		[[maybe_unused]] const auto oldsize = maplistVector.size();
+		const auto oldsize = maplistVector.size();
 		static size_t cached_maplist_size{};
 		if (maplistVector.capacity() < 982)
 			maplistVector.reserve(982);
@@ -37,10 +37,7 @@ bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 				maplistVector.emplace_back(std::move(mapname));
 			}
 		}
-		if (force_retry)
-			OutputDebug("%s::%d- Reloaded Maplist!\toldsize: %d\tsize: %d\n", __func__, __LINE__, oldsize, maplistVector.size());
-		else
-			OutputDebug("%s::%d- Loaded Maplist!\tsize: %d\n", __func__, __LINE__, maplistVector.size());
+		OutputDebug("%s::%d- %s Maplist!\toldsize: %d\tsize: %d\n", __func__, __LINE__, (force_retry ? "ReLoaded" : "Loaded"), oldsize, maplistVector.size());
 	}
 
 	if (maplistVector.size() <= static_cast<size_t>(fieldId))
