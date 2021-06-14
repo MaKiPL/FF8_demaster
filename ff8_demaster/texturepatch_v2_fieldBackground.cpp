@@ -45,30 +45,12 @@ bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 		if (force_retry)
 		{
 			OutputDebug("%s::%d- Reloaded Maplist!\toldsize: %d\tsize: %d\n", __func__, __LINE__, oldsize, maplistVector.size());
-			size_t i{};
-			for (const auto map : maplistVector)
-			{
-				OutputDebug("\t%d - %s", i++, map.c_str());
-			}
-			puts("\n");
 		}
 		else
 		{
 			OutputDebug("%s::%d- Loaded Maplist!\tsize: %d\n", __func__, __LINE__, maplistVector.size());
 		}
 	}
-	//if (force_retry)
-	//{
-	//	auto iss = std::istringstream(maplist, std::ios::in | std::ios::binary);
-	//	std::string mapname{};
-	//	auto oldsize = maplistVector.size();
-	//	for (size_t i=0; std::getline(iss, mapname);++i)
-	//	{
-	//		if(i == maplistVector.size())
-	//			maplistVector.emplace_back(std::move(mapname));
-	//	}
-	//	OutputDebug("%s::%d- Reloaded Maplist!\toldsize: %d\tsize: %d\n", __func__, __LINE__, oldsize, maplistVector.size());
-	//}
 
 	
 	if (maplistVector.size() <= static_cast<size_t>(fieldId))
