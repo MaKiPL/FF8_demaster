@@ -29,7 +29,7 @@ bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 			const char* t = (const char*)(*(DWORD*)(IMAGE_BASE + 0x189559C) + 0x118 + cached_maplist_size);
 			if (*t == '\n')
 			{
-				t += 1;
+				++t;
 				++cached_maplist_size;
 			}
 			return t;
