@@ -4,73 +4,74 @@ BYTE* _asm_FieldBgRetAddr1;
 BYTE* _asm_FieldBgRetAddr2;
 BYTE* _asm_FieldBgRetAddr3;
 
-//static char maplist[65535] = {'\0'};
-std::vector<std::string> maplistVector;
 
 /// <summary>
 /// Gets field map name from maplist data
 /// </summary>
 /// <param name="buffer">[OUT] - places found mapname from maplist</param>
-/// <returns>0 false if no issues</returns>
+/// <param name="force_retry">if fieldId was not found reload maplist</param>
+/// <returns>false if no issues</returns>
 bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 {
-	
-	const char* const maplist = (char*)(*(DWORD*)(IMAGE_BASE + 0x189559C) + 0x118);
 
-	//no need to copy maplist every time
-	//if (maplist[0] == '\0')
-	//{
-	//	
-	//	strcpy(maplist, gameMaplist);
-	//}
+	static std::vector<std::string> maplistVector{};
 
-	
-	int fieldId = *(DWORD*)(IMAGE_BASE + 0x1782140) & 0xFFFF;
+	const int fieldId = *(DWORD*)(IMAGE_BASE + 0x1782140) & 0xFFFF;
 	
 	int currentFieldId = 0;
-	if (maplistVector.empty())
+	if (maplistVector.empty() || force_retry)
 	{
-		maplistVector.reserve(982);
+		[[maybe_unused]] const auto oldsize = maplistVector.size();
+		static size_t cached_maplist_size{};
+		if(maplistVector.capacity() < 982)
+			maplistVector.reserve(982);
+		const char* const maplist_src = []() {
+			const char* t = (const char*)(*(DWORD*)(IMAGE_BASE + 0x189559C) + 0x118 + cached_maplist_size);
+			if (*t == '\n')
+			{
+				t += 1;
+				++cached_maplist_size;
+			}
+			return t;
+		}();
+		const std::string maplist = std::string{ maplist_src };
+		cached_maplist_size += maplist.size();
 		auto iss = std::istringstream(maplist, std::ios::in | std::ios::binary);
 		std::string mapname{};
 		while (std::getline(iss,mapname))
 		{
 			maplistVector.emplace_back(std::move(mapname));
 		}
-		OutputDebug("%s::%d- Loaded Maplist!\tsize: %d\n", __func__, __LINE__, maplistVector.size());
-
-		//char* mapName = strtok(maplist, "\n");
-		//if (mapName != NULL)
-		//{
-		//	
-		//	maplistVector.push_back(std::string(mapName));
-		//}
-		//while (mapName != NULL)
-		//{
-		//	
-		//	mapName = strtok(NULL, "\n");
-		//	if (mapName != NULL)
-		//	{
-		//		
-		//		maplistVector.push_back(std::string(mapName));
-		//	}
-		//}
-	}
-	if (force_retry)
-	{
-		auto iss = std::istringstream(maplist, std::ios::in | std::ios::binary);
-		std::string mapname{};
-		auto oldsize = maplistVector.size();
-		for (size_t i=0; std::getline(iss, mapname);++i)
+		if (force_retry)
 		{
-			if(i == maplistVector.size())
-				maplistVector.emplace_back(std::move(mapname));
+			OutputDebug("%s::%d- Reloaded Maplist!\toldsize: %d\tsize: %d\n", __func__, __LINE__, oldsize, maplistVector.size());
+			size_t i{};
+			for (const auto map : maplistVector)
+			{
+				OutputDebug("\t%d - %s", i++, map.c_str());
+			}
+			puts("\n");
 		}
-		OutputDebug("%s::%d- Reloaded Maplist!\toldsize: %d\tsize: %d\n", __func__, __LINE__, oldsize, maplistVector.size());
+		else
+		{
+			OutputDebug("%s::%d- Loaded Maplist!\tsize: %d\n", __func__, __LINE__, maplistVector.size());
+		}
 	}
+	//if (force_retry)
+	//{
+	//	auto iss = std::istringstream(maplist, std::ios::in | std::ios::binary);
+	//	std::string mapname{};
+	//	auto oldsize = maplistVector.size();
+	//	for (size_t i=0; std::getline(iss, mapname);++i)
+	//	{
+	//		if(i == maplistVector.size())
+	//			maplistVector.emplace_back(std::move(mapname));
+	//	}
+	//	OutputDebug("%s::%d- Reloaded Maplist!\toldsize: %d\tsize: %d\n", __func__, __LINE__, oldsize, maplistVector.size());
+	//}
 
 	
-	if (maplistVector.size() <= fieldId || fieldId < 0)
+	if (maplistVector.size() <= static_cast<size_t>(fieldId))
 	{
 		if (force_retry)
 		{
@@ -118,8 +119,8 @@ char* GetFieldBackgroundReplacementTextureName()
 	
 	if (GetFieldBackgroundFilename(n))
 	{
-		n[0] = '\0';
-		return n;
+		n2[0] = '\0';
+		return n2;
 	}
 
 	
