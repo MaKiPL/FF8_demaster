@@ -26,13 +26,10 @@ bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 		if(maplistVector.capacity() < 982)
 			maplistVector.reserve(982);
 		const char* const maplist_src = []() {
-			const char* t = (const char*)(*(DWORD*)(IMAGE_BASE + 0x189559C) + 0x118 + cached_maplist_size);
-			if (*t == '\n')
-			{
-				++t;
-				++cached_maplist_size;
-			}
-			return t;
+			const char* tmp_ptr = (const char*)(*(DWORD*)(IMAGE_BASE + 0x189559C) + 0x118 + cached_maplist_size);
+			if (*tmp_ptr == '\n')
+				(void)++tmp_ptr, ++cached_maplist_size;
+			return tmp_ptr;
 		}();
 		const std::string maplist = std::string{ maplist_src };
 		cached_maplist_size += maplist.size();
