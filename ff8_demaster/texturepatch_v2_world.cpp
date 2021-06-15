@@ -10,7 +10,7 @@ struct worldTextureStructure
 {
 	char localPath[256]{ 0 };
 	DWORD tpage{};
-	safe_bimg&& buffer{ safe_bimg_init() };
+	safe_bimg buffer{ safe_bimg_init() };
 	int width{ -1 };
 	int height{ -1 };
 	int channels{ -1 };
