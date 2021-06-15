@@ -16,23 +16,57 @@ unsigned char* buffer21;
 unsigned char* buffer22;
 DWORD lastStage;
 
-struct battleSceneryStructure
+struct battleSceneryPathandTexture
 {
-	char localPath[256]{ 0 };
-	DWORD tpage{};
+	std::string localPath{};
 	safe_bimg buffer{ safe_bimg_init() };
-	int width{-1};
-	int height{-1};
-	int channels{-1};
-	bool bActive{false};
-	int nextFrame{0};
-	battleSceneryStructure(DWORD in_tpage)
-		: tpage{in_tpage}
+	operator bool() const noexcept
 	{
+		return !localPath.empty() && buffer;
+	}
+	operator bimg::ImageContainer* () const noexcept
+	{
+		return buffer.get();
 	}
 };
 
-struct battleSceneryStructure bss[] =
+struct battleSceneryStructure
+{
+	DWORD tpage{};
+	std::vector<battleSceneryPathandTexture> buffer{}; //use a vector to store animation frames.
+	int width{ -1 };
+	int height{ -1 };
+	int channels{ -1 };
+	bool bActive{ false };
+	int nextFrame{ 0 };
+	battleSceneryStructure(DWORD in_tpage) noexcept
+		: tpage{ in_tpage }
+	{
+	}
+	auto& current() const noexcept
+	{
+		const auto currentFrame = nextFrame - 1;
+		if (static_cast<size_t>(currentFrame) < buffer.size())
+			return buffer[currentFrame];
+		static const auto dummy = battleSceneryPathandTexture{};
+		return dummy;
+	}
+
+	void update(battleSceneryPathandTexture&& new_img)
+	{
+		const auto currentFrame = nextFrame - 1;
+		if (static_cast<size_t>(currentFrame) < buffer.size())
+		{
+			buffer[currentFrame] = std::move(new_img);
+			return;
+		}
+		while (static_cast<size_t>(currentFrame) > buffer.size()) //encase the size() is too small.
+			buffer.emplace_back(battleSceneryPathandTexture{});
+		buffer.emplace_back(std::move(new_img));
+	}
+};
+
+battleSceneryStructure bss[] =
 {
 	{16},
 	{17},
@@ -40,13 +74,12 @@ struct battleSceneryStructure bss[] =
 	{19},
 	{20},
 	{21},
-	{22}
+	{22},
 };
 
-void bssInvalidateTexPath(DWORD tPage);
 void LoadImageIntoBattleSceneryStruct(const size_t index, const DWORD tPage, const char* const localn)
 {
-	if (bss[index].buffer && strcmp(bss[index].localPath, localn) == 0)
+	if (bss[index].current() && bss[index].current().localPath == localn) //prevent loading an image that is loaded.
 		return;
 	int palette = tex_header[52];
 	//spamming so i put it here so it only logs when loading.
@@ -56,9 +89,7 @@ void LoadImageIntoBattleSceneryStruct(const size_t index, const DWORD tPage, con
 	bss[index].width = img->m_width;
 	bss[index].height = img->m_width;
 	bss[index].channels = img->m_hasAlpha ? 4 : 3;
-	bssInvalidateTexPath(tPage);
-	strcpy(bss[index].localPath, localn);
-	bss[index].buffer = std::move(img);
+	bss[index].update({ localn, std::move(img) });
 	bss[index].tpage = tPage;
 	OutputDebug("\t%s::Battle texture for page: %d", __func__, tPage);
 	OutputDebug("\t%s::w: %d; h: %d; channels: %d\n", __func__, bss[index].width, bss[index].height, bss[index].channels);
@@ -77,14 +108,9 @@ void _bspGl()
 			DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
 
 	LoadImageIntoBattleSceneryStruct(tPage - 16, tPage, localn);
-	RenderTexture(bss[tPage - 16].buffer.get());
+	if (bss[tPage - 16].current())
+		RenderTexture(bss[tPage - 16].current());
 	return;
-}
-
-void bssInvalidateTexPath(DWORD tPage)
-{
-	for (int i = 0; i < 256; i++) //reinventing wheel with strset/memset
-		bss[tPage - 16].localPath[i] = 0x00;
 }
 
 DWORD _bspCheck()
