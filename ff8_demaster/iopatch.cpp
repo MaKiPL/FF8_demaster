@@ -97,7 +97,7 @@ __declspec(naked) void directIO_fopenReroute3()
 	else
 	{
 		fd = fopen(IO_backlogFilePath, "rb");
-		fseek(fd, 0, 2); //back
+		fseek(fd, 0, SEEK_END); //back
 		loc00 = ftell(fd);
 		fclose(fd);
 	}

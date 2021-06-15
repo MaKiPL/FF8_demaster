@@ -10,6 +10,8 @@
 #include <StackWalker.h>
 #include <INIReader.h>
 #include "renderer.h"
+#include <memory>
+#include <fstream>
 
 #define EXPORT __declspec(dllexport)
 
@@ -30,7 +32,10 @@ extern const char* DIRECT_IO_EXPORT_DIR;
 extern DWORD DIRECT_IO_EXPORT_DIR_LEN;
 
 extern bx::DefaultAllocator texAllocator;
-bimg::ImageContainer* LoadImageFromFile(const char* const filename);
+
+using safe_bimg = std::unique_ptr<bimg::ImageContainer, decltype(&bimg::imageFree)>;
+safe_bimg safe_bimg_init(bimg::ImageContainer* img = nullptr);
+safe_bimg LoadImageFromFile(const char* const filename);
 
 void ApplyDirectIO();
 void ApplyUVPatch();
@@ -67,7 +72,7 @@ extern DWORD* langIdent_ESI;
 
 extern int currentStage;
 
-extern FILE* logFile;
+extern std::unique_ptr<FILE,decltype(&fclose)> logFile;
 void OutputDebug(const char* fmt, ...);
 bool DDSorPNG(char* buffer, size_t size, const char* fmt, ...);
 

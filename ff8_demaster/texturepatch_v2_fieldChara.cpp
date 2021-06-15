@@ -47,7 +47,7 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 	strcpy(texPath, testPath); //establish path
 
 
-	bimg::ImageContainer* img = LoadImageFromFile(texPath);
+	auto img = LoadImageFromFile(texPath);
 
 	//the most important is height here
 	height_fcp = img->m_height * 2;
@@ -55,7 +55,6 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 
 
 	OutputDebug("_fcpObtainTextureDatas:: width=%d, height=%d, width_fcp=%d, height_fcp=%d, filename=%s\n", img->m_width, img->m_height, width_fcp, height_fcp, texPath);
-	bimg::imageFree(img);
 	return;
 }
 
