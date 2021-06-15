@@ -16,12 +16,11 @@ void _bcpObtainTextureDatas(int aIndex)
 
 	DDSorPNG(n, 256, "%stextures\\battle.fs\\hd_new\\d%xc%03u_0", DIRECT_IO_EXPORT_DIR, (aIndex - 4097) / 100, (aIndex - 4097) % 100);
 	
-	bimg::ImageContainer* img = LoadImageFromFile(n); //chara 0
+	auto img = LoadImageFromFile(n); //chara 0
 	width_bcp = img->m_width * 2;
 	height_bcp = img->m_height * 2;
 
 	OutputDebug("_bcpObtainTextureDatas:: width=%d, height=%d, filename=%s\n", width_bcp, height_bcp, n);
-	bimg::imageFree(img);
 	return;
 }
 

@@ -9,79 +9,84 @@ DWORD _asm_WorldRetAddr4;
 struct worldTextureStructure
 {
 	char localPath[256]{ 0 };
-	DWORD tpage;
-	bimg::ImageContainer* buffer;
-	int width;
-	int height;
-	int channels;
-	bool bActive;
+	DWORD tpage{};
+	safe_bimg&& buffer{ safe_bimg_init() };
+	int width{ -1 };
+	int height{ -1 };
+	int channels{ -1 };
+	bool bActive{ false };
+	worldTextureStructure(DWORD in_tpage)
+		: tpage{ in_tpage }
+	{
+
+	}
 };
 
-struct worldTextureStructure ws[] =
+worldTextureStructure ws[] =
 {
-	{"", 0, NULL, -1,-1,-1,FALSE},
-	{"", 1, NULL, -1,-1,-1,FALSE},
-	{"", 2, NULL, -1,-1,-1,FALSE},
-	{"", 3, NULL, -1,-1,-1,FALSE},
-	{"", 4, NULL, -1,-1,-1,FALSE},
-	{"", 5, NULL, -1,-1,-1,FALSE},
-	{"", 6, NULL, -1,-1,-1,FALSE},
-	{"", 7, NULL, -1,-1,-1,FALSE},
-	{"", 8, NULL, -1,-1,-1,FALSE},
-	{"", 9, NULL, -1,-1,-1,FALSE},
-	{"", 10, NULL, -1,-1,-1,FALSE},
-	{"", 11, NULL, -1,-1,-1,FALSE},
-	{"", 12, NULL, -1,-1,-1,FALSE},
-	{"", 13, NULL, -1,-1,-1,FALSE},
-	{"", 14, NULL, -1,-1,-1,FALSE},
-	{"", 15, NULL, -1,-1,-1,FALSE},
-	{"", 16, NULL, -1,-1,-1,FALSE},
-	{"", 17, NULL, -1,-1,-1,FALSE},
-	{"", 18, NULL, -1,-1,-1,FALSE},
-	{"", 19, NULL, -1,-1,-1,FALSE},
-	{"", 20, NULL, -1,-1,-1,FALSE},
-	{"", 21, NULL, -1,-1,-1,FALSE}, //TRAIN TRACKS
-	{"", 22, NULL, -1,-1,-1,FALSE}, //CLOUDS
-	{"", 23, NULL, -1,-1,-1,FALSE}, //MAP
-	{"", 24, NULL, -1,-1,-1,FALSE}, //moon texture + fx
-	{"", 25, NULL, -1,-1,-1,FALSE}, //WATER
-	{"", 26, NULL, -1,-1,-1,FALSE}, //characters
-	{"", 27, NULL, -1,-1,-1,FALSE}, //16 ??? textype=18
-	{"", 28, NULL, -1,-1,-1,FALSE},	// 0: textype=0
-	{"", 29, NULL, -1,-1,-1,FALSE},	// 13: textype=0 full screen wm, sm wm, clouds
-	{"", 30, NULL, -1,-1,-1,FALSE},	// 15: textype=0 sm wm
-	{"", 31, NULL, -1,-1,-1,FALSE},	// 20: textype=0
-	{"", 32, NULL, -1,-1,-1,FALSE},	// 22: textype=0 sm wm
-	{"", 33, NULL, -1,-1,-1,FALSE},	// 28: textype=0 sm wm
-	{"", 34, NULL, -1,-1,-1,FALSE},	// 29: textype=0
+	{0},
+	{1},
+	{2},
+	{3},
+	{4},
+	{5},
+	{6},
+	{7},
+	{8},
+	{9},
+	{10},
+	{11},
+	{12},
+	{13},
+	{14},
+	{15},
+	{16},
+	{17},
+	{18},
+	{19},
+	{20},
+	{21}, //TRAIN TRACKS
+	{22}, //CLOUDS
+	{23}, //MAP
+	{24}, //moon texture + fx
+	{25}, //WATER
+	{26}, //characters
+	{27}, //16 ??? textype=18
+	{28},	// 0: textype=0
+	{29},	// 13: textype=0 full screen wm, sm wm, clouds
+	{30},	// 15: textype=0 sm wm
+	{31},	// 20: textype=0
+	{32},	// 22: textype=0 sm wm
+	{33},	// 28: textype=0 sm wm
+	{34},	// 29: textype=0
 };
 
 int GetTextureIndex();
 
 //you can't just create new folder because >WEEP< - too lazy to find the cause
-
 DWORD lastKnownTextureId{ 0 };
 void LoadImageIntoWorldStruct(size_t texIndex, const char* const localn, int tPage, int palette)
 {
-
-	if (ws[texIndex].bActive == FALSE || ws[texIndex].buffer == NULL)
+	//If you want to be able to swap out a texture at a given index you could set bActive to false and it would force load it.
+	if (ws[texIndex].bActive && ws[texIndex].buffer)//texture loaded skip
 	{
-
-		bimg::ImageContainer* img = LoadImageFromFile(localn);
-		ws[texIndex].width = img->m_width;
-		ws[texIndex].height = img->m_height;
-		ws[texIndex].channels = img->m_hasAlpha ? 4 : 3;
-		ws[texIndex].buffer = img;
-		ws[texIndex].bActive = true;
-		strcpy(ws[texIndex].localPath, localn);
-
-		OutputDebug("\t%s::localEAX: %d, Tpage: %d, Palette: %d, TexIndex: %d\n", __func__, *(DWORD*)(IMAGE_BASE + 0x1780f88), tPage, palette, texIndex);
-		OutputDebug("\t%s::w: %d; h: %d; channels: %d\n", __func__, ws[texIndex].width, ws[texIndex].height, ws[texIndex].channels);
+		if (strcmp(ws[texIndex].localPath, localn) != 0)//the texture has a different name!
+		{
+			OutputDebug("%s::%d::WARNING attempt to load texture with new name:\n\t%s\n\t!=\n\t%s\n", __func__,__LINE__, localn, ws[texIndex].localPath);
+		}
+		return;
 	}
-	else if (strcmp(ws[texIndex].localPath, localn) != 0)
-	{
-		OutputDebug("%s::WARNIING texture:\n\t%s\n\t!=\n\t%s\n", __func__, localn, ws[texIndex].localPath);
-	}
+	auto img = LoadImageFromFile(localn);
+	ws[texIndex].width = img->m_width;
+	ws[texIndex].height = img->m_height;
+	ws[texIndex].channels = img->m_hasAlpha ? 4 : 3;
+	ws[texIndex].buffer = std::move(img);
+	ws[texIndex].bActive = true;
+	strcpy(ws[texIndex].localPath, localn);
+
+	OutputDebug("\t%s::%d::localEAX: %d, Tpage: %d, Palette: %d, TexIndex: %d\n", __func__, __LINE__, *(DWORD*)(IMAGE_BASE + 0x1780f88), tPage, palette, texIndex);
+	OutputDebug("\t%s::%d::w: %d; h: %d; channels: %d\n", __func__, __LINE__, ws[texIndex].width, ws[texIndex].height, ws[texIndex].channels);
+
 }
 void _wtpGl()
 {
@@ -110,7 +115,7 @@ void _wtpGl()
 		LoadImageIntoWorldStruct(texIndex, localn, tPage, palette);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		RenderTexture(ws[texIndex].buffer);
+		RenderTexture(ws[texIndex].buffer.get());
 
 		return;
 	}
@@ -150,7 +155,7 @@ void _wtpGl()
 		LoadImageIntoWorldStruct(wmStructPointer, localn, tPage, palette);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		RenderTexture(ws[wmStructPointer].buffer);
+		RenderTexture(ws[wmStructPointer].buffer.get());
 	}
 	else if (textureType == 0)
 	{
@@ -159,7 +164,7 @@ void _wtpGl()
 			{
 				OutputDebug("%s::%d::Failed to Load: %s\n\tgetTexIndex: %d\n palette: %d", __func__, __LINE__, localn, getTexIndex, palette);
 				return;
-			}		
+			}
 		int wmStructPointer = 28;
 		switch (getTexIndex)
 		{
@@ -188,7 +193,7 @@ void _wtpGl()
 		LoadImageIntoWorldStruct(wmStructPointer, localn, tPage, palette);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		RenderTexture(ws[wmStructPointer].buffer);
+		RenderTexture(ws[wmStructPointer].buffer.get());
 	}
 	return;
 }
@@ -269,7 +274,7 @@ DWORD _wtpCheck()
 		return 0;
 
 	int textureType = gl_textures[48];
-		if (textureType != 18 && textureType != 0) //we want only world textures
+	if (textureType != 18 && textureType != 0) //we want only world textures
 		return 0;
 
 	DWORD tPage = gl_textures[50];
@@ -285,7 +290,7 @@ DWORD _wtpCheck()
 		if (DDSorPNG(localn, 256, "%stextures\\world\\dat\\texl\\texl_%03d_%d", DIRECT_IO_EXPORT_DIR, textureIndex, palette))
 			DDSorPNG(localn, 256, "%stextures\\world\\dat\\texl\\texl_%03d_%d", DIRECT_IO_EXPORT_DIR, textureIndex, 0);
 	}
-	else if(textureType == 18)
+	else if (textureType == 18)
 	{
 		if (DDSorPNG(localn, 256, "%stextures\\world\\dat\\wmset\\wmset_%03d_%d", DIRECT_IO_EXPORT_DIR, textureIndex, palette))
 			DDSorPNG(localn, 256, "%stextures\\world\\dat\\wmset\\wmset_%03d_%d", DIRECT_IO_EXPORT_DIR, textureIndex, 0);

@@ -11,13 +11,13 @@ KURSE ALL SEEDS!
 */
 DWORD IMAGE_BASE = 0;
 DWORD OPENGL_HANDLE = 0;
-const char * DIRECT_IO_EXPORT_DIR = "DEMASTER_EXP\\";
-FILE* logFile = NULL;
+const char* DIRECT_IO_EXPORT_DIR = "DEMASTER_EXP\\";
+std::unique_ptr<FILE, decltype(&fclose)> logFile{ nullptr, fclose };
 DWORD* tex_header = 0;
 DWORD attr = -1;
 DWORD DIRECT_IO_EXPORT_DIR_LEN = -1;
 DWORD* tex_struct = 0;
-DWORD* gl_textures= 0;
+DWORD* gl_textures = 0;
 DWORD pixelsPtr = 0;
 DWORD texturesPtr = 0;
 DWORD TEX_TYPE = 0;
@@ -42,10 +42,10 @@ void OutputDebug(const char* fmt, ...)
 
 	printf(tmp_str);
 
-	if (logFile != NULL)
+	if (logFile)
 	{
-		fwrite(tmp_str, sizeof(char), strlen(tmp_str), logFile);
-		fflush(logFile);
+		fwrite(tmp_str, sizeof(char), strlen(tmp_str), logFile.get());
+		fflush(logFile.get());
 	}
 #endif
 }
@@ -86,7 +86,7 @@ void DEB_JMP(char* c, DWORD a, DWORD b, DWORD cc, DWORD d, DWORD e)
 	char localD[32];
 	localD[0] = '\0';
 	sprintf(localD, "Wrong address at: %08x\n", (unsigned int)c);
-	if (IsBadReadPtr(c, 4)) 
+	if (IsBadReadPtr(c, 4))
 	{
 		__asm
 		{
@@ -141,7 +141,7 @@ void DEB_JMPv2_00()
 {
 	const char* format = "FSArchive:: %s - %s\n";
 	char* path = (char*)_deb00_EAX;
-	if (DEBUG_reverseWm) 
+	if (DEBUG_reverseWm)
 	{
 		std::string pathStr(path);
 		std::size_t fnd = pathStr.find("wmsetus.obj", 0);
@@ -256,8 +256,11 @@ LONG WINAPI ExceptionHandler(EXCEPTION_POINTERS* ep)
 	SetUnhandledExceptionFilter(0);
 	return EXCEPTION_CONTINUE_EXECUTION;
 }
-
-bimg::ImageContainer* LoadImageFromFile(const char* const filename)
+safe_bimg safe_bimg_init(bimg::ImageContainer* img)
+{
+	return { img, bimg::imageFree };
+}
+safe_bimg LoadImageFromFile(const char* const filename)
 {
 	static bool glewLoaded = false;
 
@@ -273,39 +276,22 @@ bimg::ImageContainer* LoadImageFromFile(const char* const filename)
 			OutputDebug("%s - GLEW Error: %s\n", __func__, glewGetErrorString(err));
 		}
 	}
-
-	bimg::ImageContainer* img = nullptr;
 	char msg[1024]{ 0 };
 
 	OutputDebug("%s - Opening File: %s\n", __func__, filename);
 
-	FILE* file = fopen(filename, "rb");
+	auto fp = std::fstream(filename, std::ios::in | std::ios::binary);
+	if (!fp.is_open())
+		return safe_bimg_init();
+	fp.seekg(0, std::ios::end);
+	auto filesize = fp.tellg();
+	auto buffer = std::make_unique<char[]>(static_cast<size_t>(filesize));
+	if (!buffer)
+		return safe_bimg_init();
+	fp.seekg(0, std::ios::beg);
+	fp.read(buffer.get(), filesize);
+	return safe_bimg_init(bimg::imageParse(&texAllocator, buffer.get(), static_cast<uint32_t>(filesize)));
 
-	if (file)
-	{
-		size_t filesize = 0;
-		char* buffer = nullptr;
-
-		fseek(file, 0, SEEK_END);
-		filesize = ftell(file);
-
-		buffer = (char*)malloc(filesize + 1);
-		fseek(file, 0, SEEK_SET);
-		(void)fread(buffer, filesize, 1, file);
-
-		fclose(file);
-
-		// ==================================
-
-		if (buffer != nullptr)
-		{
-			img = bimg::imageParse(&texAllocator, buffer, filesize + 1);
-
-			free(buffer);
-		}
-	}
-
-	return img;
 }
 //appends DDS checks if file exists and then checks for PNG. returns false if atleast one exists. true on failure.
 bool DDSorPNG(char* buffer, size_t in_size, const char* fmt, ...)
@@ -320,7 +306,7 @@ bool DDSorPNG(char* buffer, size_t in_size, const char* fmt, ...)
 	{
 		va_start(args, fmt);
 		vsnprintf(buffer, size, fmt, args);
-		strcat(buffer,".png");
+		strcat(buffer, ".png");
 		va_end(args);
 		return GetFileAttributesA(buffer) == INVALID_FILE_ATTRIBUTES;
 	}
@@ -399,7 +385,7 @@ BOOL WINAPI DllMain(
 	(void)freopen("CON", "r", stdin);
 	InitTest();
 	ReadConfigFile();
-	if (LOG) logFile = fopen("demasterlog.txt", "wb");
+	if (LOG) logFile = decltype(logFile){ fopen("demasterlog.txt", "wb"), fclose };
 
 	HMODULE IMG_BASE = GetModuleHandleA("FFVIII_EFIGS");
 	IMAGE_BASE = (long long)IMG_BASE;
@@ -409,11 +395,11 @@ BOOL WINAPI DllMain(
 	GetWindow();
 
 	//LET'S GET THE HACKING DONE
-	if(DIRECT_IO)
+	if (DIRECT_IO)
 		ApplyDirectIO();
-	if(UVPATCH)
+	if (UVPATCH)
 		ApplyUVPatch();
-	if(TEXTURE_PATCH && DIRECT_IO)
+	if (TEXTURE_PATCH && DIRECT_IO)
 		ReplaceTextureFunction();
 	if (DEBUG_PATCH)
 		ApplyDebugOutputPatchV2();
