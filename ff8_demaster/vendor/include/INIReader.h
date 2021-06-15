@@ -354,7 +354,7 @@ public:
     bool GetBoolean(std::string section, std::string name, bool default_value) const;
 
 protected:
-    int _error{};
+    int _error;
     std::map<std::string, std::string> _values;
     std::set<std::string> _sections;
     static std::string MakeKey(std::string section, std::string name);
