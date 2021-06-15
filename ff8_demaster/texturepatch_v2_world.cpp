@@ -15,7 +15,7 @@ struct worldTextureStructure
 	int height{ -1 };
 	int channels{ -1 };
 	bool bActive{ false };
-	worldTextureStructure(DWORD in_tpage)
+	worldTextureStructure(DWORD in_tpage) noexcept
 		: tpage{ in_tpage }
 	{
 
@@ -45,14 +45,14 @@ worldTextureStructure ws[] =
 	{18},
 	{19},
 	{20},
-	{21}, //TRAIN TRACKS
-	{22}, //CLOUDS
-	{23}, //MAP
-	{24}, //moon texture + fx
-	{25}, //WATER
-	{26}, //characters
-	{27}, //16 ??? textype=18
-	{28},	// 0: textype=0
+	{21},   // TRAIN TRACKS
+	{22},   // CLOUDS
+	{23},   // MAP
+	{24},   // moon texture + fx
+	{25},   // WATER
+	{26},   // characters
+	{27},   // 16: textype=18 ???
+	{28},	// 0:  textype=0
 	{29},	// 13: textype=0 full screen wm, sm wm, clouds
 	{30},	// 15: textype=0 sm wm
 	{31},	// 20: textype=0
