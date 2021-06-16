@@ -1,5 +1,7 @@
 #include "coreHeader.h"
 
+#define CRASHLOG OutputDebug("%s::%d::%s\n", __FILE__, __LINE__,__func__)
+
 DWORD _bspBackAdd1;
 DWORD _bspBackAdd2;
 
@@ -54,9 +56,12 @@ struct battleSceneryStructure
 
 	void update(battleSceneryPathandTexture&& new_img)
 	{
+		OutputDebug("%s::%d::Updating: tpage: %d, buffer count: \n", __func__, __LINE__, tpage, buffer.size());
+
 		const auto currentFrame = nextFrame - 1;
 		if (static_cast<size_t>(currentFrame) < buffer.size())
 		{
+			OutputDebug("\tcurrent frame: %d\n\told path: %s\n\tnew path: %s\n", currentFrame, buffer[currentFrame].localPath.c_str(), new_img.localPath.c_str());
 			buffer[currentFrame] = std::move(new_img);
 			return;
 		}
@@ -77,39 +82,56 @@ battleSceneryStructure bss[] =
 	{22},
 };
 
-void LoadImageIntoBattleSceneryStruct(const size_t index, const DWORD tPage, const char* const localn)
+bool LoadImageIntoBattleSceneryStruct(const size_t index, const DWORD tPage, const char* const localn)
 {
 	if (bss[index].current() && bss[index].current().localPath == localn) //prevent loading an image that is loaded.
-		return;
+		return true;
 	int palette = tex_header[52];
 	//spamming so i put it here so it only logs when loading.
 	OutputDebug("%s::Stage: %d, Tpage: %d, Palette: %d\n", __func__, currentStage, tPage, palette);
-	auto img = LoadImageFromFile(localn);
+
+	safe_bimg img = LoadImageFromFile(localn);
+	if (!img)
+	{
+		OutputDebug("%s::%d::Fail to load texture, clearing buffer vector: tpage: %d, buffer count: \n", __func__, __LINE__, tPage, bss[index].buffer.size());
+		bss[index].bActive = false;
+		bss[index].buffer.clear();
+		return false;
+	}
+
 	bss[index].bActive = true;
+
 	bss[index].width = img->m_width;
+
 	bss[index].height = img->m_width;
+
 	bss[index].channels = img->m_hasAlpha ? 4 : 3;
+
 	bss[index].update({ localn, std::move(img) });
+
 	bss[index].tpage = tPage;
 	OutputDebug("\t%s::Battle texture for page: %d", __func__, tPage);
 	OutputDebug("\t%s::w: %d; h: %d; channels: %d\n", __func__, bss[index].width, bss[index].height, bss[index].channels);
+	return true;
 }
 void _bspGl()
 {
 	DWORD tPage = gl_textures[50];
 	char localn[256]{ 0 };
 	if (DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, bss[tPage - 16].nextFrame++))
-		if (bss[tPage - 16].nextFrame != 1 && !DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, 0))
-		{
-			//nextFrame == 1 means there is no 0 frame so we can skip the heavy DDSorPNG;
-			bss[tPage - 16].nextFrame = 1; //current nextFrame didn't exist so we went back to 0 and change nextFrame to 1.
-		}
-		else
-			DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage);
+	{
+		if (DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, 0))
+			if (!DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage) && bss[tPage - 16].buffer.size() > 1)
+				bss[tPage - 16].buffer.clear();
+		if (bss[tPage - 16].nextFrame != 1)
+			bss[tPage - 16].nextFrame = 1; // prevents using the wrong frame number for the base texture
+										   // or resets if current frame number too high.
+	}
 
-	LoadImageIntoBattleSceneryStruct(tPage - 16, tPage, localn);
-	if (bss[tPage - 16].current())
+	if (LoadImageIntoBattleSceneryStruct(tPage - 16, tPage, localn))
+	{
 		RenderTexture(bss[tPage - 16].current());
+	}
 	return;
 }
 
@@ -232,3 +254,4 @@ void ApplyBattleFieldPatch()
 	//this disables textureLimit for resolution
 	InjectJMP(IMAGE_BASE + 0x156CED4, (DWORD)(IMAGE_BASE + 0x156D30B), 6);
 }
+#undef CRASHLOG
