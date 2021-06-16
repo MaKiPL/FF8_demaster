@@ -123,9 +123,8 @@ void _bspGl()
 		if (DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, 0))
 			if (!DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage) && bss[tPage - 16].buffer.size() > 1)
 				bss[tPage - 16].buffer.clear();
-		if (bss[tPage - 16].nextFrame != 1)
-			bss[tPage - 16].nextFrame = 1; // prevents using the wrong frame number for the base texture
-										   // or resets if current frame number too high.
+		bss[tPage - 16].nextFrame = 1; // prevents using the wrong frame number for the base texture
+		                               // or resets if current frame number too high.
 	}
 
 	if (LoadImageIntoBattleSceneryStruct(tPage - 16, tPage, localn))
