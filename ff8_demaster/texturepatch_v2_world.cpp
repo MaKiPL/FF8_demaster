@@ -65,7 +65,7 @@ int GetTextureIndex();
 
 //you can't just create new folder because >WEEP< - too lazy to find the cause
 DWORD lastKnownTextureId{ 0 };
-void LoadImageIntoWorldStruct(size_t texIndex, const char* const localn, int tPage, int palette)
+bool LoadImageIntoWorldStruct(size_t texIndex, const char* const localn, int tPage, int palette)
 {
 	//If you want to be able to swap out a texture at a given index you could set bActive to false and it would force load it.
 	if (ws[texIndex].bActive && ws[texIndex].buffer)//texture loaded skip
@@ -74,9 +74,11 @@ void LoadImageIntoWorldStruct(size_t texIndex, const char* const localn, int tPa
 		{
 			OutputDebug("%s::%d::WARNING attempt to load texture with new name:\n\t%s\n\t!=\n\t%s\n", __func__,__LINE__, localn, ws[texIndex].localPath);
 		}
-		return;
+		return true;
 	}
-	auto img = LoadImageFromFile(localn);
+	safe_bimg img = LoadImageFromFile(localn);
+	if (!img)
+		return false;
 	ws[texIndex].width = img->m_width;
 	ws[texIndex].height = img->m_height;
 	ws[texIndex].channels = img->m_hasAlpha ? 4 : 3;
@@ -86,7 +88,7 @@ void LoadImageIntoWorldStruct(size_t texIndex, const char* const localn, int tPa
 
 	OutputDebug("\t%s::%d::localEAX: %d, Tpage: %d, Palette: %d, TexIndex: %d\n", __func__, __LINE__, *(DWORD*)(IMAGE_BASE + 0x1780f88), tPage, palette, texIndex);
 	OutputDebug("\t%s::%d::w: %d; h: %d; channels: %d\n", __func__, __LINE__, ws[texIndex].width, ws[texIndex].height, ws[texIndex].channels);
-
+	return true;
 }
 void _wtpGl()
 {
@@ -152,10 +154,12 @@ void _wtpGl()
 			wmStructPointer = 21;
 			break;
 		}
-		LoadImageIntoWorldStruct(wmStructPointer, localn, tPage, palette);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		RenderTexture(ws[wmStructPointer].buffer.get());
+		if (LoadImageIntoWorldStruct(wmStructPointer, localn, tPage, palette))
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			RenderTexture(ws[wmStructPointer].buffer.get());
+		}
 	}
 	else if (textureType == 0)
 	{
@@ -190,10 +194,12 @@ void _wtpGl()
 			wmStructPointer = 34;
 			break;
 		}
-		LoadImageIntoWorldStruct(wmStructPointer, localn, tPage, palette);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		RenderTexture(ws[wmStructPointer].buffer.get());
+		if (LoadImageIntoWorldStruct(wmStructPointer, localn, tPage, palette))
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			RenderTexture(ws[wmStructPointer].buffer.get());
+		}
 	}
 	return;
 }

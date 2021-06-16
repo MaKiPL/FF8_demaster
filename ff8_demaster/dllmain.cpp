@@ -1,5 +1,7 @@
 ﻿#include "coreHeader.h"
 
+#define CRASHLOG OutputDebug("%s::%d::%s\n", __FILE__, __LINE__,__func__)
+
 /*
 KURSE ALL SEEDS!
 */
@@ -27,8 +29,6 @@ BOOL UVPATCH, DIRECT_IO, TEXTURE_PATCH, DEBUG_PATCH, LOG;
 BOOL BATTLE_CHARA, FIELD_ENTITY, BATTLE_HOOK, FIELD_BACKGROUND, WORLD_TEXTURES;
 BOOL LINEAR_PATCH, OPENGL_HOOK;
 
-// REQUIRED BY BIMG FILE DECODING
-bx::DefaultAllocator texAllocator;
 
 void OutputDebug(const char* fmt, ...)
 {
@@ -266,31 +266,55 @@ safe_bimg LoadImageFromFile(const char* const filename)
 
 	if (!glewLoaded)
 	{
+		
 		glewLoaded = true;
+		
 
 		// INIT GLEW - Add recent OpenGL extension support ( required for Texture Compression )
 		GLenum err = glewInit();
+		
 		if (GLEW_OK != err)
 		{
+			
 			/* Problem: glewInit failed, something is seriously wrong. */
 			OutputDebug("%s - GLEW Error: %s\n", __func__, glewGetErrorString(err));
 		}
 	}
+	
 	char msg[1024]{ 0 };
+	
 
 	OutputDebug("%s - Opening File: %s\n", __func__, filename);
+	
 
 	auto fp = std::fstream(filename, std::ios::in | std::ios::binary);
+	
 	if (!fp.is_open())
 		return safe_bimg_init();
+	
 	fp.seekg(0, std::ios::end);
+	
 	auto filesize = fp.tellg();
+	
 	auto buffer = std::make_unique<char[]>(static_cast<size_t>(filesize));
+	
 	if (!buffer)
 		return safe_bimg_init();
+	
 	fp.seekg(0, std::ios::beg);
+	
 	fp.read(buffer.get(), filesize);
-	return safe_bimg_init(bimg::imageParse(&texAllocator, buffer.get(), static_cast<uint32_t>(filesize)));
+	
+	// REQUIRED BY BIMG FILE DECODING
+	static bx::DefaultAllocator texAllocator{};
+	bx::Error error{};
+	constexpr static auto format{ bimg::TextureFormat::Enum::Count};
+	auto* img = bimg::imageParse(&texAllocator, buffer.get(),static_cast<uint32_t>(filesize), format, &error);
+	if (error.isOk())
+		return safe_bimg_init(img);
+
+	OutputDebug("%s::%d::bimg error: %s ", __func__,__LINE__, error.getMessage());
+	return safe_bimg_init();
 
 }
 //appends DDS checks if file exists and then checks for PNG. returns false if atleast one exists. true on failure.
@@ -415,3 +439,4 @@ BOOL WINAPI DllMain(
 													//ApplyTextureUpscaleMod();
 	return 1; //all success
 }
+#undef CRASHLOG
