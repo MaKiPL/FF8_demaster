@@ -65,6 +65,9 @@ bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 DWORD fieldBackgroundRequestedTPage;
 DWORD fieldReplacementFound;
 
+
+static char* lastFieldName;
+
 /// <summary>
 ///
 /// </summary>
@@ -79,6 +82,7 @@ char* GetFieldBackgroundReplacementTextureName()
 	int palette = tex_header[52];
 
 
+
 	if (GetFieldBackgroundFilename(n))
 	{
 		n2[0] = '\0';
@@ -90,25 +94,18 @@ char* GetFieldBackgroundReplacementTextureName()
 
 
 	DDSorPNG(localn, 256, "%stextures\\%s%u_%u", DIRECT_IO_EXPORT_DIR, n, fieldBackgroundRequestedTPage - 16, palette);
+	DDSorPNG(localn2, 256, "%stextures\\%s%u", DIRECT_IO_EXPORT_DIR, n, fieldBackgroundRequestedTPage - 16, palette);
 
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
 
 		OutputDebug("%s: %s, %s\n", __func__, localn, "palette not found");
-
-
-		sprintf(n2, "%s%u", n, fieldBackgroundRequestedTPage - 16);
-
-
-		OutputDebug("%s: %s\n", __func__, n2);
-		return n2;
-	}
-	else
-	{
-
-		OutputDebug("%s: %s\n", __func__, localn);
+		lastFieldName = localn2;
 		return localn2;
 	}
+		lastFieldName = localn2;
+		OutputDebug("%s: %s\n", __func__, localn);
+		return localn2;
 }
 
 __declspec(naked) void _asm_InjectFieldBackgroundModule()
@@ -143,6 +140,28 @@ __declspec(naked) void _asm_InjectFieldBackgroundModule()
 	}
 }
 
+//WIP
+void _fbgGl()
+{
+ 		DWORD tPage = gl_textures[50];
+		int palette = tex_header[52];
+
+		char localn[256]{0};
+		if (DDSorPNG(localn, 256, "%stextures\\%s%u_%u", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundReplacementTextureName(), tPage - 16, palette))
+		{
+			safe_bimg texture = LoadImageFromFile(localn);
+			if (texture)
+				RenderTexture(texture.get());
+		}
+		else if (DDSorPNG(localn, 256, "%stextures\\%s%s%u", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundReplacementTextureName(), tPage - 16))
+		{
+			safe_bimg texture = LoadImageFromFile(localn);
+			if (texture)
+				RenderTexture(texture.get());
+		}
+
+}
+
 /// <summary>
 /// Passes the DWORD if either the replacement is found or not directly to the game engine
 /// </summary>
@@ -165,7 +184,6 @@ DWORD GetFieldBackgroundReplacementExist()
 
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
-
 		OutputDebug("%s:%d: %s, %s\n", __func__, __LINE__, localn, "not found");
 		return 0;
 	}
@@ -173,7 +191,7 @@ DWORD GetFieldBackgroundReplacementExist()
 	fieldReplacementFound = 1;
 
 
-	OutputDebug("%s: fieldReplacementFound: %d %s\n", __func__, fieldReplacementFound, localn);
+	OutputDebug("%s: fieldReplacementFound: %d %s\n", __func__, fieldReplacementFound, lastFieldName = localn);
 
 	return fieldReplacementFound;
 }
@@ -203,7 +221,25 @@ __declspec(naked) void _asm_CheckTextureReplacementExists()
 	}
 }
 
+//appends the correct padding - not force .PNG
+//EAX-full path with padding
+//ECX-work registry
+__declspec(naked) void _asm_InjectExtensionHijack()
+{
+	__asm
+	{
+		//PUSH .png - drop from stack
+		POP EAX
+		MOV EAX, ECX
 
+		MOV EAX, lastFieldName;
+
+		//push final values and escape
+		PUSH 0
+		PUSH EAX //holds src
+		JMP _asm_FieldBgRetAddr1
+	}
+}
 
 
 
@@ -218,5 +254,8 @@ void ApplyFieldBackgroundPatch()
 
 	//we now inject JMP when CMP fieldIfd, gover and do out stuff, then return to glSegment
 	_asm_FieldBgRetAddr2 = InjectJMP(IMAGE_BASE + 0x1606540, (DWORD)_asm_InjectFieldBackgroundModule, 42);//169-11);
+
+	//skips the .png adding
+	//_asm_FieldBgRetAddr1 = InjectJMP(IMAGE_BASE+0x16065C0, (DWORD)_asm_InjectExtensionHijack, 0x12);
 }
 #undef CRASHLOG

@@ -49,6 +49,7 @@ void ApplyBattleFieldPatch();
 void ApplyFieldBackgroundPatch();
 void ApplyWorldPatch();
 void HookOpenGL();
+DWORD GetFieldBackgroundReplacementExist();
 
 extern int lastWidth;
 extern int lastHeight;
@@ -65,6 +66,7 @@ extern DWORD TEX_TYPE;
 
 DWORD _wtpCheck();
 void _wtpGl();
+void _fbgGl();
 
 extern DWORD parm1; //arg+8
 

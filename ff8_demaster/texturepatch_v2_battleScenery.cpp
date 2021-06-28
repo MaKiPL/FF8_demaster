@@ -156,6 +156,14 @@ DWORD _bspCheck()
 	return 1;
 }
 
+DWORD _fbgCheck()
+{
+	if(!FIELD_BACKGROUND)
+		return 0;
+	return 0; //WIP
+	return GetFieldBackgroundReplacementExist();
+}
+
 DWORD** ds_free;
 DWORD** ds_teximg;
 
@@ -180,6 +188,10 @@ __declspec(naked) void _bsp()
 		CALL _wtpCheck //WORLD MODULE
 		TEST EAX, EAX
 		JNZ _wtpOk
+
+		CALL _fbgCheck //Field background module
+		TEST EAX, EAX
+		JNZ _fbgOk
 
 
 
@@ -220,6 +232,15 @@ __declspec(naked) void _bsp()
 			MOV bAlreadyFreed, 1
 
 			CALL _bspGl
+			JMP _out
+
+			_fbgOk: //FIELD BACKGROUND
+			PUSH DWORD PTR[EBP + 0x10]
+			MOV EAX, ds_free
+			MOV EAX, [EAX]
+			CALL EAX
+			MOV bAlreadyFreed, 1
+			CALL _fbgGl
 			JMP _out
 
 	}
