@@ -1,4 +1,6 @@
 #include "coreHeader.h"
+#include <chrono>
+extern int BATTLE_STAGE_ANIMATION_DELAY;
 
 #define CRASHLOG OutputDebug("%s::%d::%s\n", __FILE__, __LINE__,__func__)
 
@@ -31,7 +33,6 @@ struct battleSceneryPathandTexture
 		return buffer.get();
 	}
 };
-
 struct battleSceneryStructure
 {
 	DWORD tpage{};
@@ -40,16 +41,41 @@ struct battleSceneryStructure
 	int height{ -1 };
 	int channels{ -1 };
 	bool bActive{ false };
-	int nextFrame{ 0 };
+private:
+	int m_nextFrame{ 0 };
+	std::chrono::steady_clock::time_point m_timestamp{ std::chrono::steady_clock::now() };
+	//constexpr static std::chrono::milliseconds m_delay { 100 };
+public:
 	battleSceneryStructure(DWORD in_tpage) noexcept
 		: tpage{ in_tpage }
 	{
 	}
+	void restart_animation() noexcept
+	{
+		m_nextFrame = 1;
+	}
+	int currentFrame() const noexcept
+	{
+		return m_nextFrame - 1;
+	}
+	auto get_current_frame_number_and_iterate() noexcept
+	{
+		const auto current_time = std::chrono::steady_clock::now();
+		const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - m_timestamp);
+		if (duration > std::chrono::milliseconds(BATTLE_STAGE_ANIMATION_DELAY))
+		{
+			if (m_nextFrame != 1 || buffer.size()>0)
+				OutputDebug("%s::%d::Frame Update: duration: %lld ms, Current animation frame: %d\n", __func__, __LINE__, static_cast<long long int>(duration.count()), currentFrame());
+			m_timestamp = current_time;
+			++m_nextFrame;
+		}
+		return currentFrame();
+	}
 	auto& current() const noexcept
 	{
-		const auto currentFrame = nextFrame - 1;
-		if (static_cast<size_t>(currentFrame) < buffer.size())
-			return buffer[currentFrame];
+		const auto current_frame = currentFrame();
+		if (current_frame >= 0 && static_cast<size_t>(current_frame) < buffer.size())
+			return buffer[current_frame];
 		static const auto dummy = battleSceneryPathandTexture{};
 		return dummy;
 	}
@@ -58,14 +84,14 @@ struct battleSceneryStructure
 	{
 		OutputDebug("%s::%d::Updating: tpage: %d, buffer count: \n", __func__, __LINE__, tpage, buffer.size());
 
-		const auto currentFrame = nextFrame - 1;
-		if (static_cast<size_t>(currentFrame) < buffer.size())
+		const auto current_frame = currentFrame();
+		if (static_cast<size_t>(current_frame) < buffer.size())
 		{
-			OutputDebug("\tcurrent frame: %d\n\told path: %s\n\tnew path: %s\n", currentFrame, buffer[currentFrame].localPath.c_str(), new_img.localPath.c_str());
-			buffer[currentFrame] = std::move(new_img);
+			OutputDebug("\tcurrent frame: %d\n\told path: %s\n\tnew path: %s\n", current_frame, buffer[current_frame].localPath.c_str(), new_img.localPath.c_str());
+			buffer[current_frame] = std::move(new_img);
 			return;
 		}
-		while (static_cast<size_t>(currentFrame) > buffer.size()) //encase the size() is too small.
+		while (static_cast<size_t>(current_frame) > buffer.size()) //encase the size() is too small.
 			buffer.emplace_back(battleSceneryPathandTexture{});
 		buffer.emplace_back(std::move(new_img));
 	}
@@ -118,12 +144,12 @@ void _bspGl()
 {
 	DWORD tPage = gl_textures[50];
 	char localn[256]{ 0 };
-	if (DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, bss[tPage - 16].nextFrame++))
+	if (DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, bss[tPage - 16].get_current_frame_number_and_iterate()))
 	{
 		if (DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, 0))
 			if (!DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage) && bss[tPage - 16].buffer.size() > 1)
 				bss[tPage - 16].buffer.clear();
-		bss[tPage - 16].nextFrame = 1; // prevents using the wrong frame number for the base texture
+		bss[tPage - 16].restart_animation(); // prevents using the wrong frame number for the base texture
 		                               // or resets if current frame number too high.
 	}
 

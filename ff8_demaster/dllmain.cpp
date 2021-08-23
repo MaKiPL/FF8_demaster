@@ -28,6 +28,7 @@ DWORD* langIdent_ESI;
 BOOL UVPATCH, DIRECT_IO, TEXTURE_PATCH, DEBUG_PATCH, LOG;
 BOOL BATTLE_CHARA, FIELD_ENTITY, BATTLE_HOOK, FIELD_BACKGROUND, WORLD_TEXTURES;
 BOOL LINEAR_PATCH, OPENGL_HOOK;
+int BATTLE_STAGE_ANIMATION_DELAY;
 
 
 void OutputDebug(const char* fmt, ...)
@@ -235,6 +236,7 @@ void ReadConfigFile()
 	TEXTURE_PATCH = conf.GetInteger("", "TEXTURE_PATCH", 1); //this one lacks actual demaster.conf so default to 1
 	LINEAR_PATCH = conf.GetInteger("", "LINEAR_PATCH", 1);
 	OPENGL_HOOK = conf.GetInteger("", "OPENGL_HOOK", 0);
+	BATTLE_STAGE_ANIMATION_DELAY = conf.GetInteger("", "BATTLE_STAGE_ANIMATION_DELAY", 100);
 }
 
 LONG WINAPI ExceptionHandler(EXCEPTION_POINTERS* ep)
