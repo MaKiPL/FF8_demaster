@@ -1,6 +1,7 @@
 #include "coreHeader.h"
 #include <chrono>
 extern int BATTLE_STAGE_ANIMATION_DELAY;
+extern BOOL BATTLE_STAGE_FORCE_RELOAD;
 
 #define CRASHLOG OutputDebug("%s::%d::%s\n", __FILE__, __LINE__,__func__)
 
@@ -110,7 +111,8 @@ battleSceneryStructure bss[] =
 
 bool LoadImageIntoBattleSceneryStruct(const size_t index, const DWORD tPage, const char* const localn)
 {
-	if (bss[index].current() && bss[index].current().localPath == localn) //prevent loading an image that is loaded.
+	
+	if (!bool(BATTLE_STAGE_FORCE_RELOAD) && bss[index].current() && bss[index].current().localPath == localn) //prevent loading an image that is loaded.
 		return true;
 	int palette = tex_header[52];
 	//spamming so i put it here so it only logs when loading.
@@ -173,13 +175,14 @@ DWORD _bspCheck()
 	if (tPage > 21)
 		return 0;
 	char localn[256]{ 0 };
-	if (DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage))
+	if (!DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage)
+		|| !DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_0", DIRECT_IO_EXPORT_DIR, currentStage, tPage))
 	{
-		OutputDebug("%s FAILED ON TEXTURE!; Expected: a0stg%03d_%d.(dds|png)\n", __func__, currentStage, tPage);
-		return 0;
+		OutputDebug("%s: Happy at %s\n", __func__, localn);
+		return 1;
 	}
-	OutputDebug("%s: Happy at a0stg%03d_%d.(dds|png)\n", __func__, currentStage, tPage);
-	return 1;
+	OutputDebug("%s FAILED ON TEXTURE!; Expected: a0stg%03d_%d.(dds|png) or a0stg%03d_%d_0.(dds|png)\n", __func__, currentStage, tPage);
+	return 0;
 }
 
 DWORD** ds_free;
