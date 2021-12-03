@@ -10,6 +10,7 @@
 #include <StackWalker.h>
 #include <INIReader.h>
 #include "renderer.h"
+#include "mymemory.h"
 #include <memory>
 #include <fstream>
 

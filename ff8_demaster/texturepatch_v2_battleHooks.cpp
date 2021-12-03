@@ -2,7 +2,6 @@
 
 DWORD _bhpBackAdd1;
 DWORD _bhpBackAdd2;
-DWORD _bhpBackAdd3;
 
 char* _bhpStrPointer;
 DWORD* texture_file_enemy_ex_Id;
@@ -75,16 +74,6 @@ BYTE _bhpVoid()
 		stageId[3] = '\0';
 		int intStageId = atoi(stageId);
 		currentStage = intStageId;
-
-		//probably some stages are on different tpages (is it possible?) so I am leaving it so the code will check before releasing
-		//vanilla texture and if something bad happens- it will go back to default tex instead of black
-
-		//sprintf(localPath, "%stextures\\battle.fs\\hd_new\\a0stg%03d_16.png", DIRECT_IO_EXPORT_DIR, intStageId);
-		//if (GetFileAttributesA(localPath) == INVALID_FILE_ATTRIBUTES) //file doesn't exist, so please do not replace textures 
-		//{
-		//	currentStage = -1;
-		//	return 0;
-		//}
 
 		//*texture_file_enemy_ex_Id = 1200 + intStageId;
 		currentStage = intStageId;
@@ -159,7 +148,13 @@ __declspec(naked) void _bhp()
 		push   DWORD PTR[ebp - 0x28]
 		MOV ECX, OFFSET IMAGE_BASE
 		MOV ECX, [ECX]
-		ADD ECX, 0x16482A8
+		PUSH EAX
+		PUSH ECX
+		PUSH BHP
+		CALL GetAddress
+		POP ECX
+		ADD ECX, EAX
+		POP EAX
 		CALL ECX
 		ADD ESP, 4
 
@@ -168,37 +163,9 @@ __declspec(naked) void _bhp()
 	}
 }
 
-DWORD _bhpJmpAdd1;
-
-__declspec(naked) void _bhptpage()
-{
-	__asm
-	{
-		CMP ECX, 0x10
-		JAE _forceJumpBhp
-		_getback:
-			ADD ECX, 0xFFFFFFF6
-			CMP ECX, 5
-			JMP _bhpBackAdd3
-
-		_forceJumpBhp:
-			CMP currentStage, 0xFFFFFFFF
-			JE _getback
-			MOV EAX, [EDI]
-			ADD EAX, 0x14
-			MOV ECX, currentStage
-			ADD ECX, 1200
-			MOV [EAX], ECX
-			JMP _bhpJmpAdd1
-	}
-}
-
 void ApplyBattleHookPatch()
 {
 	currentStage = -1;
-	_bhpBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + 0x157DA5D, (DWORD)_bhp, 17);
-	_bhpBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + 0x157DD05, (DWORD)_bhpMonsterStruct, 5); //GetBattleMonsterStructPalCount _notfound
-	
-	//_bhpJmpAdd1 = IMAGE_BASE + 0x157EF85; //Jump to 13-15 cases!!
-	//_bhpBackAdd3 = InjectJMP(IMAGE_BASE + 0x157EF72, (DWORD)_bhptpage, 6); //bHdAvailable_Battle -> check TPage for stage replacement
+	_bhpBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(_BHPBACKADD1), (DWORD)_bhp, 17);
+	_bhpBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(_BHPBACKADD2), (DWORD)_bhpMonsterStruct, 5); //GetBattleMonsterStructPalCount _notfound
 }

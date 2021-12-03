@@ -4,6 +4,8 @@
 
 /*
 KURSE ALL SEEDS!
+Fushururu
+Do you know demaster is going to be reborn?
 */
 
 
@@ -55,7 +57,7 @@ void OutputDebug(const char* fmt, ...)
 DWORD _dllmainBackAddr1;
 DWORD _dllmainBackAddr2;
 
-const char* windowTitle = "FINAL FANTASY VIII Remastered - Demaster patch by Maki [1.2.8b] BETA";
+const char* windowTitle = "FINAL FANTASY VIII Remastered - Demaster patch by Maki [1.3]";
 
 __declspec(naked) void _asm_ReplaceWindowTitle()
 {
@@ -69,7 +71,7 @@ __declspec(naked) void _asm_ReplaceWindowTitle()
 
 void GetWindow()
 {
-	_dllmainBackAddr2 = (DWORD)InjectJMP(IMAGE_BASE + 0x1601065, (DWORD)_asm_ReplaceWindowTitle, 5);
+	_dllmainBackAddr2 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(WINDOWTITLE), (DWORD)_asm_ReplaceWindowTitle, 5);
 }
 
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
@@ -115,102 +117,13 @@ __declspec(naked) void nullsub()
 	}
 }
 
-DWORD DEB_backAdd;
-
-void ApplyDebugOutputPatch()
-{
-	DEB_backAdd = (DWORD)InjectJMP(IMAGE_BASE + 0x33DC0, (DWORD)DEB_JMP, 5);
-	//critical sections are null here, but they point to common_fieldEC, that's not cool
-	*(DWORD*)(IMAGE_BASE + 0x16EDF68) = (DWORD)nullsub;
-	*(DWORD*)(IMAGE_BASE + 0x16EDF7C) = (DWORD)nullsub;
-	*(DWORD*)(IMAGE_BASE + 0x16EDA7C) = (DWORD)nullsub;
-	*(DWORD*)(IMAGE_BASE + 0x16EDD74) = (DWORD)nullsub;
-	modPage(IMAGE_BASE + 0x1696058, 4);
-	*(DWORD*)(IMAGE_BASE + 0x1696058) = (DWORD)nullsub;
-	modPage(IMAGE_BASE + 0x169605C, 4);
-	*(DWORD*)(IMAGE_BASE + 0x169605C) = (DWORD)nullsub;
-	ReplaceCALLWithNOP(0x159F3BD);
-	ReplaceCALLWithNOP(0x4485FF);
-	ReplaceCALLWithNOP(0x15824B6);
-}
-
-DWORD _deb00_ECX;
-DWORD _deb00_EAX;
-
-bool DEBUG_reverseWm = true;
-
-void DEB_JMPv2_00()
-{
-	const char* format = "FSArchive:: %s - %s\n";
-	char* path = (char*)_deb00_EAX;
-	if (DEBUG_reverseWm)
-	{
-		std::string pathStr(path);
-		std::size_t fnd = pathStr.find("wmsetus.obj", 0);
-		//if (fnd != std::string::npos)
-		//	DebugBreak();
-	}
-	OutputDebug(format, path, _deb00_ECX);
-}
-
-__declspec(naked) void DEB_JMPv2()
-{
-	__asm
-	{
-		MOV _deb00_ECX, ECX
-		MOV _deb00_EAX, EAX
-		CALL DEB_JMPv2_00
-		MOV EAX, OFFSET IMAGE_BASE
-		MOV EAX, [EAX]
-		ADD EAX, 0x1692994
-		PUSH EAX
-		JMP DEB_backAdd
-	}
-}
-
-void ApplyDebugOutputPatchV2()
-{
-	DEB_backAdd = (DWORD)InjectJMP(IMAGE_BASE + 0x1581270, (DWORD)DEB_JMPv2, 5);
-
-}
-
-//force GL_LINEAR with non-fixed UV was a d*k move ...
+//force GL_LINEAR with non-fixed UV was a d*k move ... ~Maki
 void ApplyFilteringPatch()
 {
-	//InjectDWORD(IMAGE_BASE + 0x1564D97 + 1, 0x2600); //main indirect
-	//InjectDWORD(IMAGE_BASE + 0x1564D86 + 1, 0x2600);
-
-	//InjectDWORD(IMAGE_BASE + 0x1564F23 + 1, 0x2600); //main indirect
-	//InjectDWORD(IMAGE_BASE + 0x1564F34 + 1, 0x2600);
-
-
-	//InjectDWORD(IMAGE_BASE + 0x156505E + 1, 0x2600); //unknown glDrawElements
-	//InjectDWORD(IMAGE_BASE + 0x1565073 + 1, 0x2600);
-	//
-	//InjectDWORD(IMAGE_BASE + 0x1566ED5 + 1, 0x2600); //as above fxaa2
-	//InjectDWORD(IMAGE_BASE + 0x1566EE6 + 1, 0x2600);
-
-
-
-	//InjectDWORD(IMAGE_BASE + 0x15686D3 + 1, 0x2600);
-	//InjectDWORD(IMAGE_BASE + 0x15686E4 + 1, 0x2600);
-
-	//InjectDWORD(IMAGE_BASE + 0x1568805 + 1, 0x2600);
-	//InjectDWORD(IMAGE_BASE + 0x1568816 + 1, 0x2600);
-
-	//InjectDWORD(IMAGE_BASE + 0x15689C9 + 1, 0x2600);
-	//InjectDWORD(IMAGE_BASE + 0x15689DA + 1, 0x2600);
-
-	InjectDWORD(IMAGE_BASE + 0x15693EF + 1, 0x2600);
-	InjectDWORD(IMAGE_BASE + 0x1569409 + 1, 0x2600);
-	InjectDWORD(IMAGE_BASE + 0x156A348 + 1, 0x2600);
-	InjectDWORD(IMAGE_BASE + 0x156A359 + 1, 0x2600);
-
-	//InjectDWORD(IMAGE_BASE + 0x156D47F + 1, 0x2600);
-	//InjectDWORD(IMAGE_BASE + 0x156D490 + 1, 0x2600);
-
-	//InjectDWORD(IMAGE_BASE + 0x156D830 + 1, 0x2600);
-	//InjectDWORD(IMAGE_BASE + 0x156D841 + 1, 0x2600);
+	InjectDWORD(IMAGE_BASE + GetAddress(FILTERPATCH1) + 1, GL_NEAREST);
+	InjectDWORD(IMAGE_BASE + GetAddress(FILTERPATCH2) + 1, GL_NEAREST);
+	InjectDWORD(IMAGE_BASE + GetAddress(FILTERPATCH3) + 1, GL_NEAREST);
+	InjectDWORD(IMAGE_BASE + GetAddress(FILTERPATCH4) + 1, GL_NEAREST);
 }
 
 void ReadConfigFile()
@@ -228,7 +141,6 @@ void ReadConfigFile()
 	UVPATCH = conf.GetInteger("", "UV_PATCH", 0);
 	DIRECT_IO = conf.GetInteger("", "DIRECT_IO", 0);
 	LOG = conf.GetInteger("", "LOG", 0);
-	DEBUG_PATCH = conf.GetInteger("", "MORE_DEBUG_OUTPUT_PATCH", 0);
 	BATTLE_CHARA = conf.GetInteger("", "BATTLE_CHARACTER", 0);
 	FIELD_ENTITY = conf.GetInteger("", "FIELD_ENTITY", 0);
 	BATTLE_HOOK = conf.GetInteger("", "BATTLE_HOOK_MONSTER_FIELDS", 0);
@@ -402,7 +314,6 @@ BOOL WINAPI DllMain(
 	DWORD fdwReason, // reason for calling function
 	LPVOID lpReserved) // reserved
 {
-	//MessageBoxA(0, "DLL loaded at DllMain- Maki", "test", MB_OK);
 	if (fdwReason != DLL_PROCESS_ATTACH) //fail if not on app-init. Attaching is not recommended, should be loaded at startup by import
 		return 0;
 
@@ -429,18 +340,13 @@ BOOL WINAPI DllMain(
 		ApplyUVPatch();
 	if (TEXTURE_PATCH && DIRECT_IO)
 		ReplaceTextureFunction();
-	if (DEBUG_PATCH)
-		ApplyDebugOutputPatchV2();
+	//if (DEBUG_PATCH) //it's just one func ;-;
+	//	ApplyDebugOutputPatchV2();
 	if (LINEAR_PATCH)
 		ApplyFilteringPatch();
 	if (OPENGL_HOOK)
 		HookOpenGL();
 
-	//if(DEBUG_PATCH)
-	//	ApplyDebugOutputPatch(); //they have hella of debug info shit, but then function is nullsub-
-							//quite usual- vanilla ff8 from 2000 had the same for harata battle debug
-							//but worry not- we can write such function from scratch
-													//ApplyTextureUpscaleMod();
 	return 1; //all success
 }
 #undef CRASHLOG

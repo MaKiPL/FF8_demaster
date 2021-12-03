@@ -1,11 +1,9 @@
 #include "coreHeader.h"
 
-int width_fcp = 768;
-int height_fcp = 768;
+int width_fcp=768,height_fcp=768;
 
 BYTE* fcpBackAdd1;
 BYTE* fcpBackAdd2;
-BYTE* fcpBackAdd3;
 
 //casual is 384x384 or 768x768, therefore the final should be 1st height * 2
 void _fcpObtainTextureDatas(int bIndex, int aIndex)
@@ -16,7 +14,7 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 
 	sprintf(texPath, "%stextures\\field.fs\\field_hd", DIRECT_IO_EXPORT_DIR);
 
-	if (aIndex >= 0xC19)
+	if (aIndex >= 0xC19) //those ugly numbers come based on do*emu func (probably)
 		sprintf(tempSprint, "\\%s%03u_%u", "p", aIndex - 3097, bIndex);
 	else if (aIndex < 0x831)
 	{
@@ -93,9 +91,14 @@ __declspec(naked) void _fcpObtainData()
 		PUSH 0
 		PUSH[height_fcp]
 		PUSH[height_fcp]
+		PUSH ECX // to restore later
+		PUSH NEWGLTEX_CHARA 
+		CALL GetAddress //_stdcall so stack so no need to clean stack
+		MOV ECX, EAX //EAX as always should return return-value
 		MOV EAX, OFFSET IMAGE_BASE
 		MOV EAX, [EAX]
-		ADD EAX, 0x160b670 //createGLTexture
+		ADD EAX, EAX //createGLTexture
+		POP ECX //restore ECX from stack
 		CALL EAX
 
 		JMP fcpBackAdd1
@@ -110,10 +113,10 @@ __declspec(naked) void _fcpSetYoffset()
 	{
 		CMP [TEX_TYPE], 57
 		JNE originalcode
-		CMP[EBP + 0x0C], 0
+		CMP[EBP + 0x0C], 0 //the hell is this? original code?
 		JE originalcode
 		MOV EAX, [height_fcp]
-		SHR EAX, 1
+		SHR EAX, 1 //768/2
 		PUSH EAX
 		PUSH 0
 		JMP returnhere
@@ -129,16 +132,17 @@ __declspec(naked) void _fcpSetYoffset()
 void ApplyFieldEntityPatch()
 {
 	//step 1. obtain needed data for tex_struct and etc.
-	fcpBackAdd1 = InjectJMP(IMAGE_BASE + 0x16061CC, (DWORD)_fcpObtainData, 18);
+	//Maki: ouch, same-name vars
+	fcpBackAdd1 = InjectJMP(IMAGE_BASE + GetAddress(FCPBACKADD1), (DWORD)_fcpObtainData, 18);
 
 
 	//step 2. disable out of bounds error- we know that, but we are using new, bigger buffers
-	modPage(IMAGE_BASE + 0x160C43A, 1);
-	*(BYTE*)(IMAGE_BASE + 0x160C43A) = 0xEB; //JBE -> JMP
+	modPage(IMAGE_BASE + GetAddress(FIELDCHARENT1), 1);
+	*(BYTE*)(IMAGE_BASE + GetAddress(FIELDCHARENT1)) = 0xEB; //JBE -> JMP
 
-	modPage(IMAGE_BASE + 0x160C467, 1);
-	*(BYTE*)(IMAGE_BASE + 0x160C467) = 0xEB; //JBE -> JMP
+	modPage(IMAGE_BASE + GetAddress(FIELDCHARENT2), 1);
+	*(BYTE*)(IMAGE_BASE + GetAddress(FIELDCHARENT2)) = 0xEB; //JBE -> JMP
 
 	//1160545A - set
-	fcpBackAdd2 = InjectJMP(IMAGE_BASE + 0x160C4AD, (DWORD)_fcpSetYoffset, 6);
+	fcpBackAdd2 = InjectJMP(IMAGE_BASE + GetAddress(FCPBACKADD2), (DWORD)_fcpSetYoffset, 6);
 }

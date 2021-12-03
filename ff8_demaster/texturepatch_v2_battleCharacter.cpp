@@ -2,8 +2,7 @@
 //#include "texturepatch_battle_data.h"
 
 
-int width_bcp = 768;
-int height_bcp = 768;
+int width_bcp = 768,height_bcp = 768;
 
 BYTE* bcpBackAdd1;
 BYTE* bcpBackAdd2;
@@ -43,9 +42,15 @@ __declspec(naked) void _bcpObtainData()
 		PUSH 0
 		PUSH [height_bcp]
 		PUSH [width_bcp]
+		PUSH ECX
+		PUSH NEWGLTEX_CHARA
+		CALL GetAddress
+		MOV ECX, EAX
+		
 		MOV EAX, OFFSET IMAGE_BASE
 		MOV EAX, [EAX]
-		ADD EAX, 0x160b670 //createGLTexture
+		ADD EAX, ECX //createGLTexture
+		POP ECX
 		CALL EAX
 
 		JMP bcpBackAdd1
@@ -83,12 +88,12 @@ __declspec(naked) void _bcpPushHeightOffsetY_minusHeight()
 void ApplyBattleCharacterPatch()
 {
 	//step 1. obtain needed data for tex_struct and etc.
-	bcpBackAdd1 = InjectJMP(IMAGE_BASE + 0x16066BD, (DWORD)_bcpObtainData, 18);
+	bcpBackAdd1 = InjectJMP(IMAGE_BASE + GetAddress(BCPBACKADD1), (DWORD)_bcpObtainData, 18);
 
 	//step 2. we now have correct dynamic glTexture, but we need to change the LoadBattleCharaTexture and WeaponTexture
-	bcpBackAdd2 = InjectJMP(IMAGE_BASE + 0x1604087, (DWORD)_bcpPushHeightOffsetY, 5);
+	bcpBackAdd2 = InjectJMP(IMAGE_BASE + GetAddress(BCPBACKADD2), (DWORD)_bcpPushHeightOffsetY, 5);
 
 
 	//step 3. The last thing we need is replacing the weapon texture. The Y offset is 0x2a0 (768-96)
-	bcpBackAdd3 = InjectJMP(IMAGE_BASE + 0x1605040, (DWORD)_bcpPushHeightOffsetY_minusHeight, 5);
+	bcpBackAdd3 = InjectJMP(IMAGE_BASE + GetAddress(BCPBACKADD3), (DWORD)_bcpPushHeightOffsetY_minusHeight, 5);
 }

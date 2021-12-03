@@ -1,12 +1,6 @@
 #include "coreHeader.h"
 
 
-//const DWORD TEXPATCH1 = 0x16054FE; //first: 0x15A992F;
-//const DWORD TEXPATCH2 = 0x1606A1C; //first: 0x15AA3E6;		//0x15AA3EB; [as above]
-//const DWORD TEXPATCH3 = 0x1603900; //first: 0x15A9842;
-//const DWORD TEXPATCH4 = 0x1601E4B; //first: 0x15AC4A4;
-
-
 #define DEBUGOUT FALSE
 
 /*
@@ -53,9 +47,14 @@ __declspec(naked) void _cltObtainTexHeader()
 		MOV gl_textures, EDI //gl_textures is actually tex_struct
 
 		//ORIGINAL CODE
+		PUSH ECX
+		PUSH UPLOADVRAM
+		CALL GetAddress
+		MOV ECX, EAX
 		MOV EAX, OFFSET IMAGE_BASE
 		MOV EAX, [EAX]
-		ADD EAX, 0x1573A40 //upload_texture_vram
+		ADD EAX, ECX //upload_texture_vram
+		POP ECX
 		CALL EAX
 			
 		JMP cltBackAdd2
@@ -141,13 +140,6 @@ void ReplaceTextureFunction()
 		ApplyWorldPatch();
 	}
 
-	cltBackAdd2 = InjectJMP(IMAGE_BASE + 0x155CD05, (DWORD)_cltObtainTexHeader, 5);
-	cltBackAdd1 = InjectJMP(IMAGE_BASE + 0x155CD7A, (DWORD)_cltObtainTexStructDebug, 7);
-
-	//int textureFunction = IMAGE_BASE + TEXPATCH1;	//0x15A9920; [comment for no SEH/rewind]
-	//tex_returnAddress = IMAGE_BASE + TEXPATCH2;		//0x15AA3EB; [as above]
-	//modPage(textureFunction, 5);
-	//*(BYTE*)(textureFunction) = 0xE9;
-	//DWORD jmpparm = (DWORD)LoadGameTexture - textureFunction - 5;
-	//*(DWORD*)(textureFunction + 1) = jmpparm;
+	cltBackAdd2 = InjectJMP(IMAGE_BASE + GetAddress(CLTBACKADD1), (DWORD)_cltObtainTexHeader, 5);
+	cltBackAdd1 = InjectJMP(IMAGE_BASE + GetAddress(CLTBACKADD2), (DWORD)_cltObtainTexStructDebug, 7);
 }

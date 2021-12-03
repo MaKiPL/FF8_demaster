@@ -8,12 +8,12 @@ DWORD IO_backAddress3 = 0;
 DWORD filePathBuffer, filePathStrlen;
 char IO_backlogFilePath[256]{ 0 };
 
-const DWORD IO_FUNC1 = 0x364CC;//first: 0x15D41EB
-const DWORD IO_FUNC2 = 0x36B37;//first: 0x15D4797;
-const DWORD IO_FUNC3 = 0x36B78;//first: 0x15D47D8;
-const DWORD IO_FUNC4 = 0x36D37;//first: 0x15D4947;
-const DWORD IO_FUNC5 = 0x365F8;//first: 0x15D42B7;
-const DWORD IO_FUNC6 = 0x3656A;//first: 0x15D42B7;
+const DWORD IO_FUNC1 = GetAddress(IOFUNC1);
+const DWORD IO_FUNC2 = GetAddress(IOFUNC2);
+const DWORD IO_FUNC3 = GetAddress(IOFUNC3);
+const DWORD IO_FUNC4 = GetAddress(IOFUNC4);
+const DWORD IO_FUNC5 = GetAddress(IOFUNC5);
+const DWORD IO_FUNC6 = GetAddress(IOFUNC6);
 
 
 

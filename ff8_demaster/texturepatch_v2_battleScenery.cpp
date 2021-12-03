@@ -100,13 +100,7 @@ public:
 
 battleSceneryStructure bss[] =
 {
-	{16},
-	{17},
-	{18},
-	{19},
-	{20},
-	{21},
-	{22},
+	{16},{17},{18},{19},{20},{21},{22},
 };
 
 bool LoadImageIntoBattleSceneryStruct(const size_t index, const DWORD tPage, const char* const localn)
@@ -243,7 +237,12 @@ __declspec(naked) void _bsp()
 			_wtpOk :
 		MOV EAX, OFFSET IMAGE_BASE
 			MOV EAX, [EAX]
-			ADD EAX, 0x166B2A8
+			PUSH EAX
+			PUSH _BSP
+			CALL GetAddress
+			MOV EBX, EAX
+			POP EAX
+			ADD EAX, EBX
 			PUSH DWORD PTR[EBP + 0x10]
 			CALL[EAX]
 			//CALL DWORD PTR DS:0x1166B2A8
@@ -294,13 +293,13 @@ __declspec(naked) void _bspFree()
 void ApplyBattleFieldPatch()
 {
 	OutputDebug("Applying battle field patch\n");
-	ds_free = (DWORD**)(IMAGE_BASE + 0x166b2a8);
-	ds_teximg = (DWORD**)(IMAGE_BASE + 0x166b4a0);
+	ds_free = (DWORD**)(IMAGE_BASE + GetAddress(DS_FREE));
+	ds_teximg = (DWORD**)(IMAGE_BASE + GetAddress(DS_TEXIMG));
 	OutputDebug("ApplyBattleFieldPatch():ds_free is at: %08X and ds_teximg is at: %08X\n", ds_free, ds_teximg);
-	_bspBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + 0x1573AFF, (DWORD)_bsp, 38);
-	_bspBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + 0x1573B54, (DWORD)_bspFree, 9);
+	_bspBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(_BSPBACKADD1), (DWORD)_bsp, 38);
+	_bspBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(_BSPBACKADD2), (DWORD)_bspFree, 9);
 
 	//this disables textureLimit for resolution
-	InjectJMP(IMAGE_BASE + 0x156CED4, (DWORD)(IMAGE_BASE + 0x156D30B), 6);
+	InjectJMP(IMAGE_BASE + GetAddress(BATTLEJMPPATCH1), (DWORD)(IMAGE_BASE + GetAddress(BATTLEJMPPATCH2)), 6);
 }
 #undef CRASHLOG

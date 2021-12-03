@@ -24,27 +24,7 @@ struct worldTextureStructure
 
 worldTextureStructure ws[] =
 {
-	{0},
-	{1},
-	{2},
-	{3},
-	{4},
-	{5},
-	{6},
-	{7},
-	{8},
-	{9},
-	{10},
-	{11},
-	{12},
-	{13},
-	{14},
-	{15},
-	{16},
-	{17},
-	{18},
-	{19},
-	{20},
+{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11},{12},{13},{14},{15},{16},{17},{18},{19},{20},
 	{21},   // TRAIN TRACKS
 	{22},   // CLOUDS
 	{23},   // MAP
@@ -210,10 +190,10 @@ int GetTextureIndex()
 	DWORD tPage = gl_textures[50];
 	int palette = tex_header[52];
 	int textureType = gl_textures[48];
-	DWORD texA = *(DWORD*)(IMAGE_BASE + 0x17424B0) + 1;
-	DWORD texB = *(DWORD*)(IMAGE_BASE + 0x17424B4) + 1;
-	DWORD texC = *(DWORD*)(IMAGE_BASE + 0x17424B8) + 1;
-	DWORD texD = *(DWORD*)(IMAGE_BASE + 0x17424BC) + 1;
+	DWORD texA = *(DWORD*)(IMAGE_BASE + GetAddress(WORLDGETTEXIDX0)) + 1;
+	DWORD texB = *(DWORD*)(IMAGE_BASE + GetAddress(WORLDGETTEXIDX1)) + 1;
+	DWORD texC = *(DWORD*)(IMAGE_BASE + GetAddress(WORLDGETTEXIDX2)) + 1;
+	DWORD texD = *(DWORD*)(IMAGE_BASE + GetAddress(WORLDGETTEXIDX3)) + 1;
 
 	if (textureType == 18)
 	{
@@ -240,6 +220,7 @@ int GetTextureIndex()
 		//case 15: //vehicles + character
 				 //this one is special the game mixes different textures into one and they overlap.
 			// character texture is top left. some cars are top left.
+			//Maki- looks like I need to find pre-atlas generator for this
 			return tPage;
 		}
 		//OutputDebug("%s::tPage: %d\n", __func__, tPage);

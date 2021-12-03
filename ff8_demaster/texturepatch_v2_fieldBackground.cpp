@@ -14,15 +14,15 @@ BYTE* _asm_FieldBgRetAddr3;
 bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 {
 	static std::vector<std::string> maplistVector{};
-	const int fieldId = *(DWORD*)(IMAGE_BASE + 0x1782140) & 0xFFFF;
+	const int fieldId = *(DWORD*)(IMAGE_BASE + GetAddress(BGFILENAME1)) & 0xFFFF;
 	if (maplistVector.empty() || force_retry)
 	{
 		const auto oldsize = maplistVector.size();
 		static size_t cached_maplist_size{};
-		if (maplistVector.capacity() < 982)
+		if (maplistVector.capacity() < 982) 
 			maplistVector.reserve(982);
 		const char* const maplist_src = []() {
-			const char* tmp_ptr = (const char*)(*(DWORD*)(IMAGE_BASE + 0x189559C) + 0x118 + cached_maplist_size);
+			const char* tmp_ptr = (const char*)(*(DWORD*)(IMAGE_BASE + GetAddress(BGFILENAME2)) + 0x118 + cached_maplist_size);
 			if (*tmp_ptr == '\n') //The \n tends to be left at the front on reloading.
 				(void)++tmp_ptr, ++cached_maplist_size;
 			return tmp_ptr;
@@ -207,9 +207,13 @@ __declspec(naked) void _asm_CheckTextureReplacementExists()
 		PUSH EDX
 
 		CALL GetFieldBackgroundReplacementExist //returns EAX
+		PUSH EAX //let's save it
+		PUSH CHECKTEXREPAVAIL
+		CALL GetAddress //EAX now holds what we are ment to do into EDX
 		MOV EDX, OFFSET IMAGE_BASE
 		MOV EDX, [EDX]
-		ADD EDX, 0x1782080
+		ADD EDX, EAX
+		POP EAX //we get EAX back with our repExist value
 		MOV[EDX], EAX //pushes GetFieldBackgroundReplacementExist DWORD bool to [EDX]
 
 		//restore stack
@@ -246,16 +250,17 @@ __declspec(naked) void _asm_InjectExtensionHijack()
 void ApplyFieldBackgroundPatch()
 {
 
-	_asm_FieldBgRetAddr3 = InjectJMP(IMAGE_BASE + 0x1591B75, (DWORD)_asm_CheckTextureReplacementExists, 20);
+	_asm_FieldBgRetAddr3 = InjectJMP(IMAGE_BASE + GetAddress(_ASM_FIELDBGRETADDR3), (DWORD)_asm_CheckTextureReplacementExists, 20);
 
 	//disable tpage 16&17 limit
-	modPage(IMAGE_BASE + 0x1606595, 1);
-	*(BYTE*)(IMAGE_BASE + 0x1606595) = 0xEB;
+	modPage(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT), 1);
+	*(BYTE*)(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT)) = 0xEB;
 
 	//we now inject JMP when CMP fieldIfd, gover and do out stuff, then return to glSegment
-	_asm_FieldBgRetAddr2 = InjectJMP(IMAGE_BASE + 0x1606540, (DWORD)_asm_InjectFieldBackgroundModule, 42);//169-11);
+	_asm_FieldBgRetAddr2 = InjectJMP(IMAGE_BASE + GetAddress(_ASM_FIELDBGRETADDR2), (DWORD)_asm_InjectFieldBackgroundModule, 42);//169-11);
 
 	//skips the .png adding
+	//Maki: no, not this way- todo in reborn
 	//_asm_FieldBgRetAddr1 = InjectJMP(IMAGE_BASE+0x16065C0, (DWORD)_asm_InjectExtensionHijack, 0x12);
 }
 #undef CRASHLOG
