@@ -97,7 +97,7 @@ __declspec(naked) void _fcpObtainData()
 		MOV ECX, EAX //EAX as always should return return-value
 		MOV EAX, OFFSET IMAGE_BASE
 		MOV EAX, [EAX]
-		ADD EAX, EAX //createGLTexture
+		ADD EAX, ECX //createGLTexture
 		POP ECX //restore ECX from stack
 		CALL EAX
 

@@ -67,9 +67,9 @@ DWORD fieldReplacementFound;
 
 
 static char* lastFieldName;
-
+static int lastFieldnameSubstrPos = -1;
 /// <summary>
-///
+/// Returns final field path with either DDS or PNG extension with either palettted or non-paletted instance/version
 /// </summary>
 /// <returns>char* that points to texture of DDS or PNG</returns>
 char* GetFieldBackgroundReplacementTextureName()
@@ -77,11 +77,11 @@ char* GetFieldBackgroundReplacementTextureName()
 	//directIO_fopenReroute: DEMASTER_EXP\textures\DEMASTER_EXP\textures\field_bg\bv\bvtr_1\bvtr_1_0_2.png, file not found
 	char n[256]{ 0 };
 	static char n2[256]{ 0 };
-	char localn[256]{ 0 };
+	static char localn[256]{ 0 }; //Maki: static so when assigned to lastFieldName it doesn't get fucked out
 	static char localn2[256]{ 0 };
 	int palette = tex_header[52];
 
-
+	
 
 	if (GetFieldBackgroundFilename(n))
 	{
@@ -89,6 +89,7 @@ char* GetFieldBackgroundReplacementTextureName()
 		return n2;
 	}
 
+	
 
 	sprintf(localn2, "%s%u_%u", n, fieldBackgroundRequestedTPage - 16, palette);
 
@@ -101,11 +102,23 @@ char* GetFieldBackgroundReplacementTextureName()
 
 		OutputDebug("%s: %s, %s\n", __func__, localn, "palette not found");
 		lastFieldName = localn2;
-		return localn2;
+		//return localn2; //Maki: it's easier this way for me to replace whenn using no PNG
 	}
-		lastFieldName = localn2;
+	else
+	{
+		lastFieldName = localn; //Maki : localn2 was here instead of localn - probably debug
 		OutputDebug("%s: %s\n", __func__, localn);
-		return localn2;
+	}
+
+
+	if (lastFieldnameSubstrPos == -1)
+		lastFieldnameSubstrPos = strlen(DIRECT_IO_EXPORT_DIR) + strlen("textures\\");
+	//Maki: below are various after-fixes because we tried to do DDS but this one needs special treatment for GL segment- pretty easy
+	lastFieldName[strlen(lastFieldName) - 4] = '\0'; //Maki: This is to throw out the extension- yes, we need to do that so far
+	lastFieldName = lastFieldName + lastFieldnameSubstrPos;
+
+	
+		return lastFieldName; //Maki: yeah, it's for rework, but returning anyway for assembler inject sake
 }
 
 __declspec(naked) void _asm_InjectFieldBackgroundModule()
@@ -162,6 +175,10 @@ void _fbgGl()
 
 }
 
+
+
+//Maki: This gets checked at first- so we have actually ready .PNG path here- change it so we use one method, not three times getting path lol
+//			this checks if replacement exists for 0_0 for either DDS or PNG and sets fieldReplacementFound
 /// <summary>
 /// Passes the DWORD if either the replacement is found or not directly to the game engine
 /// </summary>

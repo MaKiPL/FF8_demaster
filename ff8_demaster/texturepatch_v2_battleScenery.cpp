@@ -235,17 +235,20 @@ __declspec(naked) void _bsp()
 		JMP _bspBackAdd1
 
 			_wtpOk :
-		MOV EAX, OFFSET IMAGE_BASE
-			MOV EAX, [EAX]
-			PUSH EAX
-			PUSH DS_FREE
-			CALL GetAddress
-			MOV EBX, EAX
-			POP EAX
-			ADD EAX, EBX
+		//MOV EAX, OFFSET IMAGE_BASE
+		//	MOV EAX, [EAX]
+		//	PUSH EAX
+		//	PUSH DS_FREE
+		//	CALL GetAddress
+		//	MOV EBX, EAX
+	//		POP EAX
+	//		ADD EAX, EBX
+			
+
 			PUSH DWORD PTR[EBP + 0x10]
-			CALL[EAX]
-			//CALL DWORD PTR DS:0x1166B2A8
+			MOV EAX, ds_free
+			MOV EAX, [EAX]
+			CALL EAX
 			MOV bAlreadyFreed, 1
 			CALL _wtpGl
 			JMP _out
@@ -253,14 +256,14 @@ __declspec(naked) void _bsp()
 			JMP _original
 
 			_bspOk :
-		PUSH DWORD PTR[EBP + 0x10]
-			MOV EAX, ds_free
-			MOV EAX, [EAX]
-			CALL EAX
-			MOV bAlreadyFreed, 1
+			PUSH DWORD PTR[EBP + 0x10]
+				MOV EAX, ds_free
+				MOV EAX, [EAX]
+				CALL EAX
+				MOV bAlreadyFreed, 1
 
-			CALL _bspGl
-			JMP _out
+				CALL _bspGl
+				JMP _out
 
 			_fbgOk: //FIELD BACKGROUND
 			PUSH DWORD PTR[EBP + 0x10]

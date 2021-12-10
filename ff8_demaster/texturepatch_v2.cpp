@@ -48,12 +48,15 @@ __declspec(naked) void _cltObtainTexHeader()
 
 		//ORIGINAL CODE
 		PUSH ECX
+		PUSH EDX //this one gets cleared after 1020
 		PUSH UPLOADVRAM
 		CALL GetAddress
+
 		MOV ECX, EAX
 		MOV EAX, OFFSET IMAGE_BASE
 		MOV EAX, [EAX]
 		ADD EAX, ECX //upload_texture_vram
+		POP EDX
 		POP ECX
 		CALL EAX
 			
