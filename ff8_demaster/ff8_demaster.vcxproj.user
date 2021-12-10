@@ -4,8 +4,8 @@
     <ShowAllFiles>false</ShowAllFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LocalDebuggerCommand>$(TargetDir)\FFVIII.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand>D:\FINAL FANTASY VIII REMASTERED\FFVIII.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerWorkingDirectory>$(TargetDir)</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>D:\FINAL FANTASY VIII REMASTERED</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
 </Project>

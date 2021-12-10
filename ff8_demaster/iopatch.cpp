@@ -8,13 +8,6 @@ DWORD IO_backAddress3 = 0;
 DWORD filePathBuffer, filePathStrlen;
 char IO_backlogFilePath[256]{ 0 };
 
-const DWORD IO_FUNC1 = GetAddress(IOFUNC1);
-const DWORD IO_FUNC2 = GetAddress(IOFUNC2);
-const DWORD IO_FUNC3 = GetAddress(IOFUNC3);
-const DWORD IO_FUNC4 = GetAddress(IOFUNC4);
-const DWORD IO_FUNC5 = GetAddress(IOFUNC5);
-const DWORD IO_FUNC6 = GetAddress(IOFUNC6);
-
 
 
 //CREATES PATH
@@ -132,7 +125,12 @@ void ApplyDirectIO()
 		DIRECT_IO = FALSE;
 		return;
 	}
-
+	const DWORD IO_FUNC1 = GetAddress(IOFUNC1);
+	const DWORD IO_FUNC2 = GetAddress(IOFUNC2);
+	const DWORD IO_FUNC3 = GetAddress(IOFUNC3);
+	const DWORD IO_FUNC4 = GetAddress(IOFUNC4);
+	const DWORD IO_FUNC5 = GetAddress(IOFUNC5);
+	const DWORD IO_FUNC6 = GetAddress(IOFUNC6);
 
 	//Patch fopen method
 //patch JMP to directIO_fopenReroute

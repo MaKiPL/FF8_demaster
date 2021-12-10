@@ -238,7 +238,7 @@ __declspec(naked) void _bsp()
 		MOV EAX, OFFSET IMAGE_BASE
 			MOV EAX, [EAX]
 			PUSH EAX
-			PUSH _BSP
+			PUSH DS_FREE
 			CALL GetAddress
 			MOV EBX, EAX
 			POP EAX
