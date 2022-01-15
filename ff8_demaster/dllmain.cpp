@@ -8,7 +8,6 @@ Fushururu
 Do you know demaster is going to be reborn?
 */
 
-
 /*
 *
 *
@@ -33,320 +32,320 @@ BOOL LINEAR_PATCH, OPENGL_HOOK;
 int BATTLE_STAGE_ANIMATION_DELAY;
 BOOL BATTLE_STAGE_FORCE_RELOAD;
 
-
 void OutputDebug(const char* fmt, ...)
 {
 #if _DEBUG
-	va_list args;
-	char tmp_str[1024];
+   va_list args;
+   char tmp_str[1024];
 
-	va_start(args, fmt);
-	vsnprintf(tmp_str, sizeof(tmp_str), fmt, args);
-	va_end(args);
+   va_start(args, fmt);
+   vsnprintf(tmp_str, sizeof(tmp_str), fmt, args);
+   va_end(args);
 
-	printf(tmp_str);
+   printf(tmp_str);
 
-	if (logFile)
-	{
-		fwrite(tmp_str, sizeof(char), strlen(tmp_str), logFile.get());
-		fflush(logFile.get());
-	}
+   if (logFile)
+   {
+      fwrite(tmp_str, sizeof(char), strlen(tmp_str), logFile.get());
+      fflush(logFile.get());
+   }
 #endif
 }
 
 DWORD _dllmainBackAddr1;
 DWORD _dllmainBackAddr2;
 
+#if JAPANESE_PATCH
+const char* windowTitle = "ファイナルファンタジーVIII ディマスター by Maki [1.3]";
+#else
 const char* windowTitle = "FINAL FANTASY VIII Remastered - Demaster patch by Maki [1.3]";
+#endif
 
 __declspec(naked) void _asm_ReplaceWindowTitle()
 {
-	__asm
-	{
-		PUSH windowTitle
-		JMP _dllmainBackAddr2
-	}
+   __asm
+   {
+      PUSH windowTitle
+      JMP _dllmainBackAddr2
+   }
 }
-
 
 void GetWindow()
 {
-	_dllmainBackAddr2 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(WINDOWTITLE), (DWORD)_asm_ReplaceWindowTitle, 5);
+   _dllmainBackAddr2 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(WINDOWTITLE), (DWORD)_asm_ReplaceWindowTitle, 5);
 }
 
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
 EXPORT void InitTest()
 {
-	OutputDebug("DEMASTER ENGINE LOADED!\n");
-	return;
+   OutputDebug("DEMASTER ENGINE LOADED!\n");
+   return;
 }
 
 DWORD lastJMP;
 
 void DEB_JMP(char* c, DWORD a, DWORD b, DWORD cc, DWORD d, DWORD e)
 {
-	if (c < (char*)IMAGE_BASE)
-		return;
-	char localD[32];
-	localD[0] = '\0';
-	sprintf(localD, "Wrong address at: %08x\n", (unsigned int)c);
-	if (IsBadReadPtr(c, 4))
-	{
-		__asm
-		{
-			//INT 3
-		}
-		return;
-	}
-	if (*c == 183)
-	{
-		__asm
-		{
-			INT 3
-		}
-	}
-	OutputDebug(c, a, b, cc, d, e);
-	return;
+   if (c < (char*)IMAGE_BASE)
+      return;
+   char localD[32];
+   localD[0] = '\0';
+   sprintf(localD, "Wrong address at: %08x\n", (unsigned int)c);
+   if (IsBadReadPtr(c, 4))
+   {
+      __asm
+      {
+         //INT 3
+      }
+      return;
+   }
+   if (*c == 183)
+   {
+      __asm
+      {
+         INT 3
+      }
+   }
+   OutputDebug(c, a, b, cc, d, e);
+   return;
 }
 
 __declspec(naked) void nullsub()
 {
-	__asm
-	{
-		ret
-	}
+   __asm
+   {
+      ret
+   }
 }
 
 //force GL_LINEAR with non-fixed UV was a d*k move ... ~Maki
 void ApplyFilteringPatch()
 {
-	InjectDWORD(IMAGE_BASE + GetAddress(FILTERPATCH1) + 1, GL_NEAREST);
-	InjectDWORD(IMAGE_BASE + GetAddress(FILTERPATCH2) + 1, GL_NEAREST);
-	InjectDWORD(IMAGE_BASE + GetAddress(FILTERPATCH3) + 1, GL_NEAREST);
-	InjectDWORD(IMAGE_BASE + GetAddress(FILTERPATCH4) + 1, GL_NEAREST);
+   InjectDWORD(IMAGE_BASE + GetAddress(FILTERPATCH1) + 1, GL_NEAREST);
+   InjectDWORD(IMAGE_BASE + GetAddress(FILTERPATCH2) + 1, GL_NEAREST);
+   InjectDWORD(IMAGE_BASE + GetAddress(FILTERPATCH3) + 1, GL_NEAREST);
+   InjectDWORD(IMAGE_BASE + GetAddress(FILTERPATCH4) + 1, GL_NEAREST);
 }
 
 void ReadConfigFile()
 {
-	if (GetFileAttributesA(DEMASTER_CONF) == INVALID_FILE_ATTRIBUTES)
-	{
-		OutputDebug("File " DEMASTER_CONF " not found- all failed\n");
-		return;
-	}
-	OutputDebug("Reading config file " DEMASTER_CONF "\n");
-	//ini_t* conf = ini_load(DEMASTER_CONF);
+   if (GetFileAttributesA(DEMASTER_CONF) == INVALID_FILE_ATTRIBUTES)
+   {
+      OutputDebug("File " DEMASTER_CONF " not found- all failed\n");
+      return;
+   }
+   OutputDebug("Reading config file " DEMASTER_CONF "\n");
+   //ini_t* conf = ini_load(DEMASTER_CONF);
 
-	INIReader conf(DEMASTER_CONF);
+   INIReader conf(DEMASTER_CONF);
 
-	UVPATCH = conf.GetInteger("", "UV_PATCH", 0);
-	DIRECT_IO = conf.GetInteger("", "DIRECT_IO", 0);
-	LOG = conf.GetInteger("", "LOG", 0);
-	BATTLE_CHARA = conf.GetInteger("", "BATTLE_CHARACTER", 0);
-	FIELD_ENTITY = conf.GetInteger("", "FIELD_ENTITY", 0);
-	BATTLE_HOOK = conf.GetInteger("", "BATTLE_HOOK_MONSTER_FIELDS", 0);
-	FIELD_BACKGROUND = conf.GetInteger("", "FIELD_BACKGROUND", 0);
-	WORLD_TEXTURES = conf.GetInteger("", "WORLD_TEXTURES", 0);
-	TEXTURE_PATCH = conf.GetInteger("", "TEXTURE_PATCH", 1); //this one lacks actual demaster.conf so default to 1
-	LINEAR_PATCH = conf.GetInteger("", "LINEAR_PATCH", 1);
-	OPENGL_HOOK = conf.GetInteger("", "OPENGL_HOOK", 0);
-	BATTLE_STAGE_ANIMATION_DELAY = conf.GetInteger("", "BATTLE_STAGE_ANIMATION_DELAY", 100);
-	BATTLE_STAGE_FORCE_RELOAD = conf.GetInteger("", "BATTLE_STAGE_FORCE_RELOAD", 0);
+   UVPATCH = conf.GetInteger("", "UV_PATCH", 0);
+   DIRECT_IO = conf.GetInteger("", "DIRECT_IO", 0);
+   LOG = conf.GetInteger("", "LOG", 0);
+   BATTLE_CHARA = conf.GetInteger("", "BATTLE_CHARACTER", 0);
+   FIELD_ENTITY = conf.GetInteger("", "FIELD_ENTITY", 0);
+   BATTLE_HOOK = conf.GetInteger("", "BATTLE_HOOK_MONSTER_FIELDS", 0);
+   FIELD_BACKGROUND = conf.GetInteger("", "FIELD_BACKGROUND", 0);
+   WORLD_TEXTURES = conf.GetInteger("", "WORLD_TEXTURES", 0);
+   TEXTURE_PATCH = conf.GetInteger("", "TEXTURE_PATCH", 1); //this one lacks actual demaster.conf so default to 1
+   LINEAR_PATCH = conf.GetInteger("", "LINEAR_PATCH", 1);
+   OPENGL_HOOK = conf.GetInteger("", "OPENGL_HOOK", 0);
+   BATTLE_STAGE_ANIMATION_DELAY = conf.GetInteger("", "BATTLE_STAGE_ANIMATION_DELAY", 100);
+   BATTLE_STAGE_FORCE_RELOAD = conf.GetInteger("", "BATTLE_STAGE_FORCE_RELOAD", 0);
 }
 
 LONG WINAPI ExceptionHandler(EXCEPTION_POINTERS* ep)
 {
-	DemasteredStackWalker sw;
+   DemasteredStackWalker sw;
 
-	OutputDebug("*** Exception 0x%x, address 0x%x ***\n", ep->ExceptionRecord->ExceptionCode, ep->ExceptionRecord->ExceptionAddress);
-	sw.ShowCallstack(
-		GetCurrentThread(),
-		ep->ContextRecord
-	);
+   OutputDebug("*** Exception 0x%x, address 0x%x ***\n", ep->ExceptionRecord->ExceptionCode, ep->ExceptionRecord->ExceptionAddress);
+   sw.ShowCallstack(
+      GetCurrentThread(),
+      ep->ContextRecord
+   );
 
-	// show cursor in case it was hidden
-	ShowCursor(true);
+   // show cursor in case it was hidden
+   ShowCursor(true);
 
-	MessageBoxA(0, "Oops! Something very bad happened.\n\nPlease provide a copy of demasterlog.txt when reporting this error at https://github.com/MaKiPL/FF8_demastered/issues.\n", "Error", MB_OK);
+   MessageBoxA(0, "Oops! Something very bad happened.\n\nPlease provide a copy of demasterlog.txt when reporting this error at https://github.com/MaKiPL/FF8_demastered/issues.\n", "Error", MB_OK);
 
-	// let OS handle the crash
-	SetUnhandledExceptionFilter(0);
-	return EXCEPTION_CONTINUE_EXECUTION;
+   // let OS handle the crash
+   SetUnhandledExceptionFilter(0);
+   return EXCEPTION_CONTINUE_EXECUTION;
 }
 safe_bimg safe_bimg_init(bimg::ImageContainer* img)
 {
-	return { img, bimg::imageFree };
+   return { img, bimg::imageFree };
 }
 safe_bimg LoadImageFromFile(const char* const filename)
 {
-	static bool glewLoaded = false;
+   static bool glewLoaded = false;
 
-	if (!glewLoaded)
-	{
-		
-		glewLoaded = true;
-		
+   if (!glewLoaded)
+   {
+      glewLoaded = true;
 
-		// INIT GLEW - Add recent OpenGL extension support ( required for Texture Compression )
-		GLenum err = glewInit();
-		
-		if (GLEW_OK != err)
-		{
-			
-			/* Problem: glewInit failed, something is seriously wrong. */
-			OutputDebug("%s - GLEW Error: %s\n", __func__, glewGetErrorString(err));
-		}
-	}
-	
-	char msg[1024]{ 0 };
-	
+      // INIT GLEW - Add recent OpenGL extension support ( required for Texture Compression )
+      GLenum err = glewInit();
 
-	OutputDebug("%s - Opening File: %s\n", __func__, filename);
-	
+      if (GLEW_OK != err)
+      {
+         /* Problem: glewInit failed, something is seriously wrong. */
+         OutputDebug("%s - GLEW Error: %s\n", __func__, glewGetErrorString(err));
+      }
+   }
 
-	auto fp = std::fstream(filename, std::ios::in | std::ios::binary);
-	
-	if (!fp.is_open())
-		return safe_bimg_init();
-	
-	fp.seekg(0, std::ios::end);
-	
-	auto filesize = fp.tellg();
-	
-	auto buffer = std::make_unique<char[]>(static_cast<size_t>(filesize));
-	
-	if (!buffer)
-		return safe_bimg_init();
-	
-	fp.seekg(0, std::ios::beg);
-	
-	fp.read(buffer.get(), filesize);
-	
-	// REQUIRED BY BIMG FILE DECODING
-	static bx::DefaultAllocator texAllocator{};
-	bx::Error error{};
-	constexpr static auto format{ bimg::TextureFormat::Enum::Count};
-	auto* img = bimg::imageParse(&texAllocator, buffer.get(),static_cast<uint32_t>(filesize), format, &error);
-	if (error.isOk())
-		return safe_bimg_init(img);
+   char msg[1024]{ 0 };
 
-	OutputDebug("%s::%d::bimg error: %s ", __func__,__LINE__, error.getMessage());
-	return safe_bimg_init();
+   OutputDebug("%s - Opening File: %s\n", __func__, filename);
 
+   auto fp = std::fstream(filename, std::ios::in | std::ios::binary);
+
+   if (!fp.is_open())
+      return safe_bimg_init();
+
+   fp.seekg(0, std::ios::end);
+
+   auto filesize = fp.tellg();
+
+   auto buffer = std::make_unique<char[]>(static_cast<size_t>(filesize));
+
+   if (!buffer)
+      return safe_bimg_init();
+
+   fp.seekg(0, std::ios::beg);
+
+   fp.read(buffer.get(), filesize);
+
+   // REQUIRED BY BIMG FILE DECODING
+   static bx::DefaultAllocator texAllocator{};
+   bx::Error error{};
+   constexpr static auto format{ bimg::TextureFormat::Enum::Count };
+   auto* img = bimg::imageParse(&texAllocator, buffer.get(), static_cast<uint32_t>(filesize), format, &error);
+   if (error.isOk())
+      return safe_bimg_init(img);
+
+   OutputDebug("%s::%d::bimg error: %s ", __func__, __LINE__, error.getMessage());
+   return safe_bimg_init();
 }
 //appends DDS checks if file exists and then checks for PNG. returns false if atleast one exists. true on failure.
 bool DDSorPNG(char* buffer, size_t in_size, const char* fmt, ...)
 {
-	const size_t size = in_size - 4U; //for extension
-	va_list args;
-	va_start(args, fmt);
-	vsnprintf(buffer, size, fmt, args);
-	strcat(buffer, ".dds");
-	va_end(args);
-	if (GetFileAttributesA(buffer) == INVALID_FILE_ATTRIBUTES)
-	{
-		va_start(args, fmt);
-		vsnprintf(buffer, size, fmt, args);
-		strcat(buffer, ".png");
-		va_end(args);
-		return GetFileAttributesA(buffer) == INVALID_FILE_ATTRIBUTES;
-	}
-	return false;
+   const size_t size = in_size - 4U; //for extension
+   va_list args;
+   va_start(args, fmt);
+   vsnprintf(buffer, size, fmt, args);
+   strcat(buffer, ".dds");
+   va_end(args);
+   if (GetFileAttributesA(buffer) == INVALID_FILE_ATTRIBUTES)
+   {
+      va_start(args, fmt);
+      vsnprintf(buffer, size, fmt, args);
+      strcat(buffer, ".png");
+      va_end(args);
+      return GetFileAttributesA(buffer) == INVALID_FILE_ATTRIBUTES;
+   }
+   return false;
 }
 void RenderTexture(bimg::ImageContainer* img)
 {
-	TextureFormatInfo& texInfo = s_textureFormat[img->m_format];
-	if (bimg::isCompressed(img->m_format))
-	{
-		RenderCompressedTexture(img, texInfo);
-	}
-	else
-	{
-		RenderUncompressedTexture(img, texInfo);
-	}
+   TextureFormatInfo& texInfo = s_textureFormat[img->m_format];
+   if (bimg::isCompressed(img->m_format))
+   {
+      RenderCompressedTexture(img, texInfo);
+   }
+   else
+   {
+      RenderUncompressedTexture(img, texInfo);
+   }
 }
 
 void RenderUncompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo)
 {
-	uint32_t width = img->m_width;
-	uint32_t height = img->m_height;
-	uint32_t depth = img->m_depth;
-	const uint8_t startLod = bx::min<uint8_t>(0, img->m_numMips - 1);
+   uint32_t width = img->m_width;
+   uint32_t height = img->m_height;
+   uint32_t depth = img->m_depth;
+   const uint8_t startLod = bx::min<uint8_t>(0, img->m_numMips - 1);
 
-	for (uint8_t lod = 0, num = img->m_numMips; lod < num; ++lod)
-	{
-		width = bx::uint32_max(1, width);
-		height = bx::uint32_max(1, height);
-		depth = 1;
+   for (uint8_t lod = 0, num = img->m_numMips; lod < num; ++lod)
+   {
+      width = bx::uint32_max(1, width);
+      height = bx::uint32_max(1, height);
+      depth = 1;
 
-		bimg::ImageMip mip;
-		if (bimg::imageGetRawData(*img, 0, lod + startLod, img->m_data, img->m_size, mip))
-			glTexImage2D(GL_TEXTURE_2D, lod, texInfo.m_internalFmt, img->m_width, img->m_height, 0, texInfo.m_fmt, texInfo.m_type, mip.m_data);
-	}
+      bimg::ImageMip mip;
+      if (bimg::imageGetRawData(*img, 0, lod + startLod, img->m_data, img->m_size, mip))
+         glTexImage2D(GL_TEXTURE_2D, lod, texInfo.m_internalFmt, img->m_width, img->m_height, 0, texInfo.m_fmt, texInfo.m_type, mip.m_data);
+   }
 }
 
 void RenderCompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo)
 {
-	if (GLEW_ARB_texture_compression)
-	{
-		uint32_t width = img->m_width;
-		uint32_t height = img->m_height;
-		uint32_t depth = img->m_depth;
-		const uint8_t startLod = bx::min<uint8_t>(0, img->m_numMips - 1);
+   if (GLEW_ARB_texture_compression)
+   {
+      uint32_t width = img->m_width;
+      uint32_t height = img->m_height;
+      uint32_t depth = img->m_depth;
+      const uint8_t startLod = bx::min<uint8_t>(0, img->m_numMips - 1);
 
-		for (uint8_t lod = 0, num = img->m_numMips; lod < num; ++lod)
-		{
-			width = bx::uint32_max(1, width);
-			height = bx::uint32_max(1, height);
-			depth = 1;
+      for (uint8_t lod = 0, num = img->m_numMips; lod < num; ++lod)
+      {
+         width = bx::uint32_max(1, width);
+         height = bx::uint32_max(1, height);
+         depth = 1;
 
-			bimg::ImageMip mip;
-			if (bimg::imageGetRawData(*img, 0, lod + startLod, img->m_data, img->m_size, mip))
-				glCompressedTexImage2D(GL_TEXTURE_2D, lod, texInfo.m_internalFmt, img->m_width, img->m_height, 0, mip.m_size, mip.m_data);
-		}
-	}
-	else
-		OutputDebug("Texture is compressed, but compression is not supported on your GPU. Skipping draw.");
+         bimg::ImageMip mip;
+         if (bimg::imageGetRawData(*img, 0, lod + startLod, img->m_data, img->m_size, mip))
+            glCompressedTexImage2D(GL_TEXTURE_2D, lod, texInfo.m_internalFmt, img->m_width, img->m_height, 0, mip.m_size, mip.m_data);
+      }
+   }
+   else
+      OutputDebug("Texture is compressed, but compression is not supported on your GPU. Skipping draw.");
 }
 
 BOOL WINAPI DllMain(
 
-	HINSTANCE hinstDLL, // handle to DLL module
-	DWORD fdwReason, // reason for calling function
-	LPVOID lpReserved) // reserved
+   HINSTANCE hinstDLL, // handle to DLL module
+   DWORD fdwReason, // reason for calling function
+   LPVOID lpReserved) // reserved
 {
-	if (fdwReason != DLL_PROCESS_ATTACH) //fail if not on app-init. Attaching is not recommended, should be loaded at startup by import
-		return 0;
+   if (fdwReason != DLL_PROCESS_ATTACH) //fail if not on app-init. Attaching is not recommended, should be loaded at startup by import
+      return 0;
 
-	SetUnhandledExceptionFilter(ExceptionHandler);
+   SetUnhandledExceptionFilter(ExceptionHandler);
 
-	AllocConsole();
-	(void)freopen("CONOUT$", "w", stdout);
-	(void)freopen("CON", "r", stdin);
-	InitTest();
-	ReadConfigFile();
-	if (LOG) logFile = decltype(logFile){ fopen("demasterlog.txt", "wb"), fclose };
+   AllocConsole();
+   (void)freopen("CONOUT$", "w", stdout);
+   (void)freopen("CON", "r", stdin);
+   InitTest();
+   ReadConfigFile();
+   if (LOG) logFile = decltype(logFile){ fopen("demasterlog.txt", "wb"), fclose };
 
-	HMODULE IMG_BASE = GetModuleHandleA("FFVIII_EFIGS");
-	IMAGE_BASE = (long long)IMG_BASE;
-	OPENGL_HANDLE = (long long)GetModuleHandleA("OPENGL32");
-	OutputDebug("IMAGE_BASE at: %lX; OPENGL at: %lX\n", IMAGE_BASE, OPENGL_HANDLE);
+#if JAPANESE_PATCH
+   HMODULE IMG_BASE = GetModuleHandleA("FFVIII_JP");
+#else
+   HMODULE IMG_BASE = GetModuleHandleA("FFVIII_EFIGS");
+#endif
+   IMAGE_BASE = (long long)IMG_BASE;
+   OPENGL_HANDLE = (long long)GetModuleHandleA("OPENGL32");
+   OutputDebug("IMAGE_BASE at: %lX; OPENGL at: %lX\n", IMAGE_BASE, OPENGL_HANDLE);
 
-	GetWindow();
+   GetWindow();
 
-	//LET'S GET THE HACKING DONE
-	if (DIRECT_IO)
-		ApplyDirectIO();
-	if (UVPATCH)
-		ApplyUVPatch();
-	if (TEXTURE_PATCH && DIRECT_IO)
-		ReplaceTextureFunction();
-	//if (DEBUG_PATCH) //it's just one func ;-;
-	//	ApplyDebugOutputPatchV2();
-	if (LINEAR_PATCH)
-		ApplyFilteringPatch();
-	if (OPENGL_HOOK)
-		HookOpenGL();
+   //LET'S GET THE HACKING DONE
+   if (DIRECT_IO)
+      ApplyDirectIO();
+   if (UVPATCH)
+      ApplyUVPatch();
+   if (TEXTURE_PATCH && DIRECT_IO)
+      ReplaceTextureFunction();
+   //if (DEBUG_PATCH) //it's just one func ;-;
+   //	ApplyDebugOutputPatchV2();
+   if (LINEAR_PATCH)
+      ApplyFilteringPatch();
+   if (OPENGL_HOOK)
+      HookOpenGL();
 
-	return 1; //all success
+   return 1; //all success
 }
 #undef CRASHLOG

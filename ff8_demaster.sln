@@ -14,11 +14,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug_JP|x86 = Debug_JP|x86
 		Debug|x86 = Debug|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6988B1B2-621B-45B4-A1F3-4E6ED1D82B22}.Debug_JP|x86.ActiveCfg = Debug_JP|Win32
+		{6988B1B2-621B-45B4-A1F3-4E6ED1D82B22}.Debug_JP|x86.Build.0 = Debug_JP|Win32
 		{6988B1B2-621B-45B4-A1F3-4E6ED1D82B22}.Debug|x86.ActiveCfg = Debug|Win32
 		{6988B1B2-621B-45B4-A1F3-4E6ED1D82B22}.Debug|x86.Build.0 = Debug|Win32
+		{E8FE9475-BE92-4FCD-8DD2-782789A07CAC}.Debug_JP|x86.ActiveCfg = Debug_JP|Any CPU
+		{E8FE9475-BE92-4FCD-8DD2-782789A07CAC}.Debug_JP|x86.Build.0 = Debug_JP|Any CPU
 		{E8FE9475-BE92-4FCD-8DD2-782789A07CAC}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{E8FE9475-BE92-4FCD-8DD2-782789A07CAC}.Debug|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection

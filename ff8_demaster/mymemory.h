@@ -9,12 +9,12 @@
 
 enum ADDRESS_NAME
 {
-	UVPATCH0, UVPATCH1, UVPATCH2, UVPATCH3, UVPATCH4, UVPATCH5, UVPATCH6, UVPATCH7, UVPATCH8, UVPATCH9, UVPATCH10, UVPATCH11, UVPATCH12,
-	UVFUNCPNTR, WORLDGETTEXIDX0, WORLDGETTEXIDX1, WORLDGETTEXIDX2, WORLDGETTEXIDX3, FCPBACKADD1, FIELDCHARENT1, FIELDCHARENT2, FCPBACKADD2, 
-	BGFILENAME1, BGFILENAME2, CHECKTEXREPAVAIL, _ASM_FIELDBGRETADDR3, DISABLETPAGELIMIT, _ASM_FIELDBGRETADDR2, DS_FREE, DS_TEXIMG, 
-	_BSPBACKADD1, _BSPBACKADD2, BATTLEJMPPATCH1, BATTLEJMPPATCH2, BTLMON0, BTLMON1, BTLMON2, BTLMON3, BTLMON4, BTLMON5, BTLMON6, BHP, 
-	_BHPBACKADD1, _BHPBACKADD2, NEWGLTEX_CHARA, BCPBACKADD1, BCPBACKADD2, BCPBACKADD3, CLTBACKADD1, CLTBACKADD2, UPLOADVRAM, IOFUNC1, 
-	IOFUNC2, IOFUNC3, IOFUNC4, IOFUNC5, IOFUNC6, FILTERPATCH1, FILTERPATCH2, FILTERPATCH3, FILTERPATCH4, WINDOWTITLE
+   UVPATCH0, UVPATCH1, UVPATCH2, UVPATCH3, UVPATCH4, UVPATCH5, UVPATCH6, UVPATCH7, UVPATCH8, UVPATCH9, UVPATCH10, UVPATCH11, UVPATCH12,
+   UVFUNCPNTR, WORLDGETTEXIDX0, WORLDGETTEXIDX1, WORLDGETTEXIDX2, WORLDGETTEXIDX3, FCPBACKADD1, FIELDCHARENT1, FIELDCHARENT2, FCPBACKADD2,
+   BGFILENAME1, BGFILENAME2, CHECKTEXREPAVAIL, _ASM_FIELDBGRETADDR3, DISABLETPAGELIMIT, _ASM_FIELDBGRETADDR2, DS_FREE, DS_TEXIMG,
+   _BSPBACKADD1, _BSPBACKADD2, BATTLEJMPPATCH1, BATTLEJMPPATCH2, BTLMON0, BTLMON1, BTLMON2, BTLMON3, BTLMON4, BTLMON5, BTLMON6, BHP,
+   _BHPBACKADD1, _BHPBACKADD2, NEWGLTEX_CHARA, BCPBACKADD1, BCPBACKADD2, BCPBACKADD3, CLTBACKADD1, CLTBACKADD2, UPLOADVRAM, IOFUNC1,
+   IOFUNC2, IOFUNC3, IOFUNC4, IOFUNC5, IOFUNC6, FILTERPATCH1, FILTERPATCH2, FILTERPATCH3, FILTERPATCH4, WINDOWTITLE
 };
 
 void InitTable();
@@ -22,14 +22,15 @@ void InitTable();
 unsigned int _stdcall GetAddress(const ADDRESS_NAME name);
 
 #define FORCEGAME 2
-
-
+//#define JAPANESE_PATCH 1 - see VS compiler settings
 
 //doing enum and address hardcoding at once? any ideas? also no double declaration, hmm...
 //Use Excel for auto-generating such lines- no one is going to type this by hand lol
+
 const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 {
-	//KEY-ENUM		//VANILLA, 1010, 1020, ??? - all are for english- for japanese this list should be eventually swapped to other map
+#if JAPANESE_PATCH==0
+   //KEY-ENUM		//VANILLA, 1010, 1020, ??? - all are for english- for japanese this list should be eventually swapped to other map
 {UVPATCH0             , std::vector<unsigned int>{ 0x8A2CB2  , 0x911A05  , 0x912725  }},
 {UVPATCH1             , std::vector<unsigned int>{ 0x8A2CB8  , 0x911A0B  , 0x91272b  }},
 {UVPATCH2             , std::vector<unsigned int>{ 0x8A2D17  , 0x911A67  , 0x912787  }},
@@ -91,4 +92,67 @@ const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 {FILTERPATCH3         , std::vector<unsigned int>{ 0x0       , 0x156A348 , 0x156a7d8 }},
 {FILTERPATCH4         , std::vector<unsigned int>{ 0x0       , 0x156A359 , 0x156a7e9 }},
 {WINDOWTITLE          , std::vector<unsigned int>{ 0x0       , 0x1601065 , 0x1601935 }}
+#else
+{IOFUNC1              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x3649C   }},
+{IOFUNC6              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x3653A   }},
+{IOFUNC5              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x365C8   }},
+{IOFUNC2              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x36B07   }},
+{IOFUNC3              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x36B48   }},
+{IOFUNC4              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x36D07   }},
+{UVPATCH0             , std::vector<unsigned int>{ 0x0 , 0x0 , 0x9452CC  }},
+{UVFUNCPNTR           , std::vector<unsigned int>{ 0x0 , 0x0 , 0x9452CC  }},
+{UVPATCH1             , std::vector<unsigned int>{ 0x0 , 0x0 , 0x9452D2  }},
+{UVPATCH2             , std::vector<unsigned int>{ 0x0 , 0x0 , 0x94532E  }},
+{UVPATCH3             , std::vector<unsigned int>{ 0x0 , 0x0 , 0x945334  }},
+{UVPATCH4             , std::vector<unsigned int>{ 0x0 , 0x0 , 0x94538D  }},
+{UVPATCH5             , std::vector<unsigned int>{ 0x0 , 0x0 , 0x945393  }},
+{UVPATCH6             , std::vector<unsigned int>{ 0x0 , 0x0 , 0x9453EC  }},
+{UVPATCH7             , std::vector<unsigned int>{ 0x0 , 0x0 , 0x9453F2  }},
+{UVPATCH8             , std::vector<unsigned int>{ 0x0 , 0x0 , 0x94544B  }},
+{UVPATCH9             , std::vector<unsigned int>{ 0x0 , 0x0 , 0x945451  }},
+{UVPATCH10            , std::vector<unsigned int>{ 0x0 , 0x0 , 0x945491  }},
+{UVPATCH11            , std::vector<unsigned int>{ 0x0 , 0x0 , 0x945497  }},
+{CLTBACKADD1          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1593985 }},
+{CLTBACKADD2          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x15939FA }},
+{FILTERPATCH1         , std::vector<unsigned int>{ 0x0 , 0x0 , 0x159FFBF }},
+{FILTERPATCH2         , std::vector<unsigned int>{ 0x0 , 0x0 , 0x159FFD9 }},
+{FILTERPATCH3         , std::vector<unsigned int>{ 0x0 , 0x0 , 0x15A0EE6 }},
+{FILTERPATCH4         , std::vector<unsigned int>{ 0x0 , 0x0 , 0x15A0EF7 }},
+{BATTLEJMPPATCH1      , std::vector<unsigned int>{ 0x0 , 0x0 , 0x15A3F14 }},
+{BATTLEJMPPATCH2      , std::vector<unsigned int>{ 0x0 , 0x0 , 0x15A434B }},
+{UPLOADVRAM           , std::vector<unsigned int>{ 0x0 , 0x0 , 0x15AAAB0 }},
+{_BSPBACKADD1         , std::vector<unsigned int>{ 0x0 , 0x0 , 0x15AAB6F }},
+{_BSPBACKADD2         , std::vector<unsigned int>{ 0x0 , 0x0 , 0x15AABC4 }},
+{_BHPBACKADD1         , std::vector<unsigned int>{ 0x0 , 0x0 , 0x15B4C4D }},
+{_BHPBACKADD2         , std::vector<unsigned int>{ 0x0 , 0x0 , 0x15B4EF5 }},
+{_ASM_FIELDBGRETADDR3 , std::vector<unsigned int>{ 0x0 , 0x0 , 0x15C3CE5 }},
+{BTLMON0              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1631700 }},
+{BTLMON1              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x163170A }},
+{BTLMON2              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1631729 }},
+{BTLMON3              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1631730 }},
+{WINDOWTITLE          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1633405 }},
+{BTLMON6              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x16340AE }},
+{BTLMON4              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x16341B2 }},
+{BTLMON5              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x16341B6 }},
+{BCPBACKADD2          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1636436 }},
+{BCPBACKADD3          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x16373F0 }},
+{FCPBACKADD1          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x16384EE }},
+{_ASM_FIELDBGRETADDR2 , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1638862 }},
+{DISABLETPAGELIMIT    , std::vector<unsigned int>{ 0x0 , 0x0 , 0x16388B7 }},
+{BCPBACKADD1          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x16389DF }},
+{NEWGLTEX_CHARA       , std::vector<unsigned int>{ 0x0 , 0x0 , 0x163DAC0 }},
+{FIELDCHARENT1        , std::vector<unsigned int>{ 0x0 , 0x0 , 0x163E88C }},
+{FIELDCHARENT2        , std::vector<unsigned int>{ 0x0 , 0x0 , 0x163E8B7 }},
+{FCPBACKADD2          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x163E8FD }},
+{BHP                  , std::vector<unsigned int>{ 0x0 , 0x0 , 0x167A558 }},
+{DS_FREE              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x169D2A8 }},
+{DS_TEXIMG            , std::vector<unsigned int>{ 0x0 , 0x0 , 0x169D4B4 }},
+{WORLDGETTEXIDX0      , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1753F70 }},
+{WORLDGETTEXIDX1      , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1753F74 }},
+{WORLDGETTEXIDX2      , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1753F78 }},
+{WORLDGETTEXIDX3      , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1753F7C }},
+{CHECKTEXREPAVAIL     , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1793BA8 }},
+{BGFILENAME1          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1793C94 }},
+{BGFILENAME2          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x18A85A4 }},
+#endif
 };

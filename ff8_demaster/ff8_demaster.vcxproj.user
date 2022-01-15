@@ -8,4 +8,9 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerWorkingDirectory>D:\FINAL FANTASY VIII REMASTERED</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_JP|Win32'">
+    <LocalDebuggerCommand>D:\FINAL FANTASY VIII REMASTERED\FFVIII.exe</LocalDebuggerCommand>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerWorkingDirectory>D:\FINAL FANTASY VIII REMASTERED</LocalDebuggerWorkingDirectory>
+  </PropertyGroup>
 </Project>
