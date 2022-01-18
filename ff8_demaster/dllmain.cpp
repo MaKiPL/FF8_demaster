@@ -5,7 +5,20 @@
 /*
 KURSE ALL SEEDS!
 Fushururu
-Do you know demaster is going to be reborn?
+Are you with the Garden Master or Cid?
+>be non-human
+>pay a lot of money to build BalambGarden
+>after that some useless guy is the boss
+>no one knows about you
+>you are living in the basement
+>alone
+
+Yeah... So looks like money can't buy
+umm... well.. life? Hey, you are student
+in the garden built from my money
+and you were trained to be missionary
+and then you just walk in and kill me
+NICE JOB
 */
 
 /*
@@ -13,6 +26,9 @@ Do you know demaster is going to be reborn?
 *
 */
 DWORD IMAGE_BASE = 0;
+DWORD IMAGE_SIZE = 0;
+DWORD THIS_BASE = 0;
+DWORD THIS_SIZE = 0;
 DWORD OPENGL_HANDLE = 0;
 const char* DIRECT_IO_EXPORT_DIR = "DEMASTER_EXP\\";
 std::unique_ptr<FILE, decltype(&fclose)> logFile{ nullptr, fclose };
@@ -34,21 +50,37 @@ BOOL BATTLE_STAGE_FORCE_RELOAD;
 
 void OutputDebug(const char* fmt, ...)
 {
-#if _DEBUG
-   va_list args;
-   char tmp_str[1024];
+    
+#if _DEBUG && !JAPANESE_PATCH
+      //DWORD fmtPtr = (DWORD)fmt;
+      //if (
+      //   IMAGE_BASE <= fmtPtr && fmtPtr <= IMAGE_BASE + IMAGE_SIZE
+      //   ||
+      //   THIS_BASE <= fmtPtr && fmtPtr <= THIS_BASE + THIS_SIZE
+      //   )
+      //{
+      //   return;
+      //}
+    //static StackWalker sw;
+   // sw.ShowCallstack();
+    if (IsBadReadPtr(fmt, 4)) return;
+      std::string fmtString = std::string(fmt);
+      if (fmtString.substr(0, 7) == std::string("GLERROR"))
+         return;
+      va_list args;
+      char tmp_str[1024];
 
-   va_start(args, fmt);
-   vsnprintf(tmp_str, sizeof(tmp_str), fmt, args);
-   va_end(args);
+      va_start(args, fmt);
+      vsnprintf(tmp_str, sizeof(tmp_str), fmt, args);
+      va_end(args);
 
-   printf(tmp_str);
+      printf(tmp_str);
 
-   if (logFile)
-   {
-      fwrite(tmp_str, sizeof(char), strlen(tmp_str), logFile.get());
-      fflush(logFile.get());
-   }
+      if (logFile)
+      {
+	      fwrite(tmp_str, sizeof(char), strlen(tmp_str), logFile.get());
+	      fflush(logFile.get());
+      }
 #endif
 }
 
@@ -149,6 +181,7 @@ void ReadConfigFile()
    WORLD_TEXTURES = conf.GetInteger("", "WORLD_TEXTURES", 0);
    TEXTURE_PATCH = conf.GetInteger("", "TEXTURE_PATCH", 1); //this one lacks actual demaster.conf so default to 1
    LINEAR_PATCH = conf.GetInteger("", "LINEAR_PATCH", 1);
+   DEBUG_PATCH = conf.GetInteger("", "DEBUG_PATCH", 0);
    OPENGL_HOOK = conf.GetInteger("", "OPENGL_HOOK", 0);
    BATTLE_STAGE_ANIMATION_DELAY = conf.GetInteger("", "BATTLE_STAGE_ANIMATION_DELAY", 100);
    BATTLE_STAGE_FORCE_RELOAD = conf.GetInteger("", "BATTLE_STAGE_FORCE_RELOAD", 0);
@@ -327,9 +360,16 @@ BOOL WINAPI DllMain(
    HMODULE IMG_BASE = GetModuleHandleA("FFVIII_EFIGS");
 #endif
    IMAGE_BASE = (long long)IMG_BASE;
-   OPENGL_HANDLE = (long long)GetModuleHandleA("OPENGL32");
-   OutputDebug("IMAGE_BASE at: %lX; OPENGL at: %lX\n", IMAGE_BASE, OPENGL_HANDLE);
 
+   MODULEINFO modinfo = {};
+   K32GetModuleInformation(GetCurrentProcess(), IMG_BASE, &modinfo, sizeof(MODULEINFO));
+   IMAGE_SIZE = modinfo.SizeOfImage;
+
+   THIS_BASE = (DWORD)hinstDLL;
+   K32GetModuleInformation(GetCurrentProcess(), hinstDLL, &modinfo, sizeof(MODULEINFO));
+   THIS_SIZE = modinfo.SizeOfImage;
+
+   OutputDebug("IMAGE_BASE at: %lX; OPENGL at: %lX\n", IMAGE_BASE, OPENGL_HANDLE);
    GetWindow();
 
    //LET'S GET THE HACKING DONE
@@ -339,12 +379,13 @@ BOOL WINAPI DllMain(
       ApplyUVPatch();
    if (TEXTURE_PATCH && DIRECT_IO)
       ReplaceTextureFunction();
-   //if (DEBUG_PATCH) //it's just one func ;-;
-   //	ApplyDebugOutputPatchV2();
+   if (DEBUG_PATCH) //it's just one func ;-;
+       InjectJMP(IMAGE_BASE + GetAddress(NULLSUB_DEBUG), (DWORD)OutputDebug);
    if (LINEAR_PATCH)
       ApplyFilteringPatch();
    if (OPENGL_HOOK)
       HookOpenGL();
+
 
    return 1; //all success
 }

@@ -53,7 +53,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>vendor\include\;vendor\include\compat\msvc;$(IncludePath)</IncludePath>
     <LibraryPath>vendor\lib\;vendor\lib\bgfx;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir).dist\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir).dist\debug\</OutDir>
     <IntDir>$(SolutionDir).build\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

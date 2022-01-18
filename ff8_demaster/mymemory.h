@@ -14,7 +14,7 @@ enum ADDRESS_NAME
    BGFILENAME1, BGFILENAME2, CHECKTEXREPAVAIL, _ASM_FIELDBGRETADDR3, DISABLETPAGELIMIT, _ASM_FIELDBGRETADDR2, DS_FREE, DS_TEXIMG,
    _BSPBACKADD1, _BSPBACKADD2, BATTLEJMPPATCH1, BATTLEJMPPATCH2, BTLMON0, BTLMON1, BTLMON2, BTLMON3, BTLMON4, BTLMON5, BTLMON6, BHP,
    _BHPBACKADD1, _BHPBACKADD2, NEWGLTEX_CHARA, BCPBACKADD1, BCPBACKADD2, BCPBACKADD3, CLTBACKADD1, CLTBACKADD2, UPLOADVRAM, IOFUNC1,
-   IOFUNC2, IOFUNC3, IOFUNC4, IOFUNC5, IOFUNC6, FILTERPATCH1, FILTERPATCH2, FILTERPATCH3, FILTERPATCH4, WINDOWTITLE
+   IOFUNC2, IOFUNC3, IOFUNC4, IOFUNC5, IOFUNC6, FILTERPATCH1, FILTERPATCH2, FILTERPATCH3, FILTERPATCH4, WINDOWTITLE, NULLSUB_DEBUG
 };
 
 void InitTable();
@@ -91,7 +91,8 @@ const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 {FILTERPATCH2         , std::vector<unsigned int>{ 0x0       , 0x1569409 , 0x1569899 }},
 {FILTERPATCH3         , std::vector<unsigned int>{ 0x0       , 0x156A348 , 0x156a7d8 }},
 {FILTERPATCH4         , std::vector<unsigned int>{ 0x0       , 0x156A359 , 0x156a7e9 }},
-{WINDOWTITLE          , std::vector<unsigned int>{ 0x0       , 0x1601065 , 0x1601935 }}
+{WINDOWTITLE          , std::vector<unsigned int>{ 0x0       , 0x1601065 , 0x1601935 }},
+{NULLSUB_DEBUG        , std::vector<unsigned int>{ 0x0       , 0x0       , 0x33DC0 }}
 #else
 {IOFUNC1              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x3649C   }},
 {IOFUNC6              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x3653A   }},
@@ -154,5 +155,6 @@ const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 {CHECKTEXREPAVAIL     , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1793BA8 }},
 {BGFILENAME1          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1793C94 }},
 {BGFILENAME2          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x18A85A4 }},
+{NULLSUB_DEBUG        , std::vector<unsigned int>{ 0x0 , 0x0 , 0x33E50   }},
 #endif
 };

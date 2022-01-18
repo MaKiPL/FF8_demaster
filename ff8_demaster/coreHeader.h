@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <Windows.h>
+#include <Psapi.h>
 #include <StackWalker.h>
 #include <INIReader.h>
 #include "renderer.h"
@@ -75,7 +76,7 @@ extern DWORD* langIdent_ESI;
 
 extern int currentStage;
 
-extern std::unique_ptr<FILE,decltype(&fclose)> logFile;
+extern std::unique_ptr<FILE, decltype(&fclose)> logFile;
 void OutputDebug(const char* fmt, ...);
 bool DDSorPNG(char* buffer, size_t size, const char* fmt, ...);
 
@@ -87,15 +88,15 @@ void RenderCompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texIn
 class DemasteredStackWalker : public StackWalker
 {
 public:
-	DemasteredStackWalker() : StackWalker() {}
+   DemasteredStackWalker() : StackWalker() {}
 protected:
-	virtual void OnDbgHelpErr(LPCSTR szFuncName, DWORD gle, DWORD64 addr)
-	{
-		// Silence is golden.
-	}
+   virtual void OnDbgHelpErr(LPCSTR szFuncName, DWORD gle, DWORD64 addr)
+   {
+      // Silence is golden.
+   }
 
-	virtual void OnOutput(LPCSTR szText)
-	{
-		OutputDebug(szText);
-	}
+   virtual void OnOutput(LPCSTR szText)
+   {
+      OutputDebug(szText);
+   }
 };
