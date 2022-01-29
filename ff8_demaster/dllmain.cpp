@@ -1,4 +1,8 @@
 ﻿#include "coreHeader.h"
+#include "kiero.h"
+#include <GL/GL.h>
+#include "GLFW/include/GLFW/glfw3.h"
+#include "minhook/include/MinHook.h"
 
 #define CRASHLOG OutputDebug("%s::%d::%s\n", __FILE__, __LINE__,__func__)
 
@@ -102,9 +106,26 @@ __declspec(naked) void _asm_ReplaceWindowTitle()
    }
 }
 
+
+typedef GLFWwindow*(*oGlfwCreateWindow)(int width, int height, const char* title, GLFWwindow* monitor, GLFWwindow* share);
+
+static GLFWwindow* ffWindow;
+static LPVOID glfwWindowTrampoline;
+GLFWwindow* hookGlfwWindow(int width, int height, const char* title, GLFWmonitor* monitor, GLFWwindow* share)
+{
+    return ffWindow = ((GLFWwindow*(*)(int,int,const char*, GLFWmonitor*, GLFWwindow*))glfwWindowTrampoline)(width, height, title, monitor, share);
+        
+}
+
+
+#define GETADDR(wntl) IMAGE_BASE + GetAddress(##wntl)
 void GetWindow()
 {
-   _dllmainBackAddr2 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(WINDOWTITLE), (DWORD)_asm_ReplaceWindowTitle, 5);
+    unsigned int wndTitle = GETADDR(WINDOWTITLE);
+   _dllmainBackAddr2 = (DWORD)InjectJMP(wndTitle, (DWORD)_asm_ReplaceWindowTitle, 5);
+   wndTitle = wndTitle + 0x12 + (*(DWORD*)(GETADDR(WINDOWTITLE) + 0x12)) + 4;
+   //MH_CreateHook((LPVOID)wndTitle, hookGlfwWindow, glfwWindowTrampoline);
+   MH_CreateHook((LPVOID)wndTitle, hookGlfwWindow, &glfwWindowTrampoline);
 }
 
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
@@ -336,6 +357,64 @@ void RenderCompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texIn
       OutputDebug("Texture is compressed, but compression is not supported on your GPU. Skipping draw.");
 }
 
+//typedef void APIENTRY glClear(GLbitfield);
+//typedef void (__stdcall * glClear)(GLbitfield);
+//typedef void __stdcall * glClear(GLbitfield mask);
+typedef void(__stdcall* oglClear)(GLbitfield);
+typedef void(__stdcall* oglClearColor)(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
+typedef void(__stdcall* oglBufferData)(GLenum target, GLsizeiptr size, const void* data, GLenum usage);
+
+static oglClear _oglClear;
+static oglClearColor _oglClearColor;
+static oglBufferData _oglBufferData;
+
+void __stdcall kglClear(GLbitfield mask)
+{
+    _oglClear(mask);
+}
+
+void __stdcall kglClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
+{
+    //_oglClearColor(red, green, 1.0f, 1.0f); //Maki: Try it :D
+    _oglClearColor(red, green, blue, alpha);
+
+}
+
+void __stdcall koglBufferData(GLenum target, GLsizeiptr size, const void* data, GLenum usage)
+{
+    _oglBufferData(target, size, data, usage);
+}
+
+static LPVOID* oglBindBuffer;
+
+
+int kieroThread()
+{
+    if (kiero::init(kiero::RenderType::OpenGL) == kiero::Status::Success)
+        {
+            // define KIERO_USE_MINHOOK must be 1
+            // the index of the required function can be found in the METHODSTABLE.txt
+            kiero::bind(10, (void**)&_oglClear, kglClear);
+            kiero::bind(12, (void**)&_oglClearColor, kglClearColor);
+            //kiero::bind(336, (void**)&_oglBufferData, koglBufferData);
+            //glewInit();
+            //auto testing = glBufferData;
+            //LPVOID orig;
+            //MH_CreateHook(glBufferData, koglBufferData, &orig);
+            //MH_EnableHook(MH_ALL_HOOKS);
+            
+
+           // MH_CreateHook(bufferTest, koglBufferData, oglBindBuffer);
+            MH_EnableHook(MH_ALL_HOOKS);
+
+
+            // If you just need to get the function address you can use the kiero::getMethodsTable function
+            //_oglClear = (oglClear)kiero::getMethodsTable()[10];
+        }
+
+    return 0;
+}
+
 BOOL WINAPI DllMain(
 
    HINSTANCE hinstDLL, // handle to DLL module
@@ -346,6 +425,8 @@ BOOL WINAPI DllMain(
       return 0;
 
    SetUnhandledExceptionFilter(ExceptionHandler);
+
+   CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)kieroThread, NULL, 0, NULL);
 
    AllocConsole();
    (void)freopen("CONOUT$", "w", stdout);
@@ -370,6 +451,8 @@ BOOL WINAPI DllMain(
    THIS_SIZE = modinfo.SizeOfImage;
 
    OutputDebug("IMAGE_BASE at: %lX; OPENGL at: %lX\n", IMAGE_BASE, OPENGL_HANDLE);
+
+   MH_Initialize();
    GetWindow();
 
    //LET'S GET THE HACKING DONE
@@ -387,6 +470,7 @@ BOOL WINAPI DllMain(
       HookOpenGL();
 
 
+   MH_EnableHook(MH_ALL_HOOKS);
    return 1; //all success
 }
 #undef CRASHLOG
