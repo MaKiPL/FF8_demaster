@@ -35,6 +35,8 @@ extern DWORD DIRECT_IO_EXPORT_DIR_LEN;
 
 extern bx::DefaultAllocator texAllocator;
 
+#define uint unsigned int
+
 using safe_bimg = std::unique_ptr<bimg::ImageContainer, decltype(&bimg::imageFree)>;
 safe_bimg safe_bimg_init(bimg::ImageContainer* img = nullptr);
 safe_bimg LoadImageFromFile(const char* const filename);

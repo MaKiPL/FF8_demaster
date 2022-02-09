@@ -7,22 +7,7 @@
 #define CRASHLOG OutputDebug("%s::%d::%s\n", __FILE__, __LINE__,__func__)
 
 /*
-KURSE ALL SEEDS!
-Fushururu
-Are you with the Garden Master or Cid?
->be non-human
->pay a lot of money to build BalambGarden
->after that some useless guy is the boss
->no one knows about you
->you are living in the basement
->alone
-
-Yeah... So looks like money can't buy
-umm... well.. life? Hey, you are student
-in the garden built from my money
-and you were trained to be missionary
-and then you just walk in and kill me
-NICE JOB
+Thomas the tank Engine
 */
 
 /*
@@ -36,6 +21,7 @@ DWORD THIS_SIZE = 0;
 DWORD OPENGL_HANDLE = 0;
 const char* DIRECT_IO_EXPORT_DIR = "DEMASTER_EXP\\";
 std::unique_ptr<FILE, decltype(&fclose)> logFile{ nullptr, fclose };
+void checkGlew();
 DWORD* tex_header = 0;
 DWORD attr = -1;
 DWORD DIRECT_IO_EXPORT_DIR_LEN = -1;
@@ -51,6 +37,10 @@ BOOL BATTLE_CHARA, FIELD_ENTITY, BATTLE_HOOK, FIELD_BACKGROUND, WORLD_TEXTURES;
 BOOL LINEAR_PATCH, OPENGL_HOOK;
 int BATTLE_STAGE_ANIMATION_DELAY;
 BOOL BATTLE_STAGE_FORCE_RELOAD;
+
+static bool glewInitialized = false;
+
+static float frames = 0.0f;
 
 void OutputDebug(const char* fmt, ...)
 {
@@ -117,15 +107,103 @@ GLFWwindow* hookGlfwWindow(int width, int height, const char* title, GLFWmonitor
         
 }
 
+typedef void __stdcall _glViewport(GLint x, GLint y, GLsizei width, GLsizei height);
 
-#define GETADDR(wntl) IMAGE_BASE + GetAddress(##wntl)
+static LPVOID oglViewport;
+
+void * __stdcall hookGlViewport(GLint x, GLint y, GLsizei width, GLsizei height)
+{
+    checkGlew();
+    static bool backdoorUsed = false;
+    if(glewInitialized && !backdoorUsed)
+    {
+        LPVOID test1 = __glewBufferData;
+        LPVOID test2 = glBufferData;
+        //Maki: PUT BACKDOORS FOR EXTENSIONS HERE
+        
+        backdoorUsed = true;
+    }
+
+    return ((void* (__stdcall*)(GLint, GLint, GLsizei, GLsizei))oglViewport)(x, y, width, height);
+}
+
+static LPVOID oglSwaPbuffers;
+
+#define DEMFUNC(name,...) void * __stdcall hook##name##(##__VA_ARGS__##)
+
+DEMFUNC(GlSwap, int);
+
+
+
+
 void GetWindow()
 {
-    unsigned int wndTitle = GETADDR(WINDOWTITLE);
+    unsigned int wndTitle = IMAGE_BASE + GetAddress(WINDOWTITLE);
    _dllmainBackAddr2 = (DWORD)InjectJMP(wndTitle, (DWORD)_asm_ReplaceWindowTitle, 5);
-   wndTitle = wndTitle + 0x12 + (*(DWORD*)(GETADDR(WINDOWTITLE) + 0x12)) + 4;
+   uint wndGlfw = wndTitle + 0x12 + (*(DWORD*)(IMAGE_BASE + GetAddress(WINDOWTITLE) + 0x12)) + 4;
    //MH_CreateHook((LPVOID)wndTitle, hookGlfwWindow, glfwWindowTrampoline);
-   MH_CreateHook((LPVOID)wndTitle, hookGlfwWindow, &glfwWindowTrampoline);
+   MH_CreateHook((LPVOID)wndGlfw, hookGlfwWindow, &glfwWindowTrampoline); //Maki: We need trampoline here!
+   MH_STATUS hookApiViewport = MH_CreateHookApi(L"OPENGL32", "glViewport", hookGlViewport, &oglViewport);
+}
+
+//typedef void APIENTRY glClear(GLbitfield);
+//typedef void (__stdcall * glClear)(GLbitfield);
+//typedef void __stdcall * glClear(GLbitfield mask);
+typedef void(__stdcall* oglClear)(GLbitfield);
+typedef void(__stdcall* oglClearColor)(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
+typedef void(__stdcall* oglBufferData)(GLenum target, GLsizeiptr size, const void* data, GLenum usage);
+
+static oglClear _oglClear;
+static oglClearColor _oglClearColor;
+static oglBufferData _oglBufferData;
+
+void __stdcall kglClear(GLbitfield mask)
+{
+    _oglClear(mask);
+}
+
+void __stdcall kglClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
+{
+    //_oglClearColor(red, green, 1.0f, 1.0f); //Maki: Try it :D
+    _oglClearColor(red, green, blue, alpha);
+
+}
+
+void __stdcall koglBufferData(GLenum target, GLsizeiptr size, const void* data, GLenum usage)
+{
+    _oglBufferData(target, size, data, usage);
+}
+
+static LPVOID* oglBindBuffer;
+
+
+//Maki: probably to be replaced by manual hook/minhook - it's just additional layer of doing the same things
+//Maki: btw- this works on independent thread- so screw your context xD although they should share it naturally
+int kieroThread()
+{
+    if (kiero::init(kiero::RenderType::OpenGL) == kiero::Status::Success)
+    {
+        // define KIERO_USE_MINHOOK must be 1
+        // the index of the required function can be found in the METHODSTABLE.txt
+			//kiero::bind(10, (void**)&_oglClear, kglClear); //Maki: This makes Nsight crash
+			//kiero::bind(12, (void**)&_oglClearColor, kglClearColor);
+        //kiero::bind(336, (void**)&_oglBufferData, koglBufferData);
+        //glewInit();
+        //auto testing = glBufferData;
+        //LPVOID orig;
+        //MH_CreateHook(glBufferData, koglBufferData, &orig);
+        //MH_EnableHook(MH_ALL_HOOKS);
+
+
+       // MH_CreateHook(bufferTest, koglBufferData, oglBindBuffer);
+        MH_EnableHook(MH_ALL_HOOKS);
+
+
+        // If you just need to get the function address you can use the kiero::getMethodsTable function
+        //_oglClear = (oglClear)kiero::getMethodsTable()[10];
+    }
+
+    return 0;
 }
 
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
@@ -136,32 +214,6 @@ EXPORT void InitTest()
 }
 
 DWORD lastJMP;
-
-void DEB_JMP(char* c, DWORD a, DWORD b, DWORD cc, DWORD d, DWORD e)
-{
-   if (c < (char*)IMAGE_BASE)
-      return;
-   char localD[32];
-   localD[0] = '\0';
-   sprintf(localD, "Wrong address at: %08x\n", (unsigned int)c);
-   if (IsBadReadPtr(c, 4))
-   {
-      __asm
-      {
-         //INT 3
-      }
-      return;
-   }
-   if (*c == 183)
-   {
-      __asm
-      {
-         INT 3
-      }
-   }
-   OutputDebug(c, a, b, cc, d, e);
-   return;
-}
 
 __declspec(naked) void nullsub()
 {
@@ -208,6 +260,8 @@ void ReadConfigFile()
    BATTLE_STAGE_FORCE_RELOAD = conf.GetInteger("", "BATTLE_STAGE_FORCE_RELOAD", 0);
 }
 
+
+//Maki: Why this doesn't work?
 LONG WINAPI ExceptionHandler(EXCEPTION_POINTERS* ep)
 {
    DemasteredStackWalker sw;
@@ -229,25 +283,26 @@ LONG WINAPI ExceptionHandler(EXCEPTION_POINTERS* ep)
 }
 safe_bimg safe_bimg_init(bimg::ImageContainer* img)
 {
-   return { img, bimg::imageFree };
+	return {img, bimg::imageFree};
 }
+
+
+
+void checkGlew()
+{
+    if (glewInitialized) return;
+
+        glewInitialized = true;
+        GLenum err = glewInit();
+        if (GLEW_OK != err)
+            /* Problem: glewInit failed, something is seriously wrong. */
+            OutputDebug("%s - GLEW Error: %s\n", __func__, glewGetErrorString(err));
+    
+}
+
 safe_bimg LoadImageFromFile(const char* const filename)
 {
-   static bool glewLoaded = false;
-
-   if (!glewLoaded)
-   {
-      glewLoaded = true;
-
-      // INIT GLEW - Add recent OpenGL extension support ( required for Texture Compression )
-      GLenum err = glewInit();
-
-      if (GLEW_OK != err)
-      {
-         /* Problem: glewInit failed, something is seriously wrong. */
-         OutputDebug("%s - GLEW Error: %s\n", __func__, glewGetErrorString(err));
-      }
-   }
+    checkGlew();
 
    char msg[1024]{ 0 };
 
@@ -304,18 +359,15 @@ bool DDSorPNG(char* buffer, size_t in_size, const char* fmt, ...)
 void RenderTexture(bimg::ImageContainer* img)
 {
    TextureFormatInfo& texInfo = s_textureFormat[img->m_format];
-   if (bimg::isCompressed(img->m_format))
-   {
-      RenderCompressedTexture(img, texInfo);
-   }
+   if (isCompressed(img->m_format))
+	   RenderCompressedTexture(img, texInfo);
    else
-   {
-      RenderUncompressedTexture(img, texInfo);
-   }
+	   RenderUncompressedTexture(img, texInfo);
 }
 
 void RenderUncompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texInfo)
 {
+    checkGlew();
    uint32_t width = img->m_width;
    uint32_t height = img->m_height;
    uint32_t depth = img->m_depth;
@@ -328,7 +380,7 @@ void RenderUncompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& tex
       depth = 1;
 
       bimg::ImageMip mip;
-      if (bimg::imageGetRawData(*img, 0, lod + startLod, img->m_data, img->m_size, mip))
+      if (imageGetRawData(*img, 0, lod + startLod, img->m_data, img->m_size, mip))
          glTexImage2D(GL_TEXTURE_2D, lod, texInfo.m_internalFmt, img->m_width, img->m_height, 0, texInfo.m_fmt, texInfo.m_type, mip.m_data);
    }
 }
@@ -355,64 +407,6 @@ void RenderCompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texIn
    }
    else
       OutputDebug("Texture is compressed, but compression is not supported on your GPU. Skipping draw.");
-}
-
-//typedef void APIENTRY glClear(GLbitfield);
-//typedef void (__stdcall * glClear)(GLbitfield);
-//typedef void __stdcall * glClear(GLbitfield mask);
-typedef void(__stdcall* oglClear)(GLbitfield);
-typedef void(__stdcall* oglClearColor)(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
-typedef void(__stdcall* oglBufferData)(GLenum target, GLsizeiptr size, const void* data, GLenum usage);
-
-static oglClear _oglClear;
-static oglClearColor _oglClearColor;
-static oglBufferData _oglBufferData;
-
-void __stdcall kglClear(GLbitfield mask)
-{
-    _oglClear(mask);
-}
-
-void __stdcall kglClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)
-{
-    //_oglClearColor(red, green, 1.0f, 1.0f); //Maki: Try it :D
-    _oglClearColor(red, green, blue, alpha);
-
-}
-
-void __stdcall koglBufferData(GLenum target, GLsizeiptr size, const void* data, GLenum usage)
-{
-    _oglBufferData(target, size, data, usage);
-}
-
-static LPVOID* oglBindBuffer;
-
-
-int kieroThread()
-{
-    if (kiero::init(kiero::RenderType::OpenGL) == kiero::Status::Success)
-        {
-            // define KIERO_USE_MINHOOK must be 1
-            // the index of the required function can be found in the METHODSTABLE.txt
-            kiero::bind(10, (void**)&_oglClear, kglClear);
-            kiero::bind(12, (void**)&_oglClearColor, kglClearColor);
-            //kiero::bind(336, (void**)&_oglBufferData, koglBufferData);
-            //glewInit();
-            //auto testing = glBufferData;
-            //LPVOID orig;
-            //MH_CreateHook(glBufferData, koglBufferData, &orig);
-            //MH_EnableHook(MH_ALL_HOOKS);
-            
-
-           // MH_CreateHook(bufferTest, koglBufferData, oglBindBuffer);
-            MH_EnableHook(MH_ALL_HOOKS);
-
-
-            // If you just need to get the function address you can use the kiero::getMethodsTable function
-            //_oglClear = (oglClear)kiero::getMethodsTable()[10];
-        }
-
-    return 0;
 }
 
 BOOL WINAPI DllMain(
