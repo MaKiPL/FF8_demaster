@@ -1,5 +1,5 @@
 #include <iostream>
-#include "../FFVIII_DR/log.h"
+#include "../FFVIII_DR/core.h"
 
 int main()
 {

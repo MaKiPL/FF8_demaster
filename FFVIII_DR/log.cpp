@@ -1,29 +1,56 @@
+#include <iostream>
+#define OOF_IMPL
 #include "log.h"
 
-#define OOF_IMPL
-#include <oof.h>
 
-#include <iostream>
-#include <chrono>
-
-#include <cctz/time_zone.h>
-
-inline std::string GetTimestamp()
+void Log::output_string(const std::string& msg, const oof::color colorIndex) const
 {
-	return format("%Y%m%d-%H:%M:%S",
-	              std::chrono::system_clock::now(), cctz::local_time_zone());
+	std::cout << fg_color(colorIndex);
+	std::cout << msg << std::endl;
 }
 
-void Log::output_string(const std::string msg, const int colorIndex) const
+inline void Log::output_timestamp()
 {
-	std::cout << oof::fg_color(colorIndex);
-	std::cout << msg;
+	std::cout << oof::underline() << GetTimestamp() << oof::underline(false);
+}
+
+inline void Log::output_specifier(const std::string& spec)
+{
+	std::cout << oof::bold() << spec << ": " << oof::bold(false);
 }
 
 
 void Log::LogMessage(const char* msg) const
 {
-	Log::output_string(GetTimestamp());
-	Log::output_string("\tMESSAGE: ");
-	Log::output_string(msg, 0);
+	std::cout << fg_color(Colors::white);
+	output_timestamp();
+	output_specifier("MESSAGE");
+	output_string(msg);
+}
+
+void Log::LogWarning(const char* msg) const
+{
+	std::cout << fg_color(Colors::yellow);
+	output_timestamp();
+	output_specifier("WARNING");
+	output_string(msg);
+}
+
+void Log::LogError(const char* msg) const
+{
+	std::cout << fg_color(Colors::red);
+	output_timestamp();
+	output_specifier("ERROR");
+	output_string(msg);
+}
+
+Log::Log()
+{
+	
+}
+
+
+Log::~Log()
+{
+	
 }
