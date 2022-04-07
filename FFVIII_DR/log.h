@@ -2,8 +2,10 @@
 #include <string>
 #include <cctz/time_zone.h>
 #include <oof.h>
+#include "core.h"
 
 #define LOG_FILE_NAME "DRlog.txt"
+#define LOG_BUFFER_SIZE 64
 
 
 inline std::string GetTimestamp()
@@ -38,13 +40,27 @@ public:
 	void LogMessage(const char* msg) const;
 	void LogError(const char* msg) const;
 	void LogWarning(const char* msg) const;
+	void LogOk(const char* msg) const;
 	Log();
 	~Log();
 
+	enum logtype
+	{
+		information,
+		ok,
+		warning,
+		error
+	};
+
+	const std::string INFO = " INFO:\t";
+	const std::string OKAY = " OK:\t";
+	const std::string WARN = " WARNING:\t";
+	const std::string ERRO = " ERROR:\t";
+
 
 private:
-	void output_string(const std::string& msg, oof::color colorIndex = oof::color{255,255,255}) const;
-	static inline void output_timestamp();
-	static inline void output_specifier(const std::string& spec);
-	std::vector<std::string> log_messages = std::vector<std::string>(64); //64 messsages buffer
+	void output_string(const std::string& msg, logtype logType) const;
+	std::vector<std::string> * log_messages = new std::vector<std::string>();
+	//static inline void output_timestamp();
+	//static inline void output_specifier(const std::string& spec);
 };
