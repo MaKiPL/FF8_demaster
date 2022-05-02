@@ -17,8 +17,10 @@ BOOL APIENTRY DllMain( HMODULE hModule,
         return ERROR_BAD_CONFIGURATION;
     }
 
-    //TODO: Maki: create logger so we can allocconsole and control output with warnings and logs
-    //with colours and etc.
+
+    DR_CREATE_LOGGER
+
+    
 
     return TRUE;
 }
