@@ -69,10 +69,13 @@
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="modulebtl.cpp" />
-    <ClCompile Include="patchwmuv.cpp" />
+    <ClCompile Include="patch.cpp" />
+    <ClCompile Include="patchwmuv.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="addressTable.h" />
     <ClInclude Include="core.h" />
+    <ClInclude Include="patch.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

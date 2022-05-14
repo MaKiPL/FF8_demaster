@@ -14,7 +14,7 @@
 #include <windows.h>
 
 		//THIRDPARTY
-https://github.com/gabime/spdlog
+//https://github.com/gabime/spdlog
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 #define LOGNAME "demaster logger"
@@ -26,9 +26,18 @@ https://github.com/gabime/spdlog
 	"Demaster Reborn v. {}\t Build date: {} {}\tfor: {}\n \tBy Maki",	\
 	DRVERSION, __DATE__, __TIME__, ENGINEVER);
 
-
+#include <MinHook.h>
 
 
 ///=====END OF INCLUDES======///
+enum gameVersions : int {v1000,v1010,v1020,v1030,};
+enum dllLangVersions : int { EFIGS, JP, OTHER };
+enum ingameLanguage : int {
+	ENGLISH, FRENCH_, ITALIAN, GERMAN, SPANISH, MOD_POLISH,
+	MOD_UKRAINIAN, MOD_HUNGARIAN, MOD_PLACEHOLDER, JAPANESE = 10,
+	MOD_CHINESE
+};
 
 //patch
+#include "patch.h"
+std::vector<Patch> patches;
