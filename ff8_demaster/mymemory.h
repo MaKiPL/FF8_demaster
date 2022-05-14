@@ -1,5 +1,4 @@
 #pragma once
-
 //See address table at:
 //https://docs.google.com/spreadsheets/d/1hFGSoQNbamIrqmhBwr8B9RvD43KO140Zyb5eiWm3O_4/edit?usp=sharing
 
@@ -7,6 +6,8 @@
 #include <vector>
 #include <map>
 
+
+#pragma warning (disable : 26812 ) //this makes little sense, I'm ignoring it
 enum ADDRESS_NAME
 {
    UVPATCH0, UVPATCH1, UVPATCH2, UVPATCH3, UVPATCH4, UVPATCH5, UVPATCH6, UVPATCH7, UVPATCH8, UVPATCH9, UVPATCH10, UVPATCH11, UVPATCH12,
@@ -29,7 +30,7 @@ unsigned int _stdcall GetAddress(const ADDRESS_NAME name);
 
 const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 {
-#if JAPANESE_PATCH==0
+#ifndef JAPANESE_PATCH
    //KEY-ENUM		//VANILLA, 1010, 1020, ??? - all are for english- for japanese this list should be eventually swapped to other map
 	{ _ASM_FIELDBGRETADDR2 , std::vector<unsigned int>{ 0x0       , 0x1606540 , 0x1606e20 ,0x1606A20,} },
 	{ _ASM_FIELDBGRETADDR3 , std::vector<unsigned int>{ 0x0       , 0x1591B75 , 0x1592185 ,0x1591EA5,} },
@@ -93,9 +94,8 @@ const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 	{ WORLDGETTEXIDX1      , std::vector<unsigned int>{ 0x0       , 0x17424B4 , 0x17424b4 ,0x17424B4,} },
 	{ WORLDGETTEXIDX2      , std::vector<unsigned int>{ 0x0       , 0x17424B8 , 0x17424b8 ,0x17424B8,} },
 	{ WORLDGETTEXIDX3      , std::vector<unsigned int>{ 0x0       , 0x17424BC , 0x17424bc ,0x17424Bc,} },
-
 #else
-{IOFUNC1              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x3649C   }},
+{ IOFUNC1              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x3649C   }},
 {IOFUNC6              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x3653A   }},
 {IOFUNC5              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x365C8   }},
 {IOFUNC2              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x36B07   }},

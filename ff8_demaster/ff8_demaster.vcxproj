@@ -53,8 +53,13 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>vendor\include\;vendor\include\compat\msvc;$(IncludePath)</IncludePath>
     <LibraryPath>vendor\lib\;vendor\lib\bgfx;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir).dist\debug\</OutDir>
+    <OutDir>$(SolutionDir).build\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir).build\$(Configuration)\</IntDir>
+    <TargetName>FFVIII_JP</TargetName>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnableManifest>false</VcpkgEnableManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -97,7 +102,7 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
       </PrecompiledHeaderFile>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -109,9 +114,9 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
       <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
       <AdditionalOptions>/IGNORE:4075,4099 %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <PostBuildEvent />
     <PostBuildEvent>
-      <Command>del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).exp
-del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
+      <Command>c:\windows\system32\xcopy.exe /Y $(SolutionDir).build\$(Configuration)\FFVIII_JP.dll "$(LocalDebuggerWorkingDirectory)\$(TargetFileName)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
