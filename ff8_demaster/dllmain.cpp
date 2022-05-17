@@ -45,7 +45,7 @@ static float frames = 0.0f;
 void OutputDebug(const char* fmt, ...)
 {
 
-#if _DEBUG && !JAPANESE_PATCH
+#if _DEBUG //&& !JAPANESE_PATCH
 	//DWORD fmtPtr = (DWORD)fmt;
 	//if (
 	//   IMAGE_BASE <= fmtPtr && fmtPtr <= IMAGE_BASE + IMAGE_SIZE
@@ -81,8 +81,8 @@ void OutputDebug(const char* fmt, ...)
 DWORD _dllmainBackAddr1;
 DWORD _dllmainBackAddr2;
 
-#if JAPANESE_PATCH
-const wchar_t* windowTitle = L"ファイナルファンタジーVIII ディマスター by Maki [1.3]";
+#if 0
+//L"ファイナルファンタジーVIII ディマスター by Maki [1.3]";
 #else
 const char* windowTitle = "FINAL FANTASY VIII Remastered - Demaster patch by Maki [1.3]";
 #endif
@@ -103,7 +103,7 @@ static GLFWwindow* ffWindow;
 static LPVOID glfwWindowTrampoline;
 GLFWwindow* hookGlfwWindow(int width, int height, const char* title, GLFWmonitor* monitor, GLFWwindow* share)
 {
-	return ffWindow = ((GLFWwindow * (*)(int, int, const char*, GLFWmonitor*, GLFWwindow*))glfwWindowTrampoline)(width, height, title, monitor, share);
+	return ffWindow = static_cast<GLFWwindow*(*)(int, int, const char*, GLFWmonitor*, GLFWwindow*)>(glfwWindowTrampoline)(width, height, title, monitor, share);
 
 }
 

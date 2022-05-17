@@ -55,8 +55,9 @@
     <LibraryPath>vendor\lib\;vendor\lib\bgfx;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir).build\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir).build\$(Configuration)\</IntDir>
-    <TargetName>FFVIII_JP</TargetName>
-    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
+    <TargetName>ff8_demaster</TargetName>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>false</VcpkgEnableManifest>
@@ -116,7 +117,7 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
     </Link>
     <PostBuildEvent />
     <PostBuildEvent>
-      <Command>c:\windows\system32\xcopy.exe /Y $(SolutionDir).build\$(Configuration)\FFVIII_JP.dll "$(LocalDebuggerWorkingDirectory)\$(TargetFileName)"</Command>
+      <Command>c:\windows\system32\xcopy.exe /Y $(SolutionDir).build\$(Configuration)\$(TargetFileName) "$(LocalDebuggerWorkingDirectory)\$(TargetFileName)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

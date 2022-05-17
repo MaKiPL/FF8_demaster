@@ -11,6 +11,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_JP|Win32'">
     <LocalDebuggerCommand>D:\FINAL FANTASY VIII REMASTERED\FFVIII_JP.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerWorkingDirectory>D:\FINAL FANTASY VIII REMASTERED</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>D:\FINAL FANTASY VIII REMASTERED\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerAttach>false</LocalDebuggerAttach>
+    <LocalDebuggerCommandArguments>-jp</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>
