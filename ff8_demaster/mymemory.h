@@ -149,12 +149,12 @@ const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 {FCPBACKADD2          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x163E8FD , 0x163E33D }},
 {BHP                  , std::vector<unsigned int>{ 0x0 , 0x0 , 0x167A558 , 0x1679F98 }},
 {DS_FREE              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x169D2A8 , 0x169D2A8 }},
-{DS_TEXIMG            , std::vector<unsigned int>{ 0x0 , 0x0 , 0x169D4B4 , 0x169D4B4 }},
+{DS_TEXIMG            , std::vector<unsigned int>{ 0x0 , 0x0 , 0x169D4B4 , 0x169D4AC }},
 {WORLDGETTEXIDX0      , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1753F70 , 0x1753F70 }},
 {WORLDGETTEXIDX1      , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1753F74 , 0x1753F74 }},
 {WORLDGETTEXIDX2      , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1753F78 , 0x1753F78 }},
 {WORLDGETTEXIDX3      , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1753F7C , 0x1753F7C }},
-{CHECKTEXREPAVAIL     , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1793BA8 , 0x1793BA8 }},
+{CHECKTEXREPAVAIL     , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1793BA8 , 0x1793BB0 }},
 {BGFILENAME1          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1793C94 , 0x1793CB4 }},
 {BGFILENAME2          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x18A85A4 , 0x18A85A4 }}
 #endif
