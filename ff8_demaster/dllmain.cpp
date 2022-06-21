@@ -446,6 +446,8 @@ BOOL WINAPI DllMain(
 
 	OutputDebug("IMAGE_BASE at: %lX; OPENGL at: %lX\n", IMAGE_BASE, OPENGL_HANDLE);
 
+	InitTable(IMAGE_BASE);
+
 	MH_Initialize();
 	GetWindow();
 

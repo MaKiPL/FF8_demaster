@@ -18,7 +18,7 @@ enum ADDRESS_NAME
    IOFUNC2, IOFUNC3, IOFUNC4, IOFUNC5, IOFUNC6, FILTERPATCH1, FILTERPATCH2, FILTERPATCH3, FILTERPATCH4, WINDOWTITLE, NULLSUB_DEBUG
 };
 
-void InitTable();
+void InitTable(unsigned int baseAddress);
 //Forcing _stdcall for assembler PUSH based CALLS for EAX as return value and stack cleaned by function
 unsigned int _stdcall GetAddress(const ADDRESS_NAME name);
 
@@ -156,6 +156,6 @@ const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 {WORLDGETTEXIDX3      , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1753F7C , 0x1753F7C }},
 {CHECKTEXREPAVAIL     , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1793BA8 , 0x1793BB0 }},
 {BGFILENAME1          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1793C94 , 0x1793CB4 }},
-{BGFILENAME2          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x18A85A4 , 0x18A85A4 }}
+{BGFILENAME2          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x18A85A4 , 0x18A8418 }}
 #endif
 };

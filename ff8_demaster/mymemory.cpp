@@ -1,10 +1,15 @@
 #include "mymemory.h"
 
 //uhm
-void InitTable()
+void InitTable(unsigned int baseAddress)
 {
-	//PATCHADDRESS[UVPATCH0] = std::vector<unsigned int>{ 0x00, 0x01, 0x02 };
-	return;
+
+
+	for(std::pair<const ADDRESS_NAME, std::vector<unsigned>> key : PATCHADDRESS)
+	{
+
+		
+	}
 }
 
 //this is a good place for managing game version and language indexes

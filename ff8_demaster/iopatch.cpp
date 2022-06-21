@@ -1,29 +1,40 @@
 #include "coreHeader.h"
 
-
+#include <string>
 
 DWORD IO_backAddress = 0;
 DWORD IO_backAddress2 = 0;
 DWORD IO_backAddress3 = 0;
+DWORD IO_backAddress4 = 0;
+DWORD IO_seekAddresses[2];
+DWORD IO_originalBytes[2];
+WORD IO_originalBytes6;
 DWORD filePathBuffer, filePathStrlen;
+DWORD IO_SEEKASM1 = 0xFF90006A;// 6A0090FF;
+DWORD IO_SEEKASM2 = 0x8B90C031;// 31C0908B;
 char IO_backlogFilePath[256]{ 0 };
 
+const std::string nullPath = std::string(DIRECT_IO_EXPORT_DIR) + "textures\\null.png";
+const char * nullPathC = nullPath.c_str();
 
+bool bInvalidFile = false;
 
 //CREATES PATH
 __declspec(naked) void directIO_fopenReroute()
 {
 	__asm
 	{
-		//let's save our regs, because VS compiler will probably destroy them
-		PUSH EAX
-		PUSH EBX
-		PUSH ECX
-		PUSH EDX
-
 		MOV filePathBuffer, EDX //save buffer
 		MOV filePathStrlen, ECX //and strlen
 	}
+	if(bInvalidFile==true) //check state if was invalid file before
+	{
+		*((DWORD*)IO_seekAddresses[0]) = IO_SEEKASM1;
+		*((DWORD*)IO_seekAddresses[1]) = IO_SEEKASM2;
+		*((WORD*)IO_backAddress4) = 0x9090;
+	}
+
+	bInvalidFile = false;
 
 	strcpy(IO_backlogFilePath, DIRECT_IO_EXPORT_DIR); //VS automatically does the ESP math
 	strcpy(IO_backlogFilePath + DIRECT_IO_EXPORT_DIR_LEN, (char*)filePathBuffer); //same for this, no local vars so no ESP--
@@ -31,21 +42,27 @@ __declspec(naked) void directIO_fopenReroute()
 	if (GetFileAttributesA(IO_backlogFilePath) == INVALID_FILE_ATTRIBUTES)
 	{
 		OutputDebug("%s: %s, %s\n", __func__, IO_backlogFilePath, "file not found");
-		DDSorPNG(IO_backlogFilePath,256U, "%stextures\\null", DIRECT_IO_EXPORT_DIR);
+		strcpy(IO_backlogFilePath, (char*)filePathBuffer);
+		bInvalidFile = true;
+		*((DWORD*)IO_seekAddresses[0]) = IO_originalBytes[0];
+		*((DWORD*)IO_seekAddresses[1]) = IO_originalBytes[1];
+		*((WORD*)IO_backAddress4) = IO_originalBytes6;
+
+		//rewrite functions to original one
 	}
 	else
-	{
 		OutputDebug("%s: %s\n", __func__, IO_backlogFilePath);
-	}
 
 	__asm
 	{
-		//restore our regs
-		POP EDX
-		POP ECX
-		POP EBX
-		POP EAX
 		//original code here
+		//CMP bInvalidFile, 0
+		//JE _normalpush
+		//XOR ECX, ECX
+		
+		//_normalpush:
+		MOV ECX, filePathStrlen
+		MOV EDX, filePathBuffer
 		PUSH ECX
 		PUSH EDX
 		LEA ECX, [esp+0x38] //first: [ebp - 2Ch]
@@ -61,6 +78,11 @@ __declspec(naked) void directIO_fopenReroute2()
 	__asm
 	{
 		PUSH OFFSET rb //too much hustle to get original value based on calcs without using any regs
+		CMP bInvalidFile, 0
+		JE _normal
+		PUSH EDI //EDI contains original filename 
+		JMP IO_backAddress2
+		_normal:
 		PUSH OFFSET IO_backlogFilePath
 		JMP IO_backAddress2
 	}
@@ -73,11 +95,22 @@ __declspec(naked) void directIO_fopenReroute3()
 {
 	__asm
 	{
-		//JNE $+0xC //I can't do JE IO_backAddress3, probably because VS treats it's a DWORD PTR
 		MOV EAX, ESI
 		MOV ECX, [ESP + 0x50]
-		TEST ESI, ESI //
-		JNZ validEsi
+		CMP bInvalidFile, 0
+		JE _proceed
+		JMP IO_backAddress3
+		_proceed:
+	}
+
+	//if(bInvalidFile) //this destroys EAX
+	//__asm {JMP IO_backAddress3}
+
+	__asm
+	{
+		//JNE $+0xC //I can't do JE IO_backAddress3, probably because VS treats it's a DWORD PTR
+		TEST ESI, ESI
+		JNE validEsi
 		JMP IO_backAddress3
 		validEsi :
 		PUSH EAX
@@ -134,40 +167,50 @@ void ApplyDirectIO()
 
 	//Patch fopen method
 //patch JMP to directIO_fopenReroute
+
+	
 	BYTE* fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC1);
 	IO_backAddress = (DWORD)fopenPatchMnemonic + 6;
 	DWORD jmpParam = (DWORD)directIO_fopenReroute - (DWORD)fopenPatchMnemonic - 5;
 	modPage((DWORD)fopenPatchMnemonic, 5);
-	*fopenPatchMnemonic = 0xE9; //JMP [DW]
-	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
+ 	*fopenPatchMnemonic = 0xE9; //JMP [DW]
+ 	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
 
 	//patch JMP to directIO_fopenReroute2
+
+
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC2);
 	IO_backAddress2 = (DWORD)fopenPatchMnemonic + 5;
 	jmpParam = (DWORD)directIO_fopenReroute2 - (DWORD)fopenPatchMnemonic - 5;
 	modPage((DWORD)fopenPatchMnemonic, 5);
-	*fopenPatchMnemonic = 0xE9; //JMP [DW]
-	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
-	*(fopenPatchMnemonic + 5) = 0x90; //NOP
+ 	*fopenPatchMnemonic = 0xE9; //JMP [DW]
+ 	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
+ 	*(fopenPatchMnemonic + 5) = 0x90; //NOP
 
 		//patch FSEEKs
 	//First fseek
+
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC3);
-	modPage((DWORD)fopenPatchMnemonic, 3); //PUSH + NOP
-	*fopenPatchMnemonic = 0x6A;		//PUSH
-	*(fopenPatchMnemonic + 1) = 0x00;	//	PUSH->0
-	*(fopenPatchMnemonic + 2) = 0x90;	//NOP
+	modPage((DWORD)fopenPatchMnemonic, 4); //PUSH + NOP
+	IO_originalBytes[0] = *((DWORD*)fopenPatchMnemonic);
+	IO_seekAddresses[0] = (DWORD)fopenPatchMnemonic;
+	*((DWORD*)fopenPatchMnemonic) = IO_SEEKASM1; //PUSH 0 NOP PUSH...
+	//FF 75 10 FF
 
 	//Second fseek
+
+
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC4);
-	modPage((DWORD)fopenPatchMnemonic, 3); //XOR EAX, EAX + NOP
-	*fopenPatchMnemonic = 0x31;		//XOR EAX
-	*(fopenPatchMnemonic + 1) = 0xc0;	//	XOR EAX->EAX
-	*(fopenPatchMnemonic + 2) = 0x90;	//NOP
+	modPage((DWORD)fopenPatchMnemonic, 4); //XOR EAX, EAX + NOP
+	IO_seekAddresses[1] = (DWORD)fopenPatchMnemonic;
+	IO_originalBytes[1] = *((DWORD*)fopenPatchMnemonic);
+	*((DWORD*)fopenPatchMnemonic) = IO_SEEKASM2; //XOR EAX, EAX; NOP; PUSH...
 
 	//Now we need to fix fd struct filelen for modifications of RAW files
 	//see fopen_archivePrepareSeek- we need to update struct before return
 	//EAX contains struct for FD open archive
+	//
+
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC5); //MOV EAX, ESI; MOV ECX, [EBP-0ch]   [//8BC6 8B4DF4]
 	IO_backAddress3 = (DWORD)fopenPatchMnemonic + 6;
 	modPage((DWORD)fopenPatchMnemonic, 5); //JMP
@@ -176,7 +219,11 @@ void ApplyDirectIO()
 	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
 
 	//patch additional security that checks for weepTable
+
+
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC6);
 	modPage((DWORD)fopenPatchMnemonic, 2);
+	IO_backAddress4 = (DWORD)fopenPatchMnemonic;
+	IO_originalBytes6 = *((WORD*)fopenPatchMnemonic);
 	*(WORD*)fopenPatchMnemonic = 0x9090;		//NOP NOP
 }

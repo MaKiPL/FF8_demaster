@@ -4,6 +4,11 @@ BYTE* _asm_FieldBgRetAddr1;
 BYTE* _asm_FieldBgRetAddr2;
 BYTE* _asm_FieldBgRetAddr3;
 
+#ifndef JAPANESE_PATCH
+int BGFILENAME2_R = 0x118;
+#else
+int BGFILENAME2_R = 0x490;
+#endif
 
 /// <summary>
 /// Gets field map name from maplist data
@@ -22,7 +27,7 @@ bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 		if (maplistVector.capacity() < 982) 
 			maplistVector.reserve(982);
 		const char* const maplist_src = []() {
-			const char* tmp_ptr = (const char*)(*(DWORD*)(IMAGE_BASE + GetAddress(BGFILENAME2)) + 0x118 + cached_maplist_size);
+			const char* tmp_ptr = (const char*)(*(DWORD*)(IMAGE_BASE + GetAddress(BGFILENAME2)) + BGFILENAME2_R + cached_maplist_size);
 			if (*tmp_ptr == '\n') //The \n tends to be left at the front on reloading.
 				(void)++tmp_ptr, ++cached_maplist_size;
 			return tmp_ptr;
