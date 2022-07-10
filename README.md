@@ -1,13 +1,15 @@
-![freeukraine](https://mgomulak.pl/freeukraine_.webp)
+# Demaster Reborn
+
+![banner](frame.png)
+
+Demaster reborn is refreshed and improved version of the demastered mod patch for Final Fantasy VIII.
+
+Demaster Reborn is a mod that adds new features to the game including hot texture replacement, all modules texture replacement, adds possibility to use upscaled textures, adds non-available to mod textures to be integrated like some enemies that didn't have new textures and many, many more!
+
+Keep tuned for more updates and new features!
 
 This is WIP for Demaster Reborn- In order to find legacy, please change branch to 'master' from current default's 'reborn'.
 
 For legacy releases, everything is on your right of the screen in **Releases** section
 
-# Logo design contest! Win 20$ for your art!
-
-Your art will be awarded prize starting from 20$ and will be official logo of Demaster Reborn which will be promoted globally!
-
-See more details at: https://forums.qhimm.com/index.php?topic=21216.msg287771#msg287771
-
-# This project is in WIP stage and just kicked into the hard-dev time! Deadline: One month! Keep fingers crossed!
+![freeukraine](https://mgomulak.pl/freeukraine_.webp)
