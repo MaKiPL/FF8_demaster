@@ -1,6 +1,6 @@
 # Demaster Reborn
 
-![banner](frame.png)
+![banner](https://raw.githubusercontent.com/MaKiPL/FF8_demastered/reborn/FRAME.png)
 
 Demaster reborn is refreshed and improved version of the demastered mod patch for Final Fantasy VIII.
 
