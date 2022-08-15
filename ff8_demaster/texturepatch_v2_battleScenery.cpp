@@ -302,6 +302,14 @@ void ApplyBattleFieldPatch()
 	_bspBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(_BSPBACKADD1), (DWORD)_bsp, 38);
 	_bspBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(_BSPBACKADD2), (DWORD)_bspFree, 9);
 
+	//fixes balamb low-res and library low-res for example @ 15.08.2022
+	DWORD bgPatchWidth = IMAGE_BASE + GetAddress(BGRESPATCH1);
+	DWORD bgPatchHeight = IMAGE_BASE + GetAddress(BGRESPATCH1) + 0xC;
+	modPage(bgPatchWidth, 1);
+	modPage(bgPatchHeight, 1);
+	*(BYTE*)bgPatchWidth = 0xE0; //SHL instead of SHR
+	*(BYTE*)bgPatchHeight = 0xE0; //SHL instead of SHR
+
 	//this disables textureLimit for resolution
 	InjectJMP(IMAGE_BASE + GetAddress(BATTLEJMPPATCH1), (DWORD)(IMAGE_BASE + GetAddress(BATTLEJMPPATCH2)), 6);
 }

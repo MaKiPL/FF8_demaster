@@ -15,7 +15,8 @@ enum ADDRESS_NAME
    BGFILENAME1, BGFILENAME2, CHECKTEXREPAVAIL, _ASM_FIELDBGRETADDR3, DISABLETPAGELIMIT, _ASM_FIELDBGRETADDR2, DS_FREE, DS_TEXIMG,
    _BSPBACKADD1, _BSPBACKADD2, BATTLEJMPPATCH1, BATTLEJMPPATCH2, BTLMON0, BTLMON1, BTLMON2, BTLMON3, BTLMON4, BTLMON5, BTLMON6, BHP,
    _BHPBACKADD1, _BHPBACKADD2, NEWGLTEX_CHARA, BCPBACKADD1, BCPBACKADD2, BCPBACKADD3, CLTBACKADD1, CLTBACKADD2, UPLOADVRAM, IOFUNC1,
-   IOFUNC2, IOFUNC3, IOFUNC4, IOFUNC5, IOFUNC6, FILTERPATCH1, FILTERPATCH2, FILTERPATCH3, FILTERPATCH4, WINDOWTITLE, NULLSUB_DEBUG
+   IOFUNC2, IOFUNC3, IOFUNC4, IOFUNC5, IOFUNC6, FILTERPATCH1, FILTERPATCH2, FILTERPATCH3, FILTERPATCH4, WINDOWTITLE, NULLSUB_DEBUG,
+BGRESPATCH1
 };
 
 void InitTable(unsigned int baseAddress);
@@ -45,6 +46,7 @@ const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 	{ BCPBACKADD3          , std::vector<unsigned int>{ 0x0       , 0x1605040 , 0x1605920 ,0x1605520,} },
 	{ BGFILENAME1          , std::vector<unsigned int>{ 0x0       , 0x1782140 , 0x178b168 ,0x1782160,} },
 	{ BGFILENAME2          , std::vector<unsigned int>{ 0x0       , 0x189559C , 0x18955bc ,0x18955BC,} },
+	{ BGRESPATCH1          , std::vector<unsigned int>{ 0x0       , 0x0		  , 0x0		  ,0x156E2C7,} },
 	{ BHP                  , std::vector<unsigned int>{ 0x0       , 0x16482A8 , 0x1648d78 ,0x1648938,} },
 	{ BTLMON0              , std::vector<unsigned int>{ 0x0       , 0x15FF3D0 , 0x15ff9c0 ,0x15FF6F0,} },
 	{ BTLMON1              , std::vector<unsigned int>{ 0x0       , 0x15FF3DA , 0x15ff9ca ,0x15FF6FA,} },
@@ -156,6 +158,7 @@ const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 {WORLDGETTEXIDX3      , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1753F7C , 0x1753F7C }},
 {CHECKTEXREPAVAIL     , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1793BA8 , 0x1793BB0 }},
 {BGFILENAME1          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x1793C94 , 0x1793CB4 }},
+{BGRESPATCH1          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x0		 , 0x15A4D57 }},
 {BGFILENAME2          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x18A85A4 , 0x18A8418 }}
 #endif
 };
