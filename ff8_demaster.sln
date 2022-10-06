@@ -10,8 +10,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ff8_launch", "ff8_launch\ff8_launch.vcxproj", "{1E5BDC80-729A-4815-A3EE-A59A81090285}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_JP|x86 = Debug_JP|x86
@@ -22,10 +20,6 @@ Global
 		{6988B1B2-621B-45B4-A1F3-4E6ED1D82B22}.Debug_JP|x86.Build.0 = Debug_JP|Win32
 		{6988B1B2-621B-45B4-A1F3-4E6ED1D82B22}.Debug|x86.ActiveCfg = Debug|Win32
 		{6988B1B2-621B-45B4-A1F3-4E6ED1D82B22}.Debug|x86.Build.0 = Debug|Win32
-		{1E5BDC80-729A-4815-A3EE-A59A81090285}.Debug_JP|x86.ActiveCfg = Debug_JP|Win32
-		{1E5BDC80-729A-4815-A3EE-A59A81090285}.Debug_JP|x86.Build.0 = Debug_JP|Win32
-		{1E5BDC80-729A-4815-A3EE-A59A81090285}.Debug|x86.ActiveCfg = Debug|Win32
-		{1E5BDC80-729A-4815-A3EE-A59A81090285}.Debug|x86.Build.0 = Debug|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

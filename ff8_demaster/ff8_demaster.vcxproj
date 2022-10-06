@@ -5,9 +5,17 @@
       <Configuration>Debug_JP</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug_JP|x64">
+      <Configuration>Debug_JP</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -24,7 +32,19 @@
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_JP|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_JP|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
@@ -38,7 +58,13 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_JP|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug_JP|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -46,8 +72,13 @@
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>vendor\include\;vendor\include\compat\msvc;$(IncludePath)</IncludePath>
     <LibraryPath>vendor\lib\;vendor\lib\bgfx;$(LibraryPath)</LibraryPath>
-    <OutDir>$(SolutionDir).dist\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir).build\$(Configuration)\</IntDir>
+    <OutDir>I:\_CUSTOM\FINAL FANTASY VIII REMASTERED\</OutDir>
+    <IntDir>I:\_CUSTOM\FINAL FANTASY VIII REMASTERED\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>vendor\include\;vendor\include\compat\msvc;$(IncludePath)</IncludePath>
+    <LibraryPath>vendor\lib\;vendor\lib\bgfx;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_JP|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -58,6 +89,14 @@
     <TargetName>ff8_demaster</TargetName>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
     <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_JP|x64'">
+    <TargetName>ff8_demaster</TargetName>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <GenerateManifest>false</GenerateManifest>
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>vendor\include\;vendor\include\compat\msvc;$(IncludePath)</IncludePath>
+    <LibraryPath>vendor\lib\;vendor\lib\bgfx;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>false</VcpkgEnableManifest>
@@ -76,6 +115,41 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <CallingConvention>Cdecl</CallingConvention>
+      <EnableEnhancedInstructionSet>
+      </EnableEnhancedInstructionSet>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <AdditionalDependencies>StackWalker.lib;glew32s.lib;glfw3.lib;opengl32.lib;psapi.lib;bxDebug.lib;bimgDebug.lib;bimg_decodeDebug.lib;bimg_encodeDebug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>MSVCRT;MSVCRTD;LIBCMT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ForceFileOutput>Enabled</ForceFileOutput>
+      <AdditionalOptions>/IGNORE:4075,4099 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <PostBuildEvent>
+      <Command>del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).exp
+del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NOMINMAX;GLEW_STATIC;WIN32;_DEBUG;FF8DEMASTER_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>Default</ConformanceMode>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <CallingConvention>Cdecl</CallingConvention>
+      <EnableEnhancedInstructionSet>
+      </EnableEnhancedInstructionSet>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -120,19 +194,46 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
       <Command>c:\windows\system32\xcopy.exe /Y $(SolutionDir).build\$(Configuration)\$(TargetFileName) "$(LocalDebuggerWorkingDirectory)\$(TargetFileName)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_JP|x64'">
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NOMINMAX;GLEW_STATIC;WIN32;_DEBUG;FF8DEMASTER_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;JAPANESE_PATCH=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <AdditionalDependencies>StackWalker.lib;glew32s.lib;opengl32.lib;psapi.lib;bxDebug.lib;bimgDebug.lib;bimg_decodeDebug.lib;bimg_encodeDebug.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>MSVCRT;MSVCRTD;LIBCMT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ForceFileOutput>MultiplyDefinedSymbolOnly</ForceFileOutput>
+      <AdditionalOptions>/IGNORE:4075,4099 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <PostBuildEvent />
+    <PostBuildEvent>
+      <Command>c:\windows\system32\xcopy.exe /Y $(SolutionDir).build\$(Configuration)\$(TargetFileName) "$(LocalDebuggerWorkingDirectory)\$(TargetFileName)"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="iopatch.cpp" />
-    <ClCompile Include="kiero.cpp" />
     <ClCompile Include="minhook\src\buffer.c" />
     <ClCompile Include="minhook\src\hde\hde32.c" />
     <ClCompile Include="minhook\src\hde\hde64.c" />
     <ClCompile Include="minhook\src\hook.c" />
     <ClCompile Include="minhook\src\trampoline.c" />
     <ClCompile Include="mymemory.cpp" />
-    <ClCompile Include="openglHook.cpp" />
     <ClCompile Include="patch.cpp" />
-    <ClCompile Include="texturepatch_v2.cpp" />
+    <ClCompile Include="texture.cpp" />
     <ClCompile Include="texturepatch_v2_battleCharacter.cpp" />
     <ClCompile Include="texturepatch_v2_battleHooks.cpp" />
     <ClCompile Include="texturepatch_v2_battleMonster.cpp" />
@@ -144,7 +245,6 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="coreHeader.h" />
-    <ClInclude Include="kiero.h" />
     <ClInclude Include="minhook\include\MinHook.h" />
     <ClInclude Include="minhook\src\buffer.h" />
     <ClInclude Include="minhook\src\hde\hde32.h" />
@@ -155,6 +255,7 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
     <ClInclude Include="minhook\src\trampoline.h" />
     <ClInclude Include="mymemory.h" />
     <ClInclude Include="renderer.h" />
+    <ClInclude Include="texture.h" />
     <ClInclude Include="texturepatch_battle_data.h" />
   </ItemGroup>
   <ItemGroup>

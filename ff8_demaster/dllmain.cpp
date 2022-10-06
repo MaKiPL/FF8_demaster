@@ -1,8 +1,13 @@
 ﻿#include "coreHeader.h"
-#include "kiero.h"
 #include <GL/GL.h>
 #include "GLFW/include/GLFW/glfw3.h"
 #include "minhook/include/MinHook.h"
+#include <map>
+#include <chrono>
+#include <filesystem>
+#include <bx/bx.h>
+#include <bimg/bimg.h>
+#include "texture.h"
 
 #define CRASHLOG OutputDebug("%s::%d::%s\n", __FILE__, __LINE__,__func__)
 
@@ -39,6 +44,7 @@ int BATTLE_STAGE_ANIMATION_DELAY;
 BOOL BATTLE_STAGE_FORCE_RELOAD;
 
 static bool glewInitialized = false;
+void HookGlFunctionsPostGLFW();
 
 static float frames = 0.0f;
 
@@ -103,13 +109,24 @@ static GLFWwindow* ffWindow;
 static LPVOID glfwWindowTrampoline;
 GLFWwindow* hookGlfwWindow(int width, int height, const char* title, GLFWmonitor* monitor, GLFWwindow* share)
 {
-	return ffWindow = static_cast<GLFWwindow*(*)(int, int, const char*, GLFWmonitor*, GLFWwindow*)>(glfwWindowTrampoline)(width, height, title, monitor, share);
-
+	HookGlFunctionsPostGLFW();
+	ffWindow = static_cast<GLFWwindow*(*)(int, int, const char*, GLFWmonitor*, GLFWwindow*)>(glfwWindowTrampoline)(width, height, title, monitor, share);
+	OutputDebug("OpenGL version: %s", glGetString(GL_VERSION));
+	return ffWindow;
 }
 
 typedef void __stdcall _glViewport(GLint x, GLint y, GLsizei width, GLsizei height);
-
 static LPVOID oglViewport;
+
+//typedef void __stdcall _glCompileShader(GLuint shader);
+static LPVOID oglCompileShader;
+
+void* __stdcall _glCompileShader(GLuint shader)
+{
+	OutputDebug("%s: shaderID: %d", __FUNCTION__, shader);
+	return ((void* (__stdcall*)(GLuint))oglCompileShader)(shader);
+}
+
 
 void* __stdcall hookGlViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 {
@@ -117,15 +134,28 @@ void* __stdcall hookGlViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 	static bool backdoorUsed = false;
 	if (glewInitialized && !backdoorUsed)
 	{
+		OutputDebug("OpenGL version: %s", glGetString(GL_VERSION));
 		LPVOID test1 = __glewBufferData;
 		LPVOID test2 = glBufferData;
 		//Maki: PUT BACKDOORS FOR EXTENSIONS HERE
+		if (TEXTURE_PATCH && DIRECT_IO)
+		{
+			MH_STATUS bindStatus = MH_CreateHookApi(L"OPENGL32", "glBindTexture", HookGlBindTexture, &ogl_bind_texture);
+			bindStatus = MH_CreateHookApi(L"OPENGL32", "glTexParameteri", HookGlTextParameteri, &ogl_tex_parametri);
+			bindStatus = MH_CreateHookApi(L"OPENGL32", "glTexImage2D", HookGlTexImage2D, &ogl_tex_image2d);
+			MH_EnableHook(MH_ALL_HOOKS);
+		}
+
 
 		backdoorUsed = true;
 	}
 
-	return ((void* (__stdcall*)(GLint, GLint, GLsizei, GLsizei))oglViewport)(x, y, width, height);
+	return static_cast<void* (__stdcall*)(GLint, GLint, GLsizei, GLsizei)>(oglViewport)(x, y, width, height);
 }
+
+
+
+
 
 static LPVOID oglSwaPbuffers;
 
@@ -143,7 +173,6 @@ void GetWindow()
 	uint wndGlfw = wndTitle + 0x12 + (*(DWORD*)(IMAGE_BASE + GetAddress(WINDOWTITLE) + 0x12)) + 4;
 	//MH_CreateHook((LPVOID)wndTitle, hookGlfwWindow, glfwWindowTrampoline);
 	MH_CreateHook((LPVOID)wndGlfw, hookGlfwWindow, &glfwWindowTrampoline); //Maki: We need trampoline here!
-	MH_STATUS hookApiViewport = MH_CreateHookApi(L"OPENGL32", "glViewport", hookGlViewport, &oglViewport);
 }
 
 //typedef void APIENTRY glClear(GLbitfield);
@@ -176,35 +205,6 @@ void __stdcall koglBufferData(GLenum target, GLsizeiptr size, const void* data, 
 
 static LPVOID* oglBindBuffer;
 
-
-//Maki: probably to be replaced by manual hook/minhook - it's just additional layer of doing the same things
-//Maki: btw- this works on independent thread- so screw your context xD although they should share it naturally
-int kieroThread()
-{
-	if (kiero::init(kiero::RenderType::OpenGL) == kiero::Status::Success)
-	{
-		// define KIERO_USE_MINHOOK must be 1
-		// the index of the required function can be found in the METHODSTABLE.txt
-			//kiero::bind(10, (void**)&_oglClear, kglClear); //Maki: This makes Nsight crash
-			//kiero::bind(12, (void**)&_oglClearColor, kglClearColor);
-		//kiero::bind(336, (void**)&_oglBufferData, koglBufferData);
-		//glewInit();
-		//auto testing = glBufferData;
-		//LPVOID orig;
-		//MH_CreateHook(glBufferData, koglBufferData, &orig);
-		//MH_EnableHook(MH_ALL_HOOKS);
-
-
-	   // MH_CreateHook(bufferTest, koglBufferData, oglBindBuffer);
-		MH_EnableHook(MH_ALL_HOOKS);
-
-
-		// If you just need to get the function address you can use the kiero::getMethodsTable function
-		//_oglClear = (oglClear)kiero::getMethodsTable()[10];
-	}
-
-	return 0;
-}
 
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
 EXPORT void InitTest()
@@ -409,6 +409,13 @@ void RenderCompressedTexture(bimg::ImageContainer* img, TextureFormatInfo& texIn
 		OutputDebug("Texture is compressed, but compression is not supported on your GPU. Skipping draw.");
 }
 
+void HookGlFunctionsPostGLFW()
+{
+// 	LPVOID compileShader = glCompileShader;
+// 	MH_CreateHookApi(L"OPENGL32","glCompileShader", _glCompileShader, &oglCompileShader); //Maki: We need trampoline here!
+// 	MH_EnableHook(compileShader);
+}
+
 BOOL WINAPI DllMain(
 
 	HINSTANCE hinstDLL, // handle to DLL module
@@ -419,8 +426,7 @@ BOOL WINAPI DllMain(
 		return 0;
 
 	SetUnhandledExceptionFilter(ExceptionHandler);
-
-	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)kieroThread, NULL, 0, NULL);
+	
 
 	AllocConsole();
 	(void)freopen("CONOUT$", "w", stdout);
@@ -436,6 +442,8 @@ BOOL WINAPI DllMain(
 #endif
 	IMAGE_BASE = (long long)IMG_BASE;
 
+	OPENGL_HANDLE = (DWORD)GetModuleHandleA("OPENGL32");
+
 	MODULEINFO modinfo = {};
 	K32GetModuleInformation(GetCurrentProcess(), IMG_BASE, &modinfo, sizeof(MODULEINFO));
 	IMAGE_SIZE = modinfo.SizeOfImage;
@@ -450,6 +458,7 @@ BOOL WINAPI DllMain(
 
 	MH_Initialize();
 	GetWindow();
+	MH_STATUS hookApiViewport = MH_CreateHookApi(L"OPENGL32", "glViewport", hookGlViewport, &oglViewport);
 
 	//LET'S GET THE HACKING DONE
 	if (DIRECT_IO)
@@ -462,8 +471,6 @@ BOOL WINAPI DllMain(
 		InjectJMP(IMAGE_BASE + GetAddress(NULLSUB_DEBUG), (DWORD)OutputDebug);
 	if (LINEAR_PATCH)
 		ApplyFilteringPatch();
-	if (OPENGL_HOOK)
-		HookOpenGL();
 
 
 	MH_EnableHook(MH_ALL_HOOKS);

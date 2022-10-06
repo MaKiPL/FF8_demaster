@@ -24,7 +24,7 @@
     <ClCompile Include="patch.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="texturepatch_v2.cpp">
+    <ClCompile Include="texture.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
     <ClCompile Include="texturepatch_v2_battleCharacter.cpp">
@@ -51,13 +51,7 @@
     <ClCompile Include="uvpatch.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="openglHook.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
     <ClCompile Include="mymemory.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="kiero.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
     <ClCompile Include="minhook\src\hde\hde32.c">
@@ -89,9 +83,6 @@
     <ClInclude Include="mymemory.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="kiero.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
     <ClInclude Include="minhook\include\MinHook.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
@@ -114,6 +105,9 @@
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="minhook\src\trampoline.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="texture.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>

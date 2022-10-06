@@ -3,7 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 #include <vector>
 #include <Windows.h>
@@ -43,7 +43,6 @@ safe_bimg LoadImageFromFile(const char* const filename);
 
 void ApplyDirectIO();
 void ApplyUVPatch();
-void ReplaceTextureFunction();
 
 void ApplyBattleCharacterPatch();
 void ApplyFieldEntityPatch();
@@ -52,7 +51,6 @@ void ApplyBattleMonsterPatch();
 void ApplyBattleFieldPatch();
 void ApplyFieldBackgroundPatch();
 void ApplyWorldPatch();
-void HookOpenGL();
 DWORD GetFieldBackgroundReplacementExist();
 
 extern int lastWidth;

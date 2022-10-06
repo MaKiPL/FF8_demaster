@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <filesystem>
 
+
 int main()
 {
 	std::filesystem::path pt("FFVIII.exe");

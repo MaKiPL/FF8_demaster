@@ -270,6 +270,8 @@ DWORD _wtpCheck()
 	char localn[256]{ 0 };
 	int textureIndex = GetTextureIndex();
 
+	OutputDebug("%s::%d::tPage: %d, textureType: %d, palette: %d\n", __func__, __LINE__, tPage, textureType, palette);
+
 	if (textureIndex < 0) //disabled textures are set to -1;
 		return 0;
 	if (textureType == 18 && lastKnownTextureId == textureIndex)//(textureIndex < 20 && (tPage > 14 && tPage < 26))
