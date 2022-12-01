@@ -140,7 +140,8 @@ void* __stdcall hookGlViewport(GLint x, GLint y, GLsizei width, GLsizei height)
 		//Maki: PUT BACKDOORS FOR EXTENSIONS HERE
 		if (TEXTURE_PATCH && DIRECT_IO)
 		{
-			MH_STATUS bindStatus = MH_CreateHookApi(L"OPENGL32", "glBindTexture", HookGlBindTexture, &ogl_bind_texture);
+			MH_STATUS bindStatus;
+			bindStatus = MH_CreateHookApi(L"OPENGL32", "glBindTexture", HookGlBindTexture, &ogl_bind_texture);
 			bindStatus = MH_CreateHookApi(L"OPENGL32", "glTexParameteri", HookGlTextParameteri, &ogl_tex_parametri);
 			bindStatus = MH_CreateHookApi(L"OPENGL32", "glTexImage2D", HookGlTexImage2D, &ogl_tex_image2d);
 			MH_EnableHook(MH_ALL_HOOKS);

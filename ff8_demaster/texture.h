@@ -1,6 +1,7 @@
 #pragma once
 
-#define DEBUGOUT FALSE
+#define DEBUGOUT TRUE
+#define HASH_FEATURE FALSE
 
 /*
 11 - BATTLE MONSTER + SCENERY
@@ -17,13 +18,13 @@ OTHER - SYSTEM, MENU, PROLOGUE etc. [AS-IS]
 void ReplaceTextureFunction();
 
 
-static LPVOID ogl_bind_texture;
+inline LPVOID ogl_bind_texture;
 void* __stdcall HookGlBindTexture(GLenum target, GLuint texture);
 
-static LPVOID ogl_tex_parametri;
+inline LPVOID ogl_tex_parametri;
 void* __stdcall HookGlTextParameteri(GLenum target, GLenum name, GLint param);
 
-static LPVOID ogl_tex_image2d;
+inline LPVOID ogl_tex_image2d;
 struct texImageInformation
 {
 	uint64_t lowAdditionalCheck;

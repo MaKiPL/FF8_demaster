@@ -50,7 +50,9 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 	//the most important is height here
 	if (!img)
 		return;
-	height_fcp = img->m_height * 2;
+	if (img->m_height == 288)
+		height_fcp = 768;
+	else height_fcp = img->m_height * 2;
 	
 
 

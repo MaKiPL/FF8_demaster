@@ -50,6 +50,7 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 	else if (internalformat == GL_RGB || internalformat == GL_BGR
 		|| internalformat == GL_RGB8)
 		lengthModifier = 3;
+#if HASH_FEATURE
 	if (data != nullptr && width != 0 && height != 0 && lengthModifier != 0)
 	{
 		const std::chrono::time_point<std::chrono::steady_clock> start =
@@ -95,6 +96,7 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 			lengthModifier,
 			std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count() / 1e6);
 	}
+#endif
 	return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
 	                                      GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
 		(target, level, internalformat, width, height
