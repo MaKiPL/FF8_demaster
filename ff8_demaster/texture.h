@@ -1,19 +1,32 @@
 #pragma once
 
 #include <map>
+#include <string>
+#include <vector>
+#include "config.h"
 
-#define DEBUGOUT TRUE
-#define HASH_FEATURE TRUE
-#define HASH_FEATURE_SAVE TRUE
 
-#define HASH_EXTENSION ".png"
-#define HASH_HD_NAME "_HD" HASH_EXTENSION
-
-enum HashExt
+inline const char* hashExtensions[] = { ".png", ".dds" };
+inline const char* GetHashExtension(const bool bIsSaving)
 {
-	png,
-	dds
+	if(HASH_OUTPUT_EXT!= 0 && bIsSaving)
+		OutputDebug("\nOnly PNG is supported for output so far. Saving as PNG\n");
+	return hashExtensions[bIsSaving ? /*HASH_OUTPUT_EXT*/ 0 : HASH_LOAD_HD_EXT];
+}
+#define HASH_HD_SUFFIX "_HD"
+
+struct Vector2Di
+{
+	uint32_t width;
+	uint32_t height;
 };
+
+Vector2Di GetImageResolutionFast(const char* filePath);
+void ReadPNGHeaderResolutionFast(std::istream& stream, Vector2Di& resolution);
+void ReadDDSHeaderResolutionFast(std::istream& stream, Vector2Di& resolution);
+
+#define MAGIC_PNG 0x474E5089
+#define MAGIC_DDS 0x20534444
 
 
 /*

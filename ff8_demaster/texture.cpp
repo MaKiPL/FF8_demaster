@@ -1,8 +1,10 @@
+// ReSharper disable CppUseStructuredBinding
 #include "coreHeader.h"
 #include "texture.h"
 #include <chrono>
 #include <filesystem>
 #define XXH_INLINE_ALL
+#include <fstream>
 #include <xxhash.h>
 
 #include "config.h"
@@ -60,7 +62,8 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 	else if (internalformat == GL_RGB || internalformat == GL_BGR
 		|| internalformat == GL_RGB8)
 		lengthModifier = 3;
-#if HASH_FEATURE
+if(HASH_ENABLED)
+{
 	if (data != nullptr && width != 0 && height != 0 && lengthModifier != 0
 		&& width < 1024 && height < 1024)
 	{
@@ -69,7 +72,7 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 			std::chrono::high_resolution_clock::now();
 		//XXH32_hash_t hash = XXH32(data, width * height * lengthModifier, 0x85EBCA77U); //32ms
 		const auto [low64, high64] = XXH128(data, width * height *
-		                                    lengthModifier, 0x85EBCA77U);
+											lengthModifier, 0x85EBCA77U);
 		hashCopy = high64;
 		std::filesystem::path destinationPath = std::filesystem::current_path();
 		destinationPath.append(std::string(DIRECT_IO_EXPORT_DIR)
@@ -86,69 +89,97 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 				boundId, high64, low64);
 			knownTextures.insert(std::pair(high64, TexImageInformation{
 							low64,static_cast<GLuint>(boundId), internalformat, width, height }));
-#if HASH_FEATURE_SAVE
-			std::string exportPath = std::string(destinationPath.string());
-			exportPath.append(HASH_EXTENSION);
-			if (!std::filesystem::exists(exportPath))
-			{
-				bx::FileWriter writer;
-				bimg::TextureFormat::Enum fmt = bimg::TextureFormat::RGBA8;
-				switch (internalformat)
-				{
-				case GL_RGB8: case GL_RGB: case GL_BGR: fmt = bimg::TextureFormat::RGB8; break;
-				case GL_BGRA: fmt = bimg::TextureFormat::BGRA8; break;
-				case GL_RGBA: default: fmt = bimg::TextureFormat::RGBA8; break;
-				}
-				if (bx::open(&writer, bx::FilePath(exportPath.c_str())))
-					bimg::imageWritePng(&writer, width, height, width * lengthModifier
-						, data, fmt, false);
-
-				//bimg::imageWritePng()
-
-			}
-#endif
+if(HASH_OUTPUT)
+{
+	std::string exportPath = std::string(destinationPath.string());
+	exportPath.append(GetHashExtension(true));
+	if (!std::filesystem::exists(exportPath))
+	{
+		bx::FileWriter writer;
+		bimg::TextureFormat::Enum fmt = bimg::TextureFormat::RGBA8;
+		switch (internalformat)
+		{
+			case GL_RGB8: case GL_RGB: case GL_BGR: fmt = bimg::TextureFormat::BGRA8; break;
+			case GL_BGRA: fmt = bimg::TextureFormat::BGRA8; break;
+			case GL_RGBA: default: fmt = bimg::TextureFormat::BGRA8; break;
+		}
+		if (bx::open(&writer, bx::FilePath(exportPath.c_str())))
+		{
+			//refractor recommends switching to if/else for binary switch, however it's left here for future
+			//if more formats are added
+			/*switch(HASH_OUTPUT_EXT)
+		   {
+			   default:
+				   OutputDebug("Only PNG is supported for now. Saving as PNG");
+				   [[fallthrough]]
+			   case 0:
+				   bimg::imageWritePng(&writer, width, height, width * lengthModifier
+			   , data, fmt, false);
+			   break;
+		   }*/
+			bimg::imageWritePng(&writer, width, height, width * lengthModifier
+			, data, fmt, false);
+		}
+	}
+}
 		}
 		const std::chrono::time_point<std::chrono::steady_clock> stop = std::chrono::high_resolution_clock::now();
 		OutputDebug("Hashing of %dx%d*%d took %lfms\n", width, height,
 			lengthModifier,
 			static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count()) / 1e6);
-		std::string importPath = std::string(destinationPath.string());
-		importPath.append(HASH_HD_NAME);
-		if (std::filesystem::exists(importPath))
+		if(HASH_LOAD_HD)
 		{
-			if (loadedTextures.contains(hashCopy))
+			std::string importPath = std::string(destinationPath.string());
+			importPath.append(HASH_HD_SUFFIX);
+			importPath.append(GetHashExtension(false));
+			if (std::filesystem::exists(importPath))
 			{
-				auto [dataLoaded, lengthLoaded, widthLoaded, heightLoaded]
-					= loadedTextures[hashCopy];
-				return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
-				                                      GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
-					(target, level, internalformat, static_cast<GLsizei>(widthLoaded)
-					 , static_cast<GLsizei>(heightLoaded), border, format, type, dataLoaded);
-			}
-			SafeBimg img = LoadImageFromFile(importPath.c_str());
-			if (const bimg::ImageContainer* imageContainer = img.get();
-				imageContainer->m_data != nullptr)
-				if (static_cast<int>(imageContainer->m_width) != width
-					&& static_cast<int>(imageContainer->m_height) != height)
+				if (loadedTextures.contains(hashCopy))
 				{
-					OutputDebug("Loading custom PNG: %s!", destinationPath.string().c_str());
-					loadedTextureInformation lti{};
-					lti.height = imageContainer->m_height;
-					lti.width = imageContainer->m_width;
-					lti.length = imageContainer->m_size;
-					lti.data = malloc(lti.length);
-					memcpy(lti.data, imageContainer->m_data, lti.length);
-					//add lti to loadedTextures
-					loadedTextures.emplace(hashCopy, lti);
+					auto [dataLoaded, lengthLoaded, widthLoaded, heightLoaded]
+						= loadedTextures[hashCopy];
 					return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
-					                                      GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
-						(target, level, internalformat, static_cast<int>(imageContainer->m_width)
-						 , static_cast<int>(imageContainer->m_height), border, format, type
-						 , imageContainer->m_data);
+														  GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
+						(target, level, internalformat, static_cast<GLsizei>(widthLoaded)
+						 , static_cast<GLsizei>(heightLoaded), border, format, type, dataLoaded);
 				}
+				//Obtain file resolution
+				if(Vector2Di resolution = GetImageResolutionFast(importPath.c_str());
+					resolution.width != static_cast<uint32_t>(width)
+					&& resolution.height != static_cast<uint32_t>(height)
+					&& (resolution.width != 0 && resolution.height != 0))
+				{
+					SafeBimg img = LoadImageFromFile(importPath.c_str());
+					if (const bimg::ImageContainer* imageContainer = img.get();
+						imageContainer->m_data != nullptr)
+					{
+						OutputDebug("Loading custom HD texture: %s!", destinationPath.string().c_str());
+
+						//BUGGED BELOW, DO NOT USE DDS YET!
+						if(bimg::isCompressed(imageContainer->m_format))
+							RenderTexture(imageContainer); //redundant on checking two times for compression, but whatev
+						else
+						{
+							loadedTextureInformation lti{};
+							lti.height = imageContainer->m_height;
+							lti.width = imageContainer->m_width;
+							lti.length = imageContainer->m_size;
+							lti.data = malloc(lti.length);
+							memcpy(lti.data, imageContainer->m_data, lti.length);
+							//add lti to loadedTextures
+							loadedTextures.emplace(hashCopy, lti);
+							return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
+																  GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
+								(target, level, internalformat, static_cast<int>(imageContainer->m_width)
+								 , static_cast<int>(imageContainer->m_height), border, format, type
+								 , imageContainer->m_data);
+						}
+					}
+				}
+			}
 		}
 	}
-#endif
+}
 	return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
 	                                      GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
 		(target, level, internalformat, width, height
@@ -253,6 +284,60 @@ __declspec(naked) void _cltObtainTexStructDebug()
 		CMP dword ptr[edx + 0x0BC], 0
 		JMP cltBackAdd1
 	}
+}
+
+void ReadPNGHeaderResolutionFast(std::istream& stream, Vector2Di &resolution)
+{
+	stream.seekg(8, std::ios::cur);
+	uint32_t ihdrMagic = 0;
+	stream.read(reinterpret_cast<char*>(&ihdrMagic), sizeof(uint32_t));
+	if (ihdrMagic != 0x52444849)
+	{
+		OutputDebug("Invalid PNG file!");
+		return;
+	}
+	stream.read(reinterpret_cast<char*>(&resolution.width), sizeof(uint32_t));
+	stream.read(reinterpret_cast<char*>(&resolution.height), sizeof(uint32_t));
+}
+
+void ReadDDSHeaderResolutionFast(std::istream& stream, Vector2Di& resolution)
+{
+	uint32_t headerSize = 0;
+	stream.read(reinterpret_cast<char*>(&headerSize), sizeof(uint32_t));
+	if (headerSize != 124)
+	{
+		OutputDebug("Invalid DDS file!");
+		return;
+	}
+	stream.seekg(4, std::ios::cur);
+	stream.read(reinterpret_cast<char*>(&resolution.width), sizeof(uint32_t));
+	stream.read(reinterpret_cast<char*>(&resolution.height), sizeof(uint32_t));
+}
+
+
+
+Vector2Di GetImageResolutionFast(const char* filePath)
+{
+	Vector2Di resolution{};
+	std::ifstream inFile;
+	inFile.open(filePath, std::ios::in | std::ios::binary);
+	if(!inFile.is_open())
+		{OutputDebug("%s error. File not opened", __func__); return resolution;}
+	uint32_t magic = 0;
+	inFile.read(reinterpret_cast<char*>(&magic), sizeof(uint32_t));
+	switch(magic)
+	{
+		case MAGIC_PNG:
+			ReadPNGHeaderResolutionFast(inFile, resolution);
+			break;
+		case MAGIC_DDS:
+			ReadDDSHeaderResolutionFast(inFile,resolution);
+			break;
+		default:
+			OutputDebug("%s error. Unknown file format- only DDS and PNG are supported. I'm too lazy", __func__);
+	}
+	inFile.close();
+	return resolution;
 }
 
 void ReplaceTextureFunction()

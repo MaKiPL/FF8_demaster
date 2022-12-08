@@ -28,5 +28,9 @@ void ReadConfigFile()
     OPENGL_HOOK = conf.GetInteger("", "OPENGL_HOOK", 0);
     BATTLE_STAGE_ANIMATION_DELAY = conf.GetInteger("", "BATTLE_STAGE_ANIMATION_DELAY", 100);
     BATTLE_STAGE_FORCE_RELOAD = conf.GetInteger("", "BATTLE_STAGE_FORCE_RELOAD", 0);
-	
+	HASH_ENABLED = conf.GetInteger("", "HASH_ENABLED", 1);
+    HASH_OUTPUT = conf.GetInteger("", "HASH_OUTPUT", 0);
+    HASH_OUTPUT_EXT = conf.GetInteger("", "HASH_OUTPUT_EXT", 0);
+    HASH_LOAD_HD = conf.GetInteger("", "HASH_LOAD_HD", 1);
+    HASH_LOAD_HD_EXT = conf.GetInteger("", "HASH_LOAD_HD_EXT", 1);
 }
