@@ -45,7 +45,7 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 	strcpy(texPath, testPath); //establish path
 
 
-	safe_bimg img = LoadImageFromFile(texPath);
+	SafeBimg img = LoadImageFromFile(texPath);
 
 	//the most important is height here
 	if (!img)

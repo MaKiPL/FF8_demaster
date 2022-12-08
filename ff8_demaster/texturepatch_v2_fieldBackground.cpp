@@ -159,7 +159,7 @@ __declspec(naked) void _asm_InjectFieldBackgroundModule()
 }
 
 //WIP
-void _fbgGl()
+void FbgGl()
 {
  		DWORD tPage = gl_textures[50];
 		int palette = tex_header[52];
@@ -167,13 +167,13 @@ void _fbgGl()
 		char localn[256]{0};
 		if (DDSorPNG(localn, 256, "%stextures\\%s%u_%u", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundReplacementTextureName(), tPage - 16, palette))
 		{
-			safe_bimg texture = LoadImageFromFile(localn);
+			SafeBimg texture = LoadImageFromFile(localn);
 			if (texture)
 				RenderTexture(texture.get());
 		}
 		else if (DDSorPNG(localn, 256, "%stextures\\%s%s%u", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundReplacementTextureName(), tPage - 16))
 		{
-			safe_bimg texture = LoadImageFromFile(localn);
+			SafeBimg texture = LoadImageFromFile(localn);
 			if (texture)
 				RenderTexture(texture.get());
 		}

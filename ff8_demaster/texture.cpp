@@ -5,6 +5,8 @@
 #define XXH_INLINE_ALL
 #include <xxhash.h>
 
+#include "config.h"
+
 
 void* __stdcall HookGlBindTexture(GLenum target, GLuint texture)
 {
@@ -29,6 +31,14 @@ void* __stdcall HookGlTextParameteri(GLenum target, GLenum name, GLint param)
 		(target, name, param);
 }
 
+struct loadedTextureInformation
+{
+	void* data;
+	uint32_t length, width, height;
+};
+
+std::map<uint64_t, loadedTextureInformation> loadedTextures;
+
 void* __stdcall HookGlTexImage2D(GLenum target,
 	GLint level,
 	GLint internalformat,
@@ -51,29 +61,35 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 		|| internalformat == GL_RGB8)
 		lengthModifier = 3;
 #if HASH_FEATURE
-	if (data != nullptr && width != 0 && height != 0 && lengthModifier != 0)
+	if (data != nullptr && width != 0 && height != 0 && lengthModifier != 0
+		&& width < 1024 && height < 1024)
 	{
+		uint64_t hashCopy = 0;
 		const std::chrono::time_point<std::chrono::steady_clock> start =
 			std::chrono::high_resolution_clock::now();
 		//XXH32_hash_t hash = XXH32(data, width * height * lengthModifier, 0x85EBCA77U); //32ms
-		const XXH128_hash_t hash = XXH128(data, width * height *
-			lengthModifier, 0x85EBCA77U);
-		if (!knownTextures.contains(hash.high64))
+		const auto [low64, high64] = XXH128(data, width * height *
+		                                    lengthModifier, 0x85EBCA77U);
+		hashCopy = high64;
+		std::filesystem::path destinationPath = std::filesystem::current_path();
+		destinationPath.append(std::string(DIRECT_IO_EXPORT_DIR)
+			+ "hashOutput");
+		if (!std::filesystem::exists(destinationPath))
+			std::filesystem::create_directory(destinationPath);
+		std::stringstream ss;
+		ss << std::setw(16) << std::setfill('0') << std::hex
+			<< std::uppercase << high64 << std::dec << std::nouppercase;
+		destinationPath.append(ss.str());
+		if (!knownTextures.contains(high64))
 		{
 			OutputDebug("New hash for textureId: %u. Hash: %016llX%016llX ",
-				boundId, hash.high64, hash.low64);
-			knownTextures.insert(std::pair(hash.high64, texImageInformation{
-							hash.low64,(GLuint)boundId, internalformat, width, height }));
-			std::filesystem::path destinationPath = std::filesystem::current_path();
-			destinationPath.append(std::string(DIRECT_IO_EXPORT_DIR)
-				+ "hashOutput");
-			if (!std::filesystem::exists(destinationPath))
-				std::filesystem::create_directory(destinationPath);
-			std::stringstream ss;
-			ss << std::setw(16) << std::setfill('0') << std::hex
-				<< std::uppercase << hash.high64 << std::dec << std::nouppercase;
-			destinationPath.append(ss.str() + ".png");
-			if (!std::filesystem::exists(destinationPath))
+				boundId, high64, low64);
+			knownTextures.insert(std::pair(high64, TexImageInformation{
+							low64,static_cast<GLuint>(boundId), internalformat, width, height }));
+#if HASH_FEATURE_SAVE
+			std::string exportPath = std::string(destinationPath.string());
+			exportPath.append(HASH_EXTENSION);
+			if (!std::filesystem::exists(exportPath))
 			{
 				bx::FileWriter writer;
 				bimg::TextureFormat::Enum fmt = bimg::TextureFormat::RGBA8;
@@ -83,18 +99,54 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 				case GL_BGRA: fmt = bimg::TextureFormat::BGRA8; break;
 				case GL_RGBA: default: fmt = bimg::TextureFormat::RGBA8; break;
 				}
-				if (bx::open(&writer, bx::FilePath(destinationPath.string().c_str())))
+				if (bx::open(&writer, bx::FilePath(exportPath.c_str())))
 					bimg::imageWritePng(&writer, width, height, width * lengthModifier
 						, data, fmt, false);
 
 				//bimg::imageWritePng()
 
 			}
+#endif
 		}
 		const std::chrono::time_point<std::chrono::steady_clock> stop = std::chrono::high_resolution_clock::now();
 		OutputDebug("Hashing of %dx%d*%d took %lfms\n", width, height,
 			lengthModifier,
-			std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count() / 1e6);
+			static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count()) / 1e6);
+		std::string importPath = std::string(destinationPath.string());
+		importPath.append(HASH_HD_NAME);
+		if (std::filesystem::exists(importPath))
+		{
+			if (loadedTextures.contains(hashCopy))
+			{
+				auto [dataLoaded, lengthLoaded, widthLoaded, heightLoaded]
+					= loadedTextures[hashCopy];
+				return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
+				                                      GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
+					(target, level, internalformat, static_cast<GLsizei>(widthLoaded)
+					 , static_cast<GLsizei>(heightLoaded), border, format, type, dataLoaded);
+			}
+			SafeBimg img = LoadImageFromFile(importPath.c_str());
+			if (const bimg::ImageContainer* imageContainer = img.get();
+				imageContainer->m_data != nullptr)
+				if (static_cast<int>(imageContainer->m_width) != width
+					&& static_cast<int>(imageContainer->m_height) != height)
+				{
+					OutputDebug("Loading custom PNG: %s!", destinationPath.string().c_str());
+					loadedTextureInformation lti{};
+					lti.height = imageContainer->m_height;
+					lti.width = imageContainer->m_width;
+					lti.length = imageContainer->m_size;
+					lti.data = malloc(lti.length);
+					memcpy(lti.data, imageContainer->m_data, lti.length);
+					//add lti to loadedTextures
+					loadedTextures.emplace(hashCopy, lti);
+					return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
+					                                      GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
+						(target, level, internalformat, static_cast<int>(imageContainer->m_width)
+						 , static_cast<int>(imageContainer->m_height), border, format, type
+						 , imageContainer->m_data);
+				}
+		}
 	}
 #endif
 	return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
@@ -106,7 +158,7 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 
 BYTE* cltBackAdd1;
 BYTE* cltBackAdd2;
-DWORD* _thisFF8 = 0; //__thiscall, so this is ECX
+DWORD* _thisFF8 = nullptr; //__thiscall, so this is ECX
 
 
 
@@ -158,13 +210,12 @@ __declspec(naked) void _cltObtainTexHeader()
 
 void _cltVoid()
 {
-	int textureType = tex_struct[48];
+	const int textureType = tex_struct[48];
 	TEX_TYPE = textureType;
-	int palette = tex_header[52];
-	UINT unknownDword = tex_struct[65];
-	BOOL bHaveHD = tex_struct[49];
-	DWORD unknownCheckHD = tex_struct[47];
-	DWORD tPage = tex_struct[50];
+	const int palette = tex_header[52];
+	const UINT unknownDword = tex_struct[65];
+	const BOOL bHaveHD = tex_struct[49];
+	const DWORD tPage = tex_struct[50];
 
 
 
@@ -235,6 +286,6 @@ void ReplaceTextureFunction()
 		ApplyWorldPatch();
 	}
 
-	cltBackAdd2 = InjectJMP(IMAGE_BASE + GetAddress(CLTBACKADD1), (DWORD)_cltObtainTexHeader, 5);
-	cltBackAdd1 = InjectJMP(IMAGE_BASE + GetAddress(CLTBACKADD2), (DWORD)_cltObtainTexStructDebug, 7);
+	cltBackAdd2 = InjectJMP(IMAGE_BASE + GetAddress(CLTBACKADD1), reinterpret_cast<DWORD>(_cltObtainTexHeader), 5);
+	cltBackAdd1 = InjectJMP(IMAGE_BASE + GetAddress(CLTBACKADD2), reinterpret_cast<DWORD>(_cltObtainTexStructDebug), 7);
 }

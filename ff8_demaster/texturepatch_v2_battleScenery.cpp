@@ -1,5 +1,7 @@
 #include "coreHeader.h"
 #include <chrono>
+
+#include "config.h"
 extern int BATTLE_STAGE_ANIMATION_DELAY;
 extern BOOL BATTLE_STAGE_FORCE_RELOAD;
 
@@ -24,7 +26,7 @@ DWORD lastStage;
 struct battleSceneryPathandTexture
 {
 	std::string localPath{};
-	safe_bimg buffer{ safe_bimg_init() };
+	SafeBimg buffer{ SafeBimgInit() };
 	operator bool() const noexcept
 	{
 		return !localPath.empty() && buffer;
@@ -112,7 +114,7 @@ bool LoadImageIntoBattleSceneryStruct(const size_t index, const DWORD tPage, con
 	//spamming so i put it here so it only logs when loading.
 	OutputDebug("%s::Stage: %d, Tpage: %d, Palette: %d\n", __func__, currentStage, tPage, palette);
 
-	safe_bimg img = LoadImageFromFile(localn);
+	SafeBimg img = LoadImageFromFile(localn);
 	if (!img)
 	{
 		OutputDebug("%s::%d::Fail to load texture, clearing buffer vector: tpage: %d, buffer count: \n", __func__, __LINE__, tPage, bss[index].buffer.size());
@@ -208,7 +210,7 @@ __declspec(naked) void _bsp()
 		TEST EAX, EAX
 		JNZ _bspOk
 
-		CALL _wtpCheck //WORLD MODULE
+		CALL WtpCheck //WORLD MODULE
 		TEST EAX, EAX
 		JNZ _wtpOk
 
@@ -250,7 +252,7 @@ __declspec(naked) void _bsp()
 			MOV EAX, [EAX]
 			CALL EAX
 			MOV bAlreadyFreed, 1
-			CALL _wtpGl
+			CALL WtpGl
 			JMP _out
 
 			JMP _original
@@ -271,7 +273,7 @@ __declspec(naked) void _bsp()
 			MOV EAX, [EAX]
 			CALL EAX
 			MOV bAlreadyFreed, 1
-			CALL _fbgGl
+			CALL FbgGl
 			JMP _out
 
 	}

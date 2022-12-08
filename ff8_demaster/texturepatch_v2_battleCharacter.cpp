@@ -15,7 +15,7 @@ void _bcpObtainTextureDatas(int aIndex)
 
 	DDSorPNG(n, 256, "%stextures\\battle.fs\\hd_new\\d%xc%03u_0", DIRECT_IO_EXPORT_DIR, (aIndex - 4097) / 100, (aIndex - 4097) % 100);
 	
-	safe_bimg img = LoadImageFromFile(n); //chara 0
+	SafeBimg img = LoadImageFromFile(n); //chara 0
 	if (!img)
 		return;
 	width_bcp = img->m_width * 2;

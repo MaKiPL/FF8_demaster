@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "config.h"
+
 DWORD IO_backAddress = 0;
 DWORD IO_backAddress2 = 0;
 DWORD IO_backAddress3 = 0;

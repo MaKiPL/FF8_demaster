@@ -4,11 +4,26 @@
     <ShowAllFiles>false</ShowAllFiles>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LocalDebuggerCommand>D:\FINAL FANTASY VIII REMASTERED\FFVIII.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand>E:\FINAL FANTASY VIII REMASTERED\FFVIII.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerWorkingDirectory>D:\FINAL FANTASY VIII REMASTERED</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>E:\FINAL FANTASY VIII REMASTERED</LocalDebuggerWorkingDirectory>
+    <NXTargetName>Default</NXTargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommand>I:\_CUSTOM\FINAL FANTASY VIII REMASTERED\FFVIII.exe</LocalDebuggerCommand>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerWorkingDirectory>I:\_CUSTOM\FINAL FANTASY VIII REMASTERED</LocalDebuggerWorkingDirectory>
+    <NXTargetName>Default</NXTargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_JP|Win32'">
+    <LocalDebuggerCommand>D:\FINAL FANTASY VIII REMASTERED\FFVIII_JP.exe</LocalDebuggerCommand>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerWorkingDirectory>D:\FINAL FANTASY VIII REMASTERED\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerAttach>false</LocalDebuggerAttach>
+    <LocalDebuggerCommandArguments>-jp</LocalDebuggerCommandArguments>
+    <NXTargetName>Default</NXTargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_JP|x64'">
     <LocalDebuggerCommand>D:\FINAL FANTASY VIII REMASTERED\FFVIII_JP.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerWorkingDirectory>D:\FINAL FANTASY VIII REMASTERED\</LocalDebuggerWorkingDirectory>

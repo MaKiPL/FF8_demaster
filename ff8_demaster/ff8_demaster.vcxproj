@@ -72,8 +72,8 @@
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>vendor\include\;vendor\include\compat\msvc;$(IncludePath)</IncludePath>
     <LibraryPath>vendor\lib\;vendor\lib\bgfx;$(LibraryPath)</LibraryPath>
-    <OutDir>I:\_CUSTOM\FINAL FANTASY VIII REMASTERED\</OutDir>
-    <IntDir>I:\_CUSTOM\FINAL FANTASY VIII REMASTERED\</IntDir>
+    <OutDir>E:\FINAL FANTASY VIII REMASTERED\</OutDir>
+    <IntDir>E:\FINAL FANTASY VIII REMASTERED\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -107,7 +107,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NOMINMAX;GLEW_STATIC;WIN32;_DEBUG;FF8DEMASTER_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;GLEW_STATIC;WIN32;_WIN32;_DEBUG;FF8DEMASTER_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>Default</ConformanceMode>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
@@ -224,7 +224,10 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="config.cpp" />
+    <ClCompile Include="debug.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="image.cpp" />
     <ClCompile Include="iopatch.cpp" />
     <ClCompile Include="minhook\src\buffer.c" />
     <ClCompile Include="minhook\src\hde\hde32.c" />
@@ -232,6 +235,7 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
     <ClCompile Include="minhook\src\hook.c" />
     <ClCompile Include="minhook\src\trampoline.c" />
     <ClCompile Include="mymemory.cpp" />
+    <ClCompile Include="opengl.cpp" />
     <ClCompile Include="patch.cpp" />
     <ClCompile Include="texture.cpp" />
     <ClCompile Include="texturepatch_v2_battleCharacter.cpp" />
@@ -244,7 +248,10 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
     <ClCompile Include="uvpatch.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="config.h" />
     <ClInclude Include="coreHeader.h" />
+    <ClInclude Include="debug.h" />
+    <ClInclude Include="image.h" />
     <ClInclude Include="minhook\include\MinHook.h" />
     <ClInclude Include="minhook\src\buffer.h" />
     <ClInclude Include="minhook\src\hde\hde32.h" />
@@ -254,6 +261,7 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
     <ClInclude Include="minhook\src\hde\table64.h" />
     <ClInclude Include="minhook\src\trampoline.h" />
     <ClInclude Include="mymemory.h" />
+    <ClInclude Include="opengl.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="texturepatch_battle_data.h" />

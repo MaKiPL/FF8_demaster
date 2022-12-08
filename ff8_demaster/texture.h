@@ -1,7 +1,20 @@
 #pragma once
 
+#include <map>
+
 #define DEBUGOUT TRUE
-#define HASH_FEATURE FALSE
+#define HASH_FEATURE TRUE
+#define HASH_FEATURE_SAVE TRUE
+
+#define HASH_EXTENSION ".png"
+#define HASH_HD_NAME "_HD" HASH_EXTENSION
+
+enum HashExt
+{
+	png,
+	dds
+};
+
 
 /*
 11 - BATTLE MONSTER + SCENERY
@@ -25,14 +38,15 @@ inline LPVOID ogl_tex_parametri;
 void* __stdcall HookGlTextParameteri(GLenum target, GLenum name, GLint param);
 
 inline LPVOID ogl_tex_image2d;
-struct texImageInformation
+struct TexImageInformation
 {
 	uint64_t lowAdditionalCheck;
 	GLuint id;
 	GLint internalformat;
 	GLsizei width, height;
 };
-static  std::map<uint64_t, texImageInformation> knownTextures;
+
+inline std::map<uint64_t, TexImageInformation> knownTextures;
 void* __stdcall HookGlTexImage2D(GLenum target,
 	GLint level,
 	GLint internalformat,

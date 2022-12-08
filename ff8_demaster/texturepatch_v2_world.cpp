@@ -1,5 +1,5 @@
+#include "config.h"
 #include "coreHeader.h"
-#define CRASHLOG OutputDebug("%s::Line %d\n", __func__, __LINE__)
 DWORD _asm_WorldRetAddr1;
 DWORD _asm_WorldRetAddr2;
 DWORD _asm_WorldRetAddr3;
@@ -10,7 +10,7 @@ struct worldTextureStructure
 {
 	char localPath[256]{ 0 };
 	DWORD tpage{};
-	safe_bimg buffer{ safe_bimg_init() };
+	SafeBimg buffer{ SafeBimgInit() };
 	int width{ -1 };
 	int height{ -1 };
 	int channels{ -1 };
@@ -56,7 +56,7 @@ bool LoadImageIntoWorldStruct(size_t texIndex, const char* const localn, int tPa
 		}
 		return true;
 	}
-	safe_bimg img = LoadImageFromFile(localn);
+	SafeBimg img = LoadImageFromFile(localn);
 	if (!img)
 		return false;
 	ws[texIndex].width = img->m_width;
@@ -70,7 +70,7 @@ bool LoadImageIntoWorldStruct(size_t texIndex, const char* const localn, int tPa
 	OutputDebug("\t%s::%d::w: %d; h: %d; channels: %d\n", __func__, __LINE__, ws[texIndex].width, ws[texIndex].height, ws[texIndex].channels);
 	return true;
 }
-void _wtpGl()
+void WtpGl()
 {
 	DWORD tPage = gl_textures[50];
 	int palette = tex_header[52];
@@ -255,7 +255,7 @@ int GetTextureIndex()
 
 DWORD LOCALDEB = 0;
 
-DWORD _wtpCheck()
+DWORD WtpCheck()
 {
 	if (!WORLD_TEXTURES)
 		return 0;
