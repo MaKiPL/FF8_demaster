@@ -31,29 +31,30 @@ __declspec(naked) void directIO_fopenReroute()
 	}
 	if(bInvalidFile==true) //check state if was invalid file before
 	{
-		*((DWORD*)IO_seekAddresses[0]) = IO_SEEKASM1;
-		*((DWORD*)IO_seekAddresses[1]) = IO_SEEKASM2;
-		*((WORD*)IO_backAddress4) = 0x9090;
+		*reinterpret_cast<DWORD*>(IO_seekAddresses[0]) = IO_SEEKASM1;
+		*reinterpret_cast<DWORD*>(IO_seekAddresses[1]) = IO_SEEKASM2;
+		*reinterpret_cast<WORD*>(IO_backAddress4) = 0x9090;
 	}
 
 	bInvalidFile = false;
 
 	strcpy(IO_backlogFilePath, DIRECT_IO_EXPORT_DIR); //VS automatically does the ESP math
-	strcpy(IO_backlogFilePath + DIRECT_IO_EXPORT_DIR_LEN, (char*)filePathBuffer); //same for this, no local vars so no ESP--
+	strcpy(IO_backlogFilePath + DIRECT_IO_EXPORT_DIR_LEN, reinterpret_cast<char*>(filePathBuffer));
+	//same for this, no local vars so no ESP--
 
 	if (GetFileAttributesA(IO_backlogFilePath) == INVALID_FILE_ATTRIBUTES)
 	{
-		OutputDebug("%s: %s, %s\n", __func__, IO_backlogFilePath, "file not found");
-		strcpy(IO_backlogFilePath, (char*)filePathBuffer);
+		printf("File not found: %s\n", IO_backlogFilePath);
+		strcpy(IO_backlogFilePath, reinterpret_cast<char*>(filePathBuffer));
 		bInvalidFile = true;
-		*((DWORD*)IO_seekAddresses[0]) = IO_originalBytes[0];
-		*((DWORD*)IO_seekAddresses[1]) = IO_originalBytes[1];
-		*((WORD*)IO_backAddress4) = IO_originalBytes6;
+		*reinterpret_cast<DWORD*>(IO_seekAddresses[0]) = IO_originalBytes[0];
+		*reinterpret_cast<DWORD*>(IO_seekAddresses[1]) = IO_originalBytes[1];
+		*reinterpret_cast<WORD*>(IO_backAddress4) = IO_originalBytes6;
 
 		//rewrite functions to original one
 	}
 	else
-		OutputDebug("%s: %s\n", __func__, IO_backlogFilePath);
+		printf(IO_backlogFilePath);
 
 	__asm
 	{
@@ -72,14 +73,14 @@ __declspec(naked) void directIO_fopenReroute()
 	}
 }
 
-const char rb[] = "rb";
+constexpr char RB[] = "rb";
 
 //PUSHES THE PATH TO READER
 __declspec(naked) void directIO_fopenReroute2()
 {
 	__asm
 	{
-		PUSH OFFSET rb //too much hustle to get original value based on calcs without using any regs
+		PUSH OFFSET RB //too much hustle to get original value based on calcs without using any regs
 		CMP bInvalidFile, 0
 		JE _normal
 		PUSH EDI //EDI contains original filename 
@@ -151,12 +152,12 @@ __declspec(naked) void directIO_fopenReroute3()
 
 void ApplyDirectIO()
 {
-	OutputDebug("Applying DIRECT_IO\n");
+	PLOG_INFO << "Applying DirectIO";
 	//let's see if the exp dir exists
 	DIRECT_IO_EXPORT_DIR_LEN = strlen(DIRECT_IO_EXPORT_DIR);
 	if (GetFileAttributesA(DIRECT_IO_EXPORT_DIR) == INVALID_FILE_ATTRIBUTES)
 	{
-		OutputDebug("There is no export directory, so it looks like you didn't export the files from zzz files. Not applying patch\n");
+		PLOG_ERROR << "Export directory not found: " << DIRECT_IO_EXPORT_DIR;
 		DIRECT_IO = FALSE;
 		return;
 	}
@@ -174,7 +175,7 @@ void ApplyDirectIO()
 	BYTE* fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC1);
 	IO_backAddress = (DWORD)fopenPatchMnemonic + 6;
 	DWORD jmpParam = (DWORD)directIO_fopenReroute - (DWORD)fopenPatchMnemonic - 5;
-	modPage((DWORD)fopenPatchMnemonic, 5);
+	ModPage((DWORD)fopenPatchMnemonic, 5);
  	*fopenPatchMnemonic = 0xE9; //JMP [DW]
  	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
 
@@ -184,7 +185,7 @@ void ApplyDirectIO()
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC2);
 	IO_backAddress2 = (DWORD)fopenPatchMnemonic + 5;
 	jmpParam = (DWORD)directIO_fopenReroute2 - (DWORD)fopenPatchMnemonic - 5;
-	modPage((DWORD)fopenPatchMnemonic, 5);
+	ModPage((DWORD)fopenPatchMnemonic, 5);
  	*fopenPatchMnemonic = 0xE9; //JMP [DW]
  	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
  	*(fopenPatchMnemonic + 5) = 0x90; //NOP
@@ -193,7 +194,7 @@ void ApplyDirectIO()
 	//First fseek
 
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC3);
-	modPage((DWORD)fopenPatchMnemonic, 4); //PUSH + NOP
+	ModPage((DWORD)fopenPatchMnemonic, 4); //PUSH + NOP
 	IO_originalBytes[0] = *((DWORD*)fopenPatchMnemonic);
 	IO_seekAddresses[0] = (DWORD)fopenPatchMnemonic;
 	*((DWORD*)fopenPatchMnemonic) = IO_SEEKASM1; //PUSH 0 NOP PUSH...
@@ -203,7 +204,7 @@ void ApplyDirectIO()
 
 
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC4);
-	modPage((DWORD)fopenPatchMnemonic, 4); //XOR EAX, EAX + NOP
+	ModPage((DWORD)fopenPatchMnemonic, 4); //XOR EAX, EAX + NOP
 	IO_seekAddresses[1] = (DWORD)fopenPatchMnemonic;
 	IO_originalBytes[1] = *((DWORD*)fopenPatchMnemonic);
 	*((DWORD*)fopenPatchMnemonic) = IO_SEEKASM2; //XOR EAX, EAX; NOP; PUSH...
@@ -215,7 +216,7 @@ void ApplyDirectIO()
 
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC5); //MOV EAX, ESI; MOV ECX, [EBP-0ch]   [//8BC6 8B4DF4]
 	IO_backAddress3 = (DWORD)fopenPatchMnemonic + 6;
-	modPage((DWORD)fopenPatchMnemonic, 5); //JMP
+	ModPage((DWORD)fopenPatchMnemonic, 5); //JMP
 	jmpParam = (DWORD)directIO_fopenReroute3 - (DWORD)fopenPatchMnemonic - 5;
 	*fopenPatchMnemonic = 0xE9; //JMP [DW]
 	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
@@ -224,7 +225,7 @@ void ApplyDirectIO()
 
 
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC6);
-	modPage((DWORD)fopenPatchMnemonic, 2);
+	ModPage((DWORD)fopenPatchMnemonic, 2);
 	IO_backAddress4 = (DWORD)fopenPatchMnemonic;
 	IO_originalBytes6 = *((WORD*)fopenPatchMnemonic);
 	*(WORD*)fopenPatchMnemonic = 0x9090;		//NOP NOP

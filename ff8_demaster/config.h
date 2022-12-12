@@ -1,12 +1,16 @@
 ﻿#pragma once
 
 #define DEMASTER_CONF "demaster.conf"
+#include <string>
 
 inline int UVPATCH;
 inline int DIRECT_IO;
 inline int TEXTURE_PATCH;
+inline int FORCE_NEAREST_FILTERING;
 inline int DEBUG_PATCH;
-inline int LOG;
+inline int FILE_LOG;
+inline std::string LOG_FILENAME;
+inline int LOG_SEVERITY;
 inline int BATTLE_CHARA;
 inline int FIELD_ENTITY;
 inline int BATTLE_HOOK;

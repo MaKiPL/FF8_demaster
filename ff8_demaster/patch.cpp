@@ -1,13 +1,14 @@
 #include "coreHeader.h"
 
-BOOL modPage(DWORD address, int size = 5)
+BOOL ModPage(const DWORD address, const int size = 5)
 {
 	DWORD lastProtect = 0;
-	DWORD failure = VirtualProtect((LPVOID)address, size, PAGE_EXECUTE_READWRITE, &lastProtect);
+	const DWORD failure = VirtualProtect(reinterpret_cast<LPVOID>(address), size
+		, PAGE_EXECUTE_READWRITE, &lastProtect);
 	if (failure == 0)
 	{
-		DWORD myError = GetLastError();
-		printf("err %08X", myError);
+		const DWORD myError = GetLastError();
+		PLOG_ERROR << "VirtualProtect failed with error code: " << myError;
 		return FALSE;
 	}
 	return TRUE;
@@ -18,7 +19,7 @@ BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize)
 	BYTE* fopenPatchMnemonic = (BYTE*)address;
 	BYTE* IO_backAddress = fopenPatchMnemonic + JMPsize;
 	DWORD jmpParam = functionAddress - (DWORD)fopenPatchMnemonic - 5;
-	modPage((DWORD)fopenPatchMnemonic, 5);
+	ModPage((DWORD)fopenPatchMnemonic, 5);
 	*fopenPatchMnemonic = 0xE9; //JMP [DW]
 	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
 	return IO_backAddress;
@@ -26,13 +27,13 @@ BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize)
 
 void ReplaceCALLWithNOP(DWORD address)
 {
-	modPage(IMAGE_BASE + address, 5);
+	ModPage(IMAGE_BASE + address, 5);
 	*(DWORD*)(IMAGE_BASE + address) = 0x90909090;
 	*(BYTE*)(IMAGE_BASE + address + 4) = 0x90;
 }
 
 void InjectDWORD(DWORD address, DWORD value)
 {
-	modPage(address, 4);
+	ModPage(address, 4);
 	*(DWORD*)(address) = value;
 }

@@ -10,7 +10,7 @@ inline const char* hashExtensions[] = { ".png", ".dds" };
 inline const char* GetHashExtension(const bool bIsSaving)
 {
 	if(HASH_OUTPUT_EXT!= 0 && bIsSaving)
-		OutputDebug("\nOnly PNG is supported for output so far. Saving as PNG\n");
+		PLOG_ERROR << "Only PNG is supported for saving";
 	return hashExtensions[bIsSaving ? /*HASH_OUTPUT_EXT*/ 0 : HASH_LOAD_HD_EXT];
 }
 #define HASH_HD_SUFFIX "_HD"
@@ -25,8 +25,8 @@ Vector2Di GetImageResolutionFast(const char* filePath);
 void ReadPNGHeaderResolutionFast(std::istream& stream, Vector2Di& resolution);
 void ReadDDSHeaderResolutionFast(std::istream& stream, Vector2Di& resolution);
 
-#define MAGIC_PNG 0x474E5089
-#define MAGIC_DDS 0x20534444
+#define MAGIC_PNG 0x474E5089  // NOLINT(modernize-macro-to-enum) 
+#define MAGIC_DDS 0x20534444 // NOLINT(modernize-macro-to-enum)
 
 
 /*

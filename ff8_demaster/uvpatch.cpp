@@ -8,7 +8,7 @@ unsigned int uvPatchAddresses[] =
 
 BOOL uvPatchModMnemonic(DWORD address)
 {
-	if (!modPage(address, 4))
+	if (!ModPage(address, 4))
 		return FALSE;
 	*((BYTE*)address + 3) = 0;
 	return TRUE;
@@ -20,10 +20,10 @@ void ApplyUVPatch()
 	DWORD addMnemonic = *(DWORD*)firstMnemonic & 0xFFFFFF; //get mnemonic without parameter
 	if (addMnemonic != 0x084680)
 	{
-		OutputDebug("DEMASTER::ApplyUvPatch::The addresses are wrong! We found no ADD byte ptr[esi+8] at given rel call\n");
-		return;
+		PLOG_FATAL << "DEMASTER::ApplyUvPatch::The addresses are wrong! We found no ADD byte ptr[esi+8] at given rel call";
+		exit(OSS_BAD_VERSION);
 	}
-	for (int i = 0; i < 12; i++)
-		if (!uvPatchModMnemonic(IMAGE_BASE + uvPatchAddresses[i]))
+	for (unsigned int uvPatchAddresse : uvPatchAddresses)
+		if (!uvPatchModMnemonic(IMAGE_BASE + uvPatchAddresse))
 			return;
 }

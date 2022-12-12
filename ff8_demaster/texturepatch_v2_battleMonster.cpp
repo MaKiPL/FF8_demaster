@@ -10,7 +10,7 @@ void ApplyBattleMonsterPatch()
 	InjectDWORD(IMAGE_BASE + GetAddress(BTLMON3), (DWORD)&TexFuncMonsterTexProvider->filename);
 
 	//this patches force release of tex 84 that is invalid/wrong pointer
-	modPage(IMAGE_BASE + GetAddress(BTLMON4), 6);
+	ModPage(IMAGE_BASE + GetAddress(BTLMON4), 6);
 	*(DWORD*)(IMAGE_BASE + GetAddress(BTLMON4)) = 0x0000D8E9;
 	*(WORD*)(IMAGE_BASE + GetAddress(BTLMON5)) = 0x9000;
 

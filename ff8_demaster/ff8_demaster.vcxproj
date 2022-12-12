@@ -118,6 +118,7 @@
       <EnableEnhancedInstructionSet>
       </EnableEnhancedInstructionSet>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalOptions>/sdl /w34996</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -225,7 +226,6 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="config.cpp" />
-    <ClCompile Include="debug.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="image.cpp" />
     <ClCompile Include="iopatch.cpp" />

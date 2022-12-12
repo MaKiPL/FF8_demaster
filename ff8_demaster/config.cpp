@@ -1,28 +1,27 @@
 ﻿#include "config.h"
 #include <INIReader.h>
 #include "debug.h"
+#include "minhook/include/MinHook.h"
 
 void ReadConfigFile()
 {
     if (GetFileAttributesA(DEMASTER_CONF) == INVALID_FILE_ATTRIBUTES)
-    {
-        OutputDebug("File " DEMASTER_CONF " not found- all failed\n");
-        return;
-    }
-    OutputDebug("Reading config file " DEMASTER_CONF "\n");
-    //ini_t* conf = ini_load(DEMASTER_CONF);
+        exit(ERROR_FILE_NOT_FOUND);
 
     const INIReader conf(DEMASTER_CONF);
 
     UVPATCH = conf.GetInteger("", "UV_PATCH", 0);
     DIRECT_IO = conf.GetInteger("", "DIRECT_IO", 0);
-    LOG = conf.GetInteger("", "LOG", 0);
+    FILE_LOG = conf.GetInteger("", "LOG_TO_FILE", 0);
+    LOG_FILENAME = conf.Get("", "LOG_FILENAME", "demaster.txt");
+    LOG_SEVERITY = conf.GetInteger("", "LOG_SEVERITY", plog::Severity::info);
     BATTLE_CHARA = conf.GetInteger("", "BATTLE_CHARACTER", 0);
     FIELD_ENTITY = conf.GetInteger("", "FIELD_ENTITY", 0);
     BATTLE_HOOK = conf.GetInteger("", "BATTLE_HOOK_MONSTER_FIELDS", 0);
     FIELD_BACKGROUND = conf.GetInteger("", "FIELD_BACKGROUND", 0);
     WORLD_TEXTURES = conf.GetInteger("", "WORLD_TEXTURES", 0);
     TEXTURE_PATCH = conf.GetInteger("", "TEXTURE_PATCH", 1); //this one lacks actual demaster.conf so default to 1
+    FORCE_NEAREST_FILTERING = conf.GetInteger("", "FORCE_NEAREST_FILTERING", 0);
     LINEAR_PATCH = conf.GetInteger("", "LINEAR_PATCH", 1);
     DEBUG_PATCH = conf.GetInteger("", "DEBUG_PATCH", 0);
     OPENGL_HOOK = conf.GetInteger("", "OPENGL_HOOK", 0);

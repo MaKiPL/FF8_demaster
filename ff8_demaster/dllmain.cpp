@@ -7,10 +7,14 @@
 #include "texture.h"
 #include "config.h"
 #include "opengl.h"
+#include <plog/Log.h>
+#include "plog/Initializers/RollingFileInitializer.h"
+#include "plog/Appenders/ColorConsoleAppender.h"
+#include "plog/Helpers/HexDump.h"
 
 
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
-EXPORT void InitTest() { OutputDebug("DEMASTER ENGINE LOADED!\n"); }
+EXPORT void InitTest() {  PLOG_INFO << "DEMASTER ENGINE LOADED!"; }
 
 #ifndef JAPANESE_PATCH
 #define JAPANESE_PATCH 0
@@ -65,21 +69,29 @@ BOOL WINAPI DllMain(
 {
 	if (fdwReason != DLL_PROCESS_ATTACH) //fail if not on app-init. Attaching is not recommended, should be loaded at startup by import
 		return 0;
-
-	SetUnhandledExceptionFilter(ExceptionHandler);
 	
 
 	AllocConsole();
 	(void)freopen("CONOUT$", "w", stdout);
 	(void)freopen("CON", "r", stdin);
-	InitTest();
+	static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
 	ReadConfigFile();
-	if (LOG) logFile = decltype(logFile){ fopen("demasterlog.txt", "wb"), fclose };
+	if (FILE_LOG)
+		plog::init(static_cast<plog::Severity>(LOG_SEVERITY), LOG_FILENAME.c_str())
+	.addAppender(&consoleAppender);
+		/*logFile = decltype(logFile){ fopen("demasterlog.txt", "wb"), fclose };*/
+	InitTest();
+
+
+
+	PLOG_INFO << "Demaster patch by Maki v1.3";
 	
 	IMAGE_BASE = reinterpret_cast<DWORD>(GetModuleHandleA(moduleName));
 	OPENGL_HANDLE = reinterpret_cast<DWORD>(GetModuleHandleA("OPENGL32"));
-
-	OutputDebug("IMAGE_BASE at: %lX; OPENGL at: %lX\n", IMAGE_BASE, OPENGL_HANDLE);
+	
+	PLOG_INFO << "IMAGE_BASE at: " << std::hex << std::uppercase << IMAGE_BASE << "; OPENGL at: " << OPENGL_HANDLE
+	<< std::dec;
+	
 
 	InitTable(IMAGE_BASE);
 
@@ -95,7 +107,8 @@ BOOL WINAPI DllMain(
 	if (TEXTURE_PATCH && DIRECT_IO)
 		ReplaceTextureFunction();
 	if (DEBUG_PATCH)
-		InjectJMP(IMAGE_BASE + GetAddress(NULLSUB_DEBUG), reinterpret_cast<DWORD>(OutputDebug));
+		InjectJMP(IMAGE_BASE + GetAddress(NULLSUB_DEBUG)
+			, reinterpret_cast<DWORD>(OutputDebugPatch));
 	if (LINEAR_PATCH)
 		ApplyFilteringPatch();
 

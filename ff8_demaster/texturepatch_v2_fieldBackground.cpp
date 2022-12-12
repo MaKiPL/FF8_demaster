@@ -42,19 +42,19 @@ bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 				maplistVector.emplace_back(std::move(mapname));
 			}
 		}
-		OutputDebug("%s::%d- %s Maplist!\toldsize: %d\tsize: %d\n", __func__, __LINE__, (force_retry ? "ReLoaded" : "Loaded"), oldsize, maplistVector.size());
+		PLOG_VERBOSE << "Maplist loaded! oldsize: " << oldsize << " size: " << maplistVector.size();
 	}
 
 	if (maplistVector.size() <= static_cast<size_t>(fieldId))
 	{
 		if (!force_retry)
 			return GetFieldBackgroundFilename(buffer, true);
-		OutputDebug("%s::%d- Invalid fieldId: %d / %d\n", __func__, __LINE__, fieldId, maplistVector.size());
+		PLOG_ERROR << "Invalid fieldId: " << fieldId << " / " << maplistVector.size();
 		{
 			size_t i = 0;
-			for (const auto map : maplistVector)
+			for (const std::string &map : maplistVector)
 			{
-				OutputDebug("\t%d - %s", i++, map.c_str());
+				PLOG_VERBOSE << "\t" << i++ << " - " << map;
 			}
 		}
 		return true; //failed to read fieldId
@@ -62,8 +62,8 @@ bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 
 	const std::string& mapName(maplistVector[fieldId]);
 	const std::string dirName(mapName.substr(0,2U)); //get only two chars
-	sprintf(buffer, "field_bg\\%s\\%s\\%s_", dirName.c_str(), mapName.c_str(), mapName.c_str());
-	OutputDebug("%s::%d- %s\n", __func__, __LINE__, buffer);
+	sprintf(buffer, R"(field_bg\%s\%s\%s_)", dirName.c_str(), mapName.c_str(), mapName.c_str());
+	PLOG_VERBOSE <<buffer;
 	return false; // no issues found.
 }
 
@@ -84,7 +84,7 @@ char* GetFieldBackgroundReplacementTextureName()
 	static char n2[256]{ 0 };
 	static char localn[256]{ 0 }; //Maki: static so when assigned to lastFieldName it doesn't get fucked out
 	static char localn2[256]{ 0 };
-	int palette = tex_header[52];
+	const int palette = tex_header[52];
 
 	
 
@@ -96,7 +96,7 @@ char* GetFieldBackgroundReplacementTextureName()
 
 	
 
-	sprintf(localn2, "%s%u_%u", n, fieldBackgroundRequestedTPage - 16, palette);
+	sprintf(localn2, "%s%lu_%u", n, fieldBackgroundRequestedTPage - 16, palette);
 
 
 	DDSorPNG(localn, 256, "%stextures\\%s%u_%u", DIRECT_IO_EXPORT_DIR, n, fieldBackgroundRequestedTPage - 16, palette);
@@ -104,15 +104,14 @@ char* GetFieldBackgroundReplacementTextureName()
 
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
-
-		OutputDebug("%s: %s, %s\n", __func__, localn, "palette not found");
+		PLOG_ERROR << localn << " palette not found";
 		lastFieldName = localn2;
 		//return localn2; //Maki: it's easier this way for me to replace whenn using no PNG
 	}
 	else
 	{
 		lastFieldName = localn; //Maki : localn2 was here instead of localn - probably debug
-		OutputDebug("%s: %s\n", __func__, localn);
+		PLOG_VERBOSE << localn << " palette found";
 	}
 
 
@@ -165,13 +164,13 @@ void FbgGl()
 		int palette = tex_header[52];
 
 		char localn[256]{0};
-		if (DDSorPNG(localn, 256, "%stextures\\%s%u_%u", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundReplacementTextureName(), tPage - 16, palette))
+		if (DDSorPNG(localn, 256, R"(%stextures\%s%u_%u)", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundReplacementTextureName(), tPage - 16, palette))
 		{
 			SafeBimg texture = LoadImageFromFile(localn);
 			if (texture)
 				RenderTexture(texture.get());
 		}
-		else if (DDSorPNG(localn, 256, "%stextures\\%s%s%u", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundReplacementTextureName(), tPage - 16))
+		else if (DDSorPNG(localn, 256, R"(%stextures\%s%s%u)", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundReplacementTextureName(), tPage - 16))
 		{
 			SafeBimg texture = LoadImageFromFile(localn);
 			if (texture)
@@ -206,15 +205,12 @@ DWORD GetFieldBackgroundReplacementExist()
 
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
-		OutputDebug("%s:%d: %s, %s\n", __func__, __LINE__, localn, "not found");
+		PLOG_ERROR << localn << " not found";
 		return 0;
 	}
 
 	fieldReplacementFound = 1;
-
-
-	OutputDebug("%s: fieldReplacementFound: %d %s\n", __func__, fieldReplacementFound, lastFieldName = localn);
-
+	PLOG_VERBOSE << localn << " found";
 	return fieldReplacementFound;
 }
 
@@ -272,14 +268,16 @@ __declspec(naked) void _asm_InjectExtensionHijack()
 void ApplyFieldBackgroundPatch()
 {
 
-	_asm_FieldBgRetAddr3 = InjectJMP(IMAGE_BASE + GetAddress(_ASM_FIELDBGRETADDR3), (DWORD)_asm_CheckTextureReplacementExists, 20);
+	_asm_FieldBgRetAddr3 = InjectJMP(IMAGE_BASE + GetAddress(_ASM_FIELDBGRETADDR3)
+		, reinterpret_cast<DWORD>(_asm_CheckTextureReplacementExists), 20);
 
 	//disable tpage 16&17 limit
-	modPage(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT), 1);
-	*(BYTE*)(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT)) = 0xEB;
+	ModPage(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT), 1);
+	*reinterpret_cast<BYTE*>(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT)) = 0xEB;
 
 	//we now inject JMP when CMP fieldIfd, gover and do out stuff, then return to glSegment
-	_asm_FieldBgRetAddr2 = InjectJMP(IMAGE_BASE + GetAddress(_ASM_FIELDBGRETADDR2), (DWORD)_asm_InjectFieldBackgroundModule, 42);//169-11);
+	_asm_FieldBgRetAddr2 = InjectJMP(IMAGE_BASE + GetAddress(_ASM_FIELDBGRETADDR2)
+		, reinterpret_cast<DWORD>(_asm_InjectFieldBackgroundModule), 42);//169-11);
 
 	//skips the .png adding
 	//Maki: no, not this way- todo in reborn

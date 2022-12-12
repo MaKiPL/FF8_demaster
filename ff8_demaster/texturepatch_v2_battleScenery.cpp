@@ -2,10 +2,6 @@
 #include <chrono>
 
 #include "config.h"
-extern int BATTLE_STAGE_ANIMATION_DELAY;
-extern BOOL BATTLE_STAGE_FORCE_RELOAD;
-
-#define CRASHLOG OutputDebug("%s::%d::%s\n", __FILE__, __LINE__,__func__)
 
 DWORD _bspBackAdd1;
 DWORD _bspBackAdd2;
@@ -67,16 +63,17 @@ public:
 		const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - m_timestamp);
 		if (duration > std::chrono::milliseconds(BATTLE_STAGE_ANIMATION_DELAY))
 		{
-			if (m_nextFrame != 1 || buffer.size()>0)
-				OutputDebug("%s::%d::Frame Update: duration: %lld ms, Current animation frame: %d\n", __func__, __LINE__, static_cast<long long int>(duration.count()), currentFrame());
+			if (m_nextFrame != 1 || !buffer.empty())
+				PLOG_VERBOSE << "Frame Update: duration: " << duration.count() << " ms, Current animation frame: " << currentFrame();
 			m_timestamp = current_time;
 			++m_nextFrame;
 		}
 		return currentFrame();
 	}
-	auto& current() const noexcept
+
+	[[nodiscard]] auto& current() const noexcept
 	{
-		const auto current_frame = currentFrame();
+		const int current_frame = currentFrame();
 		if (current_frame >= 0 && static_cast<size_t>(current_frame) < buffer.size())
 			return buffer[current_frame];
 		static const auto dummy = battleSceneryPathandTexture{};
@@ -85,12 +82,12 @@ public:
 
 	void update(battleSceneryPathandTexture&& new_img)
 	{
-		OutputDebug("%s::%d::Updating: tpage: %d, buffer count: \n", __func__, __LINE__, tpage, buffer.size());
+		PLOG_VERBOSE << "Updating: tpage: " << tpage << ", buffer count: " << buffer.size();
 
 		const auto current_frame = currentFrame();
 		if (static_cast<size_t>(current_frame) < buffer.size())
 		{
-			OutputDebug("\tcurrent frame: %d\n\told path: %s\n\tnew path: %s\n", current_frame, buffer[current_frame].localPath.c_str(), new_img.localPath.c_str());
+			PLOG_VERBOSE << "\tcurrent frame: " << current_frame << "\n\told path: " << buffer[current_frame].localPath << "\n\tnew path: " << new_img.localPath;
 			buffer[current_frame] = std::move(new_img);
 			return;
 		}
@@ -108,16 +105,16 @@ battleSceneryStructure bss[] =
 bool LoadImageIntoBattleSceneryStruct(const size_t index, const DWORD tPage, const char* const localn)
 {
 	
-	if (!bool(BATTLE_STAGE_FORCE_RELOAD) && bss[index].current() && bss[index].current().localPath == localn) //prevent loading an image that is loaded.
+	if (!static_cast<bool>(BATTLE_STAGE_FORCE_RELOAD) && bss[index].current() && bss[index].current().localPath == localn) //prevent loading an image that is loaded.
 		return true;
 	int palette = tex_header[52];
 	//spamming so i put it here so it only logs when loading.
-	OutputDebug("%s::Stage: %d, Tpage: %d, Palette: %d\n", __func__, currentStage, tPage, palette);
+	PLOG_VERBOSE << "Stage: " << currentStage << ", Tpage: " << tPage << ", Palette: " << palette;
 
 	SafeBimg img = LoadImageFromFile(localn);
 	if (!img)
 	{
-		OutputDebug("%s::%d::Fail to load texture, clearing buffer vector: tpage: %d, buffer count: \n", __func__, __LINE__, tPage, bss[index].buffer.size());
+		PLOG_ERROR << "Fail to load texture, clearing buffer vector: tpage: " << tPage << ", buffer count: " << bss[index].buffer.size();
 		bss[index].bActive = false;
 		bss[index].buffer.clear();
 		return false;
@@ -134,33 +131,32 @@ bool LoadImageIntoBattleSceneryStruct(const size_t index, const DWORD tPage, con
 	bss[index].update({ localn, std::move(img) });
 
 	bss[index].tpage = tPage;
-	OutputDebug("\t%s::Battle texture for page: %d", __func__, tPage);
-	OutputDebug("\t%s::w: %d; h: %d; channels: %d\n", __func__, bss[index].width, bss[index].height, bss[index].channels);
+	PLOG_VERBOSE << "Loaded battle texture for page: " << tPage;
+	PLOG_VERBOSE << "w: " << bss[index].width << "; h: " << bss[index].height << "; channels: " << bss[index].channels;
 	return true;
 }
-void _bspGl()
+void BspGl()
 {
 	DWORD tPage = gl_textures[50];
 	char localn[256]{ 0 };
-	if (DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, bss[tPage - 16].get_current_frame_number_and_iterate()))
+	if (DDSorPNG(localn, 256, R"(%stextures\battle.fs\hd_new\a0stg%03d_%d_%d)", DIRECT_IO_EXPORT_DIR, currentStage, tPage, bss[tPage - 16].get_current_frame_number_and_iterate()))
 	{
-		if (DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, 0))
-			if (!DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage) && bss[tPage - 16].buffer.size() > 1)
+		if (DDSorPNG(localn, 256, R"(%stextures\battle.fs\hd_new\a0stg%03d_%d_%d)", DIRECT_IO_EXPORT_DIR, currentStage,
+		             tPage, 0))
+			if (!DDSorPNG(localn, 256, R"(%stextures\battle.fs\hd_new\a0stg%03d_%d)", DIRECT_IO_EXPORT_DIR,
+			              currentStage, tPage) && bss[tPage - 16].buffer.size() > 1)
 				bss[tPage - 16].buffer.clear();
 		bss[tPage - 16].restart_animation(); // prevents using the wrong frame number for the base texture
-		                               // or resets if current frame number too high.
+		// or resets if current frame number too high.
 	}
 
 	if (LoadImageIntoBattleSceneryStruct(tPage - 16, tPage, localn))
-	{
 		RenderTexture(bss[tPage - 16].current());
-	}
-	return;
 }
 
-DWORD _bspCheck()
+DWORD BspCheck()
 {
-	int textureType = gl_textures[48];
+	const int textureType = gl_textures[48];
 	if (textureType != 11) //we want only battle textures
 		return 0;
 	if (currentStage == -1)
@@ -171,22 +167,21 @@ DWORD _bspCheck()
 	if (tPage > 21)
 		return 0;
 	char localn[256]{ 0 };
-	if (!DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage)
-		|| !DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_0", DIRECT_IO_EXPORT_DIR, currentStage, tPage))
+	if (!DDSorPNG(localn, 256, R"(%stextures\battle.fs\hd_new\a0stg%03d_%d)", DIRECT_IO_EXPORT_DIR, currentStage, tPage)
+		|| !DDSorPNG(localn, 256, R"(%stextures\battle.fs\hd_new\a0stg%03d_%d_0)", DIRECT_IO_EXPORT_DIR, currentStage, tPage))
 	{
-		OutputDebug("%s: Happy at %s\n", __func__, localn);
+		PLOG_VERBOSE << "BspCheck success at: " << localn;
 		return 1;
 	}
-	OutputDebug("%s FAILED ON TEXTURE!; Expected: a0stg%03d_%d.(dds|png) or a0stg%03d_%d_0.(dds|png)\n", __func__, currentStage, tPage);
+	PLOG_ERROR << "BspCheck failed at stage: " << currentStage << ", tpage: " << tPage;
 	return 0;
 }
 
-DWORD _fbgCheck()
+DWORD FbgCheck()
 {
 	if(!FIELD_BACKGROUND)
 		return 0;
 	return 0; //WIP
-	return GetFieldBackgroundReplacementExist();
 }
 
 DWORD** ds_free;
@@ -206,7 +201,7 @@ __declspec(naked) void _bsp()
 		MOV pixelsPtr, EAX
 		MOV bAlreadyFreed, 0
 
-		CALL _bspCheck
+		CALL BspCheck
 		TEST EAX, EAX
 		JNZ _bspOk
 
@@ -214,7 +209,7 @@ __declspec(naked) void _bsp()
 		TEST EAX, EAX
 		JNZ _wtpOk
 
-		CALL _fbgCheck //Field background module
+		CALL FbgCheck //Field background module
 		TEST EAX, EAX
 		JNZ _fbgOk
 
@@ -236,17 +231,7 @@ __declspec(naked) void _bsp()
 			_out :
 		JMP _bspBackAdd1
 
-			_wtpOk :
-		//MOV EAX, OFFSET IMAGE_BASE
-		//	MOV EAX, [EAX]
-		//	PUSH EAX
-		//	PUSH DS_FREE
-		//	CALL GetAddress
-		//	MOV EBX, EAX
-	//		POP EAX
-	//		ADD EAX, EBX
-			
-
+		_wtpOk :
 			PUSH DWORD PTR[EBP + 0x10]
 			MOV EAX, ds_free
 			MOV EAX, [EAX]
@@ -257,17 +242,17 @@ __declspec(naked) void _bsp()
 
 			JMP _original
 
-			_bspOk :
+		_bspOk :
 			PUSH DWORD PTR[EBP + 0x10]
 				MOV EAX, ds_free
 				MOV EAX, [EAX]
 				CALL EAX
 				MOV bAlreadyFreed, 1
 
-				CALL _bspGl
+				CALL BspGl
 				JMP _out
 
-			_fbgOk: //FIELD BACKGROUND
+		_fbgOk: //FIELD BACKGROUND
 			PUSH DWORD PTR[EBP + 0x10]
 			MOV EAX, ds_free
 			MOV EAX, [EAX]
@@ -297,20 +282,22 @@ __declspec(naked) void _bspFree()
 
 void ApplyBattleFieldPatch()
 {
-	OutputDebug("Applying battle field patch\n");
-	ds_free = (DWORD**)(IMAGE_BASE + GetAddress(DS_FREE));
-	ds_teximg = (DWORD**)(IMAGE_BASE + GetAddress(DS_TEXIMG));
-	OutputDebug("ApplyBattleFieldPatch():ds_free is at: %08X and ds_teximg is at: %08X\n", ds_free, ds_teximg);
-	_bspBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(_BSPBACKADD1), (DWORD)_bsp, 38);
-	_bspBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(_BSPBACKADD2), (DWORD)_bspFree, 9);
+	PLOG_INFO << "Applying battle field patch";
+	ds_free = reinterpret_cast<DWORD**>(IMAGE_BASE + GetAddress(DS_FREE));
+	ds_teximg = reinterpret_cast<DWORD**>(IMAGE_BASE + GetAddress(DS_TEXIMG));
+	PLOG_INFO << "ds_free is at: " << ds_free << " and ds_teximg is at: " << ds_teximg;
+	_bspBackAdd1 = reinterpret_cast<DWORD>(InjectJMP(IMAGE_BASE + GetAddress(_BSPBACKADD1)
+		, reinterpret_cast<DWORD>(_bsp), 38));
+	_bspBackAdd2 = reinterpret_cast<DWORD>(InjectJMP(IMAGE_BASE + GetAddress(_BSPBACKADD2)
+		, reinterpret_cast<DWORD>(_bspFree), 9));
 
 	//fixes balamb low-res and library low-res for example @ 15.08.2022
 	DWORD bgPatchWidth = IMAGE_BASE + GetAddress(BGRESPATCH1);
 	DWORD bgPatchHeight = IMAGE_BASE + GetAddress(BGRESPATCH1) + 0xC;
-	modPage(bgPatchWidth, 1);
-	modPage(bgPatchHeight, 1);
-	*(BYTE*)bgPatchWidth = 0xE0; //SHL instead of SHR
-	*(BYTE*)bgPatchHeight = 0xE0; //SHL instead of SHR
+	ModPage(bgPatchWidth, 1);
+	ModPage(bgPatchHeight, 1);
+	*reinterpret_cast<BYTE*>(bgPatchWidth) = 0xE0; //SHL instead of SHR
+	*reinterpret_cast<BYTE*>(bgPatchHeight) = 0xE0; //SHL instead of SHR
 
 	//this disables textureLimit for resolution
 	InjectJMP(IMAGE_BASE + GetAddress(BATTLEJMPPATCH1), (DWORD)(IMAGE_BASE + GetAddress(BATTLEJMPPATCH2)), 6);

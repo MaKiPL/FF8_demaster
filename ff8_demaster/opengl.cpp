@@ -17,7 +17,7 @@ void CheckGlew()
     glewInitialized = true;
     if (const GLenum err = glewInit(); GLEW_OK != err)
         /* Problem: glewInit failed, something is seriously wrong. */
-        OutputDebug("%s - GLEW Error: %s\n", __func__, glewGetErrorString(err));
+        PLOG_FATAL << "GLEW Error: " << glewGetErrorString(err);
 }
 
 GLFWwindow* HookGlfwWindow(const int width, const int height, const char* title, GLFWmonitor* monitor,
@@ -26,7 +26,7 @@ GLFWwindow* HookGlfwWindow(const int width, const int height, const char* title,
     HookGlFunctionsPostGLFW();
     ffWindow = static_cast<GLFWwindow*(*)(int, int, const char*, GLFWmonitor*, GLFWwindow*)>(glfwWindowTrampoline)
     (width, height, title, monitor, share);
-    OutputDebug("OpenGL version: %s", glGetString(GL_VERSION));
+    printf("OpenGL Version: %p\n", glGetString(GL_VERSION));
     return ffWindow;
 }
 
@@ -38,7 +38,7 @@ void* __stdcall HookGlViewport(const GLint x, const GLint y, const GLsizei width
     CheckGlew();
     if (static bool backdoorUsed = false; glewInitialized && !backdoorUsed)
     {
-        OutputDebug("OpenGL version: %s", glGetString(GL_VERSION));
+        PLOG_INFO << "OpenGL Version: " << glGetString(GL_VERSION);
         //Maki: PUT BACKDOORS FOR EXTENSIONS HERE
         if (TEXTURE_PATCH && DIRECT_IO)
         {

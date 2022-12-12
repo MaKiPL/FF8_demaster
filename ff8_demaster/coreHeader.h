@@ -14,7 +14,7 @@
 #define EXPORT __declspec(dllexport)
 
 BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize = 5);
-BOOL modPage(DWORD address, int size);
+BOOL ModPage(DWORD address, int size);
 void ReplaceCALLWithNOP(DWORD address);
 void InjectDWORD(DWORD address, DWORD value);
 

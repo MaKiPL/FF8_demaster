@@ -2,25 +2,25 @@
 #include <cstdio>
 #include <memory>
 #include <StackWalker.h>
+#include <plog/Log.h>
+#include "plog/Helpers/HexDump.h"
+#include "plog/Converters/UTF8Converter.h"
 
-void OutputDebug(const char* fmt, ...);
-LONG WINAPI ExceptionHandler(EXCEPTION_POINTERS* ep);
-
-#define CRASHLOG OutputDebug("%s::%d::%s\n", __FILE__, __LINE__,__func__)
-inline std::unique_ptr<FILE, decltype(&fclose)> logFile{ nullptr, fclose };
-
-class DemasteredStackWalker final : public StackWalker
+inline void OutputDebugPatch(const char* fmt, ...)
 {
-public:
-    DemasteredStackWalker() : StackWalker() {}
-protected:
-    void OnDbgHelpErr(LPCSTR szFuncName, DWORD gle, DWORD64 addr) override
-    {
-        // Silence is golden.
-    }
+#if _DEBUG
+    if (IsBadReadPtr(fmt, 4)) return;
+    std::string fmtString = std::string(fmt);
+    if (fmtString.substr(0, 7) == std::string("GLERROR"))
+        return;
+    va_list args;
+    char tmp_str[1024];
 
-    void OnOutput(LPCSTR szText) override
-    {
-        OutputDebug(szText);
-    }
-};
+    va_start(args, fmt);
+    vsnprintf(tmp_str, sizeof(tmp_str), fmt, args);
+    va_end(args);
+
+    printf(tmp_str);
+    PLOG_VERBOSE << tmp_str;
+#endif
+}

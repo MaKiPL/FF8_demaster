@@ -10,7 +10,7 @@ SafeBimg LoadImageFromFile(const char* const filename)
 {
 	CheckGlew();
 	char msg[1024]{0};
-	OutputDebug("%s - Opening File: %s\n", __func__, filename);
+	PLOG_DEBUG << "Opening File: " << filename;
 	
 	std::fstream fp = std::fstream(filename, std::ios::in | std::ios::binary);
 	if (!fp.is_open())
@@ -35,8 +35,8 @@ SafeBimg LoadImageFromFile(const char* const filename)
 	
 	if (error.isOk())
 		return SafeBimgInit(img);
-	
-	OutputDebug("%s::%d::bimg error: %s ", __func__, __LINE__, error.getMessage().getPtr());
+
+	PLOG_ERROR << "Error loading image: " << filename << " Error: " << error.getMessage().getPtr();
 	return SafeBimgInit();
 }
 
@@ -92,7 +92,7 @@ void RenderCompressedTexture(const bimg::ImageContainer* img, const TextureForma
 {
 	if (!GLEW_ARB_texture_compression)
 	{
-		OutputDebug("Texture is compressed, but compression is not supported on your GPU. Skipping draw.");
+		PLOG_ERROR << "Texture is compressed, but compression is not supported on your GPU. Skipping draw.";
 		return;
 	}
 	uint32_t width = img->m_width;

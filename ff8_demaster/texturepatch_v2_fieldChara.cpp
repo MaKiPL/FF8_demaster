@@ -55,9 +55,9 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 	else height_fcp = img->m_height * 2;
 	
 
-
-	OutputDebug("_fcpObtainTextureDatas:: width=%d, height=%d, width_fcp=%d, height_fcp=%d, filename=%s\n", img->m_width, img->m_height, width_fcp, height_fcp, texPath);
-	return;
+	
+	PLOG_VERBOSE << "_fcpObtainTextureDatas:: width=" << img->m_width << ", height=" << img->m_height
+	<< ", width_fcp=" << width_fcp << ", height_fcp=" << height_fcp << ", filename=" << texPath;
 }
 
 
@@ -135,16 +135,18 @@ void ApplyFieldEntityPatch()
 {
 	//step 1. obtain needed data for tex_struct and etc.
 	//Maki: ouch, same-name vars
-	fcpBackAdd1 = InjectJMP(IMAGE_BASE + GetAddress(FCPBACKADD1), (DWORD)_fcpObtainData, 18);
+	fcpBackAdd1 = InjectJMP(IMAGE_BASE + GetAddress(FCPBACKADD1)
+		, reinterpret_cast<DWORD>(_fcpObtainData), 18);
 
 
 	//step 2. disable out of bounds error- we know that, but we are using new, bigger buffers
-	modPage(IMAGE_BASE + GetAddress(FIELDCHARENT1), 1);
-	*(BYTE*)(IMAGE_BASE + GetAddress(FIELDCHARENT1)) = 0xEB; //JBE -> JMP
+	ModPage(IMAGE_BASE + GetAddress(FIELDCHARENT1), 1);
+	*reinterpret_cast<BYTE*>(IMAGE_BASE + GetAddress(FIELDCHARENT1)) = 0xEB; //JBE -> JMP
 
-	modPage(IMAGE_BASE + GetAddress(FIELDCHARENT2), 1);
-	*(BYTE*)(IMAGE_BASE + GetAddress(FIELDCHARENT2)) = 0xEB; //JBE -> JMP
+	ModPage(IMAGE_BASE + GetAddress(FIELDCHARENT2), 1);
+	*reinterpret_cast<BYTE*>(IMAGE_BASE + GetAddress(FIELDCHARENT2)) = 0xEB; //JBE -> JMP
 
 	//1160545A - set
-	fcpBackAdd2 = InjectJMP(IMAGE_BASE + GetAddress(FCPBACKADD2), (DWORD)_fcpSetYoffset, 6);
+	fcpBackAdd2 = InjectJMP(IMAGE_BASE + GetAddress(FCPBACKADD2)
+		, reinterpret_cast<DWORD>(_fcpSetYoffset), 6);
 }

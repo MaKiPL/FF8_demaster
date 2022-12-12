@@ -21,21 +21,21 @@ DWORD _bhpMonsterStructVoid()
 	DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\c0m%03d_0", DIRECT_IO_EXPORT_DIR, batId);
 	int maxPal = 0;
 	int _strlen = strlen(localn);
-	while (1)
+	while (true)
 	{
 		localn[_strlen - 5] = '0' + maxPal;
 		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 		{
 			if (maxPal == 0)
 			{
-				OutputDebug("_bhpMonsterStructVoid::Not found entry of c0m%03d_0.(dds|png)- treating as null;\n", batId);
+				PLOG_ERROR << "_bhpMonsterStructVoid::Not found entry of c0m" << batId << "_0.(dds|png)- treating as null;";
 				return -1;
 			}
 			break;
 		}
 		maxPal++;
 	}
-	OutputDebug("_bhpMonsterStructVoid::Custom worker- found C0M%03d that have %d pages\n", batId, maxPal);
+	PLOG_VERBOSE << "_bhpMonsterStructVoid::Custom worker- found C0M"<<batId<<" that have "<< maxPal <<" pages";
 	return maxPal;
 }
 
@@ -60,7 +60,7 @@ __declspec(naked) void _bhpMonsterStruct()
 BYTE _bhpVoid()
 {
 	char localPath[256]{ 0 };
-	OutputDebug("texturepatchv2::battleHooks::BhpVoid(%s)\n", _bhpStrPointer);
+	PLOG_VERBOSE << "texturepatchv2::battleHooks::BhpVoid(" << _bhpStrPointer << ")";
 	
 	char bhpChechker = _bhpStrPointer[0];
 	bhpChechker = tolower(bhpChechker);
@@ -166,6 +166,8 @@ __declspec(naked) void _bhp()
 void ApplyBattleHookPatch()
 {
 	currentStage = -1;
-	_bhpBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(_BHPBACKADD1), (DWORD)_bhp, 17);
-	_bhpBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(_BHPBACKADD2), (DWORD)_bhpMonsterStruct, 5); //GetBattleMonsterStructPalCount _notfound
+	_bhpBackAdd1 = reinterpret_cast<DWORD>(InjectJMP(IMAGE_BASE + GetAddress(_BHPBACKADD1)
+		, reinterpret_cast<DWORD>(_bhp), 17));
+	_bhpBackAdd2 = reinterpret_cast<DWORD>(InjectJMP(IMAGE_BASE + GetAddress(_BHPBACKADD2)
+		, reinterpret_cast<DWORD>(_bhpMonsterStruct), 5)); //GetBattleMonsterStructPalCount _notfound
 }

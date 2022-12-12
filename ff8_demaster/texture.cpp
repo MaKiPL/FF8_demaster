@@ -18,19 +18,13 @@ void* __stdcall HookGlBindTexture(GLenum target, GLuint texture)
 //TODO - this is to handle params lol
 void* __stdcall HookGlTextParameteri(GLenum target, GLenum name, GLint param)
 {
-	// Commenting because forcing filtering in whole game is not good
-
-	/*
-	if(target==GL_TEXTURE_2D &&
-		(name == GL_TEXTURE_MIN_FILTER || name == GL_TEXTURE_MAG_FILTER))
-	{
-		return ((void* (__stdcall*)(GLenum, GLenum, GLint))oglTexParametri)
-			(target, name, GL_NEAREST);
-	}
-	else
-	*/
+	if(FORCE_NEAREST_FILTERING)
+		if (target == GL_TEXTURE_2D &&
+			(name == GL_TEXTURE_MIN_FILTER || name == GL_TEXTURE_MAG_FILTER))
+			return static_cast<void* (__stdcall*)(GLenum, GLenum, GLint)>(ogl_tex_parametri)
+				(target, name, GL_NEAREST);
 	return static_cast<void* (__stdcall*)(GLenum, GLenum, GLint)>(ogl_tex_parametri)
-		(target, name, param);
+			(target, name, param);
 }
 
 struct loadedTextureInformation
@@ -53,8 +47,8 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 {
 	int boundId;
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &boundId);
-	OutputDebug("glTexImage2D (%d): format: %d, %dx%d, void: %08x\n",
-		boundId, internalformat, width, height, data);
+	PLOG_VERBOSE << "glTexImage2D called with boundId: " << boundId << " and width: " << width << " and height: "
+	<< height;
 	int lengthModifier = 0;
 	if (internalformat == GL_RGBA || internalformat == GL_BGRA
 		|| internalformat == GL_RGBA8)
@@ -85,8 +79,8 @@ if(HASH_ENABLED)
 		destinationPath.append(ss.str());
 		if (!knownTextures.contains(high64))
 		{
-			OutputDebug("New hash for textureId: %u. Hash: %016llX%016llX ",
-				boundId, high64, low64);
+			PLOG_VERBOSE << "New hash for texture: " << boundId << std::hex << " 0x" << high64
+				<< low64 << std::dec;
 			knownTextures.insert(std::pair(high64, TexImageInformation{
 							low64,static_cast<GLuint>(boundId), internalformat, width, height }));
 if(HASH_OUTPUT)
@@ -124,9 +118,8 @@ if(HASH_OUTPUT)
 }
 		}
 		const std::chrono::time_point<std::chrono::steady_clock> stop = std::chrono::high_resolution_clock::now();
-		OutputDebug("Hashing of %dx%d*%d took %lfms\n", width, height,
-			lengthModifier,
-			static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count()) / 1e6);
+			PLOG_VERBOSE << "Hashing of " << width << "x" << height << "*" << lengthModifier << " took " <<
+			static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count()) / 1e6;
 		if(HASH_LOAD_HD)
 		{
 			std::string importPath = std::string(destinationPath.string());
@@ -153,7 +146,7 @@ if(HASH_OUTPUT)
 					if (const bimg::ImageContainer* imageContainer = img.get();
 						imageContainer->m_data != nullptr)
 					{
-						OutputDebug("Loading custom HD texture: %s!", destinationPath.string().c_str());
+						PLOG_DEBUG << "Loading custom HD texture: " << destinationPath.string();
 
 						//BUGGED BELOW, DO NOT USE DDS YET!
 						if(bimg::isCompressed(imageContainer->m_format))
@@ -171,7 +164,7 @@ if(HASH_OUTPUT)
 							return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
 																  GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
 								(target, level, internalformat, static_cast<int>(imageContainer->m_width)
-								 , static_cast<int>(imageContainer->m_height), border, format, type
+								 , static_cast<int>(imageContainer->m_height), border, GL_RGBA/*format*/, type
 								 , imageContainer->m_data);
 						}
 					}
@@ -258,7 +251,8 @@ void _cltVoid()
 		return;
 	if (textureType == 57) //field
 		return;
-	OutputDebug("\ncommon_load_texture: tex_type: %s, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n", GetTextureType(textureType), palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
+	PLOG_VERBOSE << "common_load_texture: tex_type: " << GetTextureType(textureType) << ", pal: " << palette
+	<< ", unk: " << unknownDword << ", bHaveHD: " << (bHaveHD > 0 ? "TRUE" : "FALSE") << ", Tpage: " << tPage;
 
 	return;
 }
@@ -293,7 +287,7 @@ void ReadPNGHeaderResolutionFast(std::istream& stream, Vector2Di &resolution)
 	stream.read(reinterpret_cast<char*>(&ihdrMagic), sizeof(uint32_t));
 	if (ihdrMagic != 0x52444849)
 	{
-		OutputDebug("Invalid PNG file!");
+		PLOG_ERROR << "Invalid PNG file";
 		return;
 	}
 	stream.read(reinterpret_cast<char*>(&resolution.width), sizeof(uint32_t));
@@ -306,7 +300,7 @@ void ReadDDSHeaderResolutionFast(std::istream& stream, Vector2Di& resolution)
 	stream.read(reinterpret_cast<char*>(&headerSize), sizeof(uint32_t));
 	if (headerSize != 124)
 	{
-		OutputDebug("Invalid DDS file!");
+		PLOG_ERROR << "Invalid DDS file";
 		return;
 	}
 	stream.seekg(4, std::ios::cur);
@@ -322,7 +316,7 @@ Vector2Di GetImageResolutionFast(const char* filePath)
 	std::ifstream inFile;
 	inFile.open(filePath, std::ios::in | std::ios::binary);
 	if(!inFile.is_open())
-		{OutputDebug("%s error. File not opened", __func__); return resolution;}
+		{PLOG_ERROR << "File not opened"; return resolution;}
 	uint32_t magic = 0;
 	inFile.read(reinterpret_cast<char*>(&magic), sizeof(uint32_t));
 	switch(magic)
@@ -334,7 +328,8 @@ Vector2Di GetImageResolutionFast(const char* filePath)
 			ReadDDSHeaderResolutionFast(inFile,resolution);
 			break;
 		default:
-			OutputDebug("%s error. Unknown file format- only DDS and PNG are supported. I'm too lazy", __func__);
+			PLOG_ERROR << "Invalid file, only DDS and PNG are supported";
+			return resolution;
 	}
 	inFile.close();
 	return resolution;
@@ -342,32 +337,32 @@ Vector2Di GetImageResolutionFast(const char* filePath)
 
 void ReplaceTextureFunction()
 {
-	OutputDebug("Applying texture patches...\n");
+	PLOG_INFO << "Applying texture patches...";
 	if (BATTLE_CHARA)
 	{
-		OutputDebug("Applying BATTLE_CHARA patch\n");
+		PLOG_INFO << "Applying BATTLE_CHARA patch";
 		ApplyBattleCharacterPatch();
 	}
 	if (FIELD_ENTITY)
 	{
-		OutputDebug("Applying FIELD_ENTITY patch\n");
+		PLOG_INFO << "Applying FIELD_ENTITY patch";
 		ApplyFieldEntityPatch();
 	}
 	if (BATTLE_HOOK)
 	{
-		OutputDebug("BATTLE_HOOK- STARTING PATCHING\n");
+		PLOG_INFO << "BATTLE_HOOK- STARTING PATCHING";
 		ApplyBattleHookPatch();
 		ApplyBattleMonsterPatch();
 		ApplyBattleFieldPatch();
 	}
 	if (FIELD_BACKGROUND)
 	{
-		OutputDebug("Applying FIELD_BACKGROUND PATCH\n");
+		PLOG_INFO << "Applying FIELD_BACKGROUND PATCH";
 		ApplyFieldBackgroundPatch();
 	}
 	if (WORLD_TEXTURES)
 	{
-		OutputDebug("Applying WORLD_TEXTURES PATCH\n");
+		PLOG_INFO << "Applying WORLD_TEXTURES PATCH";
 		ApplyWorldPatch();
 	}
 
