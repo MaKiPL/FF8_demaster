@@ -171,7 +171,7 @@ if(HASH_OUTPUT)
 							return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
 																  GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
 								(target, level, internalformat, static_cast<int>(imageContainer->m_width)
-								 , static_cast<int>(imageContainer->m_height), border, format, type
+								 , static_cast<int>(imageContainer->m_height), border, GL_RGBA/*format*/, type
 								 , imageContainer->m_data);
 						}
 					}
