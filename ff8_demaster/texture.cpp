@@ -41,6 +41,8 @@ struct loadedTextureInformation
 
 std::map<uint64_t, loadedTextureInformation> loadedTextures;
 
+
+//below could use splitting into multiple functions
 void* __stdcall HookGlTexImage2D(GLenum target,
 	GLint level,
 	GLint internalformat,
@@ -62,7 +64,7 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 	else if (internalformat == GL_RGB || internalformat == GL_BGR
 		|| internalformat == GL_RGB8)
 		lengthModifier = 3;
-if(HASH_ENABLED)
+if(HASH_ENABLED) //=======HASHING====//
 {
 	if (data != nullptr && width != 0 && height != 0 && lengthModifier != 0
 		&& width < 1024 && height < 1024)
@@ -89,7 +91,7 @@ if(HASH_ENABLED)
 				boundId, high64, low64);
 			knownTextures.insert(std::pair(high64, TexImageInformation{
 							low64,static_cast<GLuint>(boundId), internalformat, width, height }));
-if(HASH_OUTPUT)
+if(HASH_OUTPUT) //======OUTPUT OF HASHED TEXTURES======//
 {
 	std::string exportPath = std::string(destinationPath.string());
 	exportPath.append(GetHashExtension(true));
@@ -127,7 +129,7 @@ if(HASH_OUTPUT)
 		OutputDebug("Hashing of %dx%d*%d took %lfms\n", width, height,
 			lengthModifier,
 			static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count()) / 1e6);
-		if(HASH_LOAD_HD)
+		if(HASH_LOAD_HD) //=====HASH LOAD CODE=====//
 		{
 			std::string importPath = std::string(destinationPath.string());
 			importPath.append(HASH_HD_SUFFIX);
@@ -155,9 +157,16 @@ if(HASH_OUTPUT)
 					{
 						OutputDebug("Loading custom HD texture: %s!", destinationPath.string().c_str());
 
-						//BUGGED BELOW, DO NOT USE DDS YET!
+						
 						if(bimg::isCompressed(imageContainer->m_format))
+						{
 							RenderTexture(imageContainer); //redundant on checking two times for compression, but whatev
+							//return cast to glTexImage2D but with error
+							return static_cast<void * (__stdcall*) (GLenum, GLint, GLint, GLsizei, GLsizei,
+								GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
+							(target, -1, internalformat, static_cast<GLsizei>(width)
+								, static_cast<GLsizei>(height), border, format, type, data);
+						}
 						else
 						{
 							loadedTextureInformation lti{};
@@ -184,6 +193,18 @@ if(HASH_OUTPUT)
 	                                      GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
 		(target, level, internalformat, width, height
 			, border, format, type, data);
+}
+
+
+
+//this is null sub- basically hooking api requires static cast to function pointer. However if there's need to
+//actually call compressed texture function, this is the way to do it. I call the compressed texture method and
+//then return the main texture2D method into this null function. The compressed texture and glTexImage2D are voids
+//that don't return anything as they work under bindings, so compressed texture will utilize the bound texture
+//while this null reroute will do nothing and not overwrite the texture
+void NullHookGlTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border,
+	GLenum format, GLenum type, const void* data)
+{
 }
 
 

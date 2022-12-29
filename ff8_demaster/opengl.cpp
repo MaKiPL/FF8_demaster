@@ -123,7 +123,9 @@ void* __stdcall HookGlViewport(const GLint x, const GLint y, const GLsizei width
         {
             MH_CreateHookApi(L"OPENGL32", "glBindTexture", HookGlBindTexture, &ogl_bind_texture);
             MH_CreateHookApi(L"OPENGL32", "glTexParameteri", HookGlTextParameteri, &ogl_tex_parametri);
+            //creating api hook is probably mandatory. Other way is to hook the entry of the api, but idk
             MH_CreateHookApi(L"OPENGL32", "glTexImage2D", HookGlTexImage2D, &ogl_tex_image2d);
+            
             //create mh hook for swapbuffers
             MH_CreateHook(&SwapBuffers, &HookSwapBuffers, &SwapBuffersTrampoline);
             MH_EnableHook(MH_ALL_HOOKS);

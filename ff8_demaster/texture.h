@@ -58,7 +58,6 @@ struct TexImageInformation
 	GLint internalformat;
 	GLsizei width, height;
 };
-
 inline std::map<uint64_t, TexImageInformation> knownTextures;
 void* __stdcall HookGlTexImage2D(GLenum target,
 	GLint level,
@@ -69,3 +68,15 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 	GLenum format,
 	GLenum type,
 	const void* data);
+
+void NullHookGlTexImage2D(GLenum target,
+	GLint level,
+	GLint internalformat,
+	GLsizei width,
+	GLsizei height,
+	GLint border,
+	GLenum format,
+	GLenum type,
+	const void* data);
+
+inline LPVOID nullHookGlTexImage2DPtr = NullHookGlTexImage2D;
