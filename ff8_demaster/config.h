@@ -6,6 +6,7 @@ inline int UVPATCH;
 inline int DIRECT_IO;
 inline int TEXTURE_PATCH;
 inline int DEBUG_PATCH;
+inline int IMGUI_DEBUG;
 inline int LOG;
 inline int BATTLE_CHARA;
 inline int FIELD_ENTITY;

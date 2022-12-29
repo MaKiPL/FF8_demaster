@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <GL/glew.h>
 #include "GLFW/include/GLFW/glfw3.h"
+#include "imgui/imgui.h"
 
 
 void CheckGlew();
@@ -9,6 +10,11 @@ inline bool glewInitialized = false;
 
 typedef GLFWwindow* (*OGlfwCreateWindow)(int width, int height, const char* title, GLFWwindow* monitor, GLFWwindow* share);
 inline GLFWwindow* ffWindow;
+inline GLFWwindow* ffWindowSecond;
+
+int HookGlfwInit();
+inline void* glfwInitTrampoline;
+
 inline void* glfwWindowTrampoline;
 GLFWwindow* HookGlfwWindow(int width, int height, const char* title, GLFWmonitor* monitor, GLFWwindow* share);
 

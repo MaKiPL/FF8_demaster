@@ -43,6 +43,9 @@ void GetWindow()
 	const unsigned int wndGlfw = IMAGE_BASE + GetAddress(WINDOWTITLE) + 0x12
 	+ *reinterpret_cast<DWORD*>(IMAGE_BASE + GetAddress(WINDOWTITLE) + 0x12) + 4;
 	MH_CreateHook(reinterpret_cast<LPVOID>(wndGlfw), HookGlfwWindow, &glfwWindowTrampoline);
+	const unsigned int wndGlfwInit = IMAGE_BASE + GetAddress(WINDOWTITLE) - 0xA2
+	 + *reinterpret_cast<DWORD*>(IMAGE_BASE + GetAddress(WINDOWTITLE) - 0xA2) + 4;
+	MH_CreateHook(reinterpret_cast<LPVOID>(wndGlfwInit), HookGlfwInit, &glfwInitTrampoline);
 }
 
 
