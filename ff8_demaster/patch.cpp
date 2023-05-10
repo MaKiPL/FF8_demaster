@@ -37,7 +37,16 @@ void InjectDWORD(DWORD address, DWORD value)
 	*(DWORD*)(address) = value;
 }
 
-//From FFNx https://github.com/julianxhokaxhiu/FFNx/blob/master/src/patch.cpp
+/****************************************************************************/
+//    Copyright (C) 2009 Aali132                                            //
+//    Copyright (C) 2018 quantumpencil                                      //
+//    Copyright (C) 2018 Maxime Bacoux                                      //
+//    Copyright (C) 2020 myst6re                                            //
+//    Copyright (C) 2020 Chris Rizzitello                                   //
+//    Copyright (C) 2020 John Pritchard                                     //
+//    Copyright (C) 2023 Julian Xhokaxhiu                                   //
+/****************************************************************************/
+//From FFNx : https://github.com/julianxhokaxhiu/FFNx/blob/master/src/patch.cpp
 
 void check_is_call(const char *name, const uint32_t base, const uint32_t offset, const uint8_t instruction)
 {

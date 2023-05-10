@@ -18,7 +18,18 @@ BOOL modPage(DWORD address, int size);
 void ReplaceCALLWithNOP(DWORD address);
 void InjectDWORD(DWORD address, DWORD value);
 
+
+/****************************************************************************/
+//    Copyright (C) 2009 Aali132                                            //
+//    Copyright (C) 2018 quantumpencil                                      //
+//    Copyright (C) 2018 Maxime Bacoux                                      //
+//    Copyright (C) 2020 myst6re                                            //
+//    Copyright (C) 2020 Chris Rizzitello                                   //
+//    Copyright (C) 2020 John Pritchard                                     //
+//    Copyright (C) 2023 Julian Xhokaxhiu                                   //
+/****************************************************************************/
 //From FFNx : https://github.com/julianxhokaxhiu/FFNx/blob/master/src/patch.h
+
 uint32_t replace_function(uint32_t offset, void *func);
 uint32_t get_relative_call(uint32_t base, uint32_t offset);
 uint32_t get_absolute_value(uint32_t base, uint32_t offset);
