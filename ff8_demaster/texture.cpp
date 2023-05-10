@@ -126,9 +126,9 @@ if(HASH_OUTPUT) //======OUTPUT OF HASHED TEXTURES======//
 }
 		}
 		const std::chrono::time_point<std::chrono::steady_clock> stop = std::chrono::high_resolution_clock::now();
-		OutputDebug("Hashing of %dx%d*%d took %lfms\n", width, height,
-			lengthModifier,
-			static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count()) / 1e6);
+		// OutputDebug("Hashing of %dx%d*%d took %lfms\n", width, height,
+		// 	lengthModifier,
+		// 	static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count()) / 1e6);
 		if(HASH_LOAD_HD) //=====HASH LOAD CODE=====//
 		{
 			std::string importPath = std::string(destinationPath.string());

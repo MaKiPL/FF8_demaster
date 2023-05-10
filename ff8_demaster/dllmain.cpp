@@ -60,6 +60,60 @@ void ApplyFilteringPatch()
 	InjectDWORD(IMAGE_BASE + GetAddress(FILTERPATCH4) + 1, GL_NEAREST);
 }
 
+const char * GetModeName(const int mode)
+{
+	const char *result; // eax
+	currentMode = mode;
+	switch ( mode )
+	{
+		case 0:
+			result = "MODE_NONE";
+			break;
+		case 2:
+			result = "MODE_FIELD";
+			break;
+		case 3:
+			result = "MODE_MENU";
+			break;
+		case 4:
+			result = "MODE_MENU2";
+			break;
+		case 5:
+			result = "MODE_WORLDMAP";
+			break;
+		case 6:
+			result = "MODE_CARDGAME";
+			break;
+		case 7:
+			result = "MODE_BATTLE";
+			break;
+		case 8:
+			result = "MODE_BATTLESWIRL";
+			break;
+		case 9:
+			result = "MODE_INTRO";
+			break;
+		case 10:
+			result = "MODE_CD_CHANGE";
+			break;
+		case 11:
+			result = "MODE_CHANGE_TO_MAIN";
+			break;
+		case 12:
+			result = "MODE_MAIN";
+			break;
+		case 13:
+			result = "MODE_TITLE";
+			break;
+		default:
+			result = "MODE_UNKNOWN";
+			break;
+	}
+	currentModeStr = result;
+	OutputDebug("Mode changed to %s\n", result);
+	return result;
+}
+
 BOOL WINAPI DllMain(
 
 	HINSTANCE hinstDLL, // handle to DLL module
@@ -89,6 +143,9 @@ BOOL WINAPI DllMain(
 	MH_Initialize();
 	GetWindow();
 	MH_CreateHookApi(L"OPENGL32", "glViewport", HookGlViewport, &oglViewport);
+
+	//uint32_t getModeName = get_relative_call(GetAddress(CHANGEMODE), 0x1FC);
+	replace_call_function(GetAddressBase(CHANGEMODE)+0x1FC, GetModeName);
 
 	//LET'S GET THE HACKING DONE
 	if (DIRECT_IO)

@@ -1,5 +1,7 @@
 #include "mymemory.h"
 
+#include "coreHeader.h"
+
 //uhm
 void InitTable(unsigned int baseAddress)
 {
@@ -21,4 +23,14 @@ unsigned int _stdcall GetAddress(const ADDRESS_NAME name)
 		return 0;
 	}
 	return PATCHADDRESS.at(name)[FORCEGAME];// PATCHADDRESS[name][FORCEGAME];
+}
+
+unsigned int _stdcall GetAddressBase(const ADDRESS_NAME name)
+{
+	//unsigned int value = PATCHADDRESS[name][FORCEGAME];
+	if (PATCHADDRESS.size() == 0)
+	{
+		return 0;
+	}
+	return IMAGE_BASE + PATCHADDRESS.at(name)[FORCEGAME];// PATCHADDRESS[name][FORCEGAME];
 }
