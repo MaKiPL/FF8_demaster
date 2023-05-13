@@ -73,6 +73,24 @@ inline DWORD TEX_TYPE;
 inline int currentMode;
 inline std::string currentModeStr;
 
+static enum Modes
+{
+    MODE_NONE,
+    MODE_FIELD = 2,
+    MODE_MENU,
+    MODE_MENU2,
+    MODE_WORLDMAP,
+    MODE_CARDGAME,
+    MODE_BATTLE,
+    MODE_BATTLESWIRL,
+    MODE_INTRO,
+    MODE_CD_CHANGE,
+    MODE_CHANGE_TO_MAIN,
+    MODE_MAIN,
+    MODE_TITLE,
+    MODE_UNKNOWN
+};
+
 DWORD WtpCheck();
 void WtpGl();
 void FbgGl();

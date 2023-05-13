@@ -68,6 +68,27 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 	GLenum format,
 	GLenum type,
 	const void* data);
+inline LPVOID ogl_subTexImage2D;
+void* __stdcall HookGlTexSubImage2D( 	GLenum target,
+	  GLint level,
+	  GLint xoffset,
+	  GLint yoffset,
+	  GLsizei width,
+	  GLsizei height,
+	  GLenum format,
+	  GLenum type,
+	  const void * pixels);
+inline LPVOID ogl_subTextureImage2D;
+void* __stdcall HookGlTextureSubImage2D( 	GLuint texture,
+	  GLint level,
+	  GLint xoffset,
+	  GLint yoffset,
+	  GLsizei width,
+	  GLsizei height,
+	  GLenum format,
+	  GLenum type,
+	  const void *pixels);
+
 
 void NullHookGlTexImage2D(GLenum target,
 	GLint level,

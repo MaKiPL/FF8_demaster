@@ -73,8 +73,11 @@ if(HASH_ENABLED) //=======HASHING====//
 		const std::chrono::time_point<std::chrono::steady_clock> start =
 			std::chrono::high_resolution_clock::now();
 		//XXH32_hash_t hash = XXH32(data, width * height * lengthModifier, 0x85EBCA77U); //32ms
-		const auto [low64, high64] = XXH128(data, width * height *
-											lengthModifier, 0x85EBCA77U);
+		int hashLength = width*height*lengthModifier;
+		if(currentMode == Modes::MODE_WORLDMAP)
+			if(width==256 && height == 256)
+				hashLength = 256*192*lengthModifier;
+		const auto [low64, high64] = XXH128(data, hashLength, 0x85EBCA77U);
 		hashCopy = high64;
 		std::filesystem::path destinationPath = std::filesystem::current_path();
 		destinationPath.append(std::string(DIRECT_IO_EXPORT_DIR)
@@ -195,7 +198,37 @@ if(HASH_OUTPUT) //======OUTPUT OF HASHED TEXTURES======//
 			, border, format, type, data);
 }
 
+void* __stdcall HookGlTexSubImage2D( 	GLenum target,
+	  GLint level,
+	  GLint xoffset,
+	  GLint yoffset,
+	  GLsizei width,
+	  GLsizei height,
+	  GLenum format,
+	  GLenum type,
+	  const void * pixels)
+{
+	OutputDebug("Hooked glTexSubImage2D width: %d height: %d\n", width, height);
+	return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei,
+									  GLenum, GLenum, const void*)>(ogl_subTexImage2D)
+	(target, level, xoffset, yoffset, width, height, format, type, pixels);
+}
 
+void* __stdcall HookGlTextureSubImage2D( 	GLuint texture,
+	  GLint level,
+	  GLint xoffset,
+	  GLint yoffset,
+	  GLsizei width,
+	  GLsizei height,
+	  GLenum format,
+	  GLenum type,
+	  const void *pixels)
+{
+	OutputDebug("Hooked glTextureSubImage2D width: %d height: %d\n", width, height);
+	return static_cast<void* (__stdcall*)(GLuint, GLint, GLint, GLint, GLsizei, GLsizei,
+								  GLenum, GLenum, const void*)>(ogl_subTexImage2D)
+(texture, level, xoffset, yoffset, width, height, format, type, pixels);
+}
 
 //this is null sub- basically hooking api requires static cast to function pointer. However if there's need to
 //actually call compressed texture function, this is the way to do it. I call the compressed texture method and
