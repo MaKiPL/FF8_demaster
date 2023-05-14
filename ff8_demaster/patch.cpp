@@ -1,40 +1,44 @@
 #include "coreHeader.h"
 
-BOOL modPage(DWORD address, int size = 5)
+BOOL ModPage(const DWORD address, const int size)
 {
 	DWORD lastProtect = 0;
-	DWORD failure = VirtualProtect((LPVOID)address, size, PAGE_EXECUTE_READWRITE, &lastProtect);
+	const DWORD failure = VirtualProtect(reinterpret_cast<LPVOID>(address),
+		size, PAGE_EXECUTE_READWRITE, &lastProtect);
 	if (failure == 0)
 	{
-		DWORD myError = GetLastError();
-		printf("err %08X", myError);
+		const DWORD myError = GetLastError();
+		printf("ModPage error: %08lX", myError);
 		return FALSE;
 	}
 	return TRUE;
 }
 
-BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize)
+// ReSharper disable once CppInconsistentNaming
+BYTE* InjectJMP(const DWORD address, const DWORD functionAddress, const int JMPsize)
 {
-	BYTE* fopenPatchMnemonic = (BYTE*)address;
-	BYTE* IO_backAddress = fopenPatchMnemonic + JMPsize;
-	DWORD jmpParam = functionAddress - (DWORD)fopenPatchMnemonic - 5;
-	modPage((DWORD)fopenPatchMnemonic, 5);
-	*fopenPatchMnemonic = 0xE9; //JMP [DW]
-	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
-	return IO_backAddress;
+	BYTE* targetInstruction = reinterpret_cast<BYTE*>(address);
+	BYTE* returnAddress = targetInstruction + JMPsize;
+	const DWORD jmpParam = functionAddress - reinterpret_cast<DWORD>(targetInstruction) - 5;
+	ModPage(reinterpret_cast<DWORD>(targetInstruction), 5);
+	*targetInstruction = 0xE9; //JMP [DW]
+	*reinterpret_cast<DWORD*>(targetInstruction + 1) = jmpParam;
+	return returnAddress;
 }
 
-void ReplaceCALLWithNOP(DWORD address)
+// ReSharper disable once CppInconsistentNaming
+void ReplaceWithNOP(const DWORD address, const int instructionSize)
 {
-	modPage(IMAGE_BASE + address, 5);
-	*(DWORD*)(IMAGE_BASE + address) = 0x90909090;
-	*(BYTE*)(IMAGE_BASE + address + 4) = 0x90;
+	ModPage(IMAGE_BASE + address, instructionSize);
+	for(int i = 0; i < instructionSize; i++)
+		*reinterpret_cast<BYTE*>(IMAGE_BASE + address + i) = 0x90;
 }
 
-void InjectDWORD(DWORD address, DWORD value)
+// ReSharper disable once CppInconsistentNaming
+void InjectDWORD(const DWORD address, const DWORD value)
 {
-	modPage(address, 4);
-	*(DWORD*)(address) = value;
+	ModPage(address, 4);
+	*reinterpret_cast<DWORD*>(address) = value;
 }
 
 /****************************************************************************/
@@ -48,7 +52,7 @@ void InjectDWORD(DWORD address, DWORD value)
 /****************************************************************************/
 //From FFNx : https://github.com/julianxhokaxhiu/FFNx/blob/master/src/patch.cpp
 
-void check_is_call(const char *name, const uint32_t base, const uint32_t offset, const uint8_t instruction)
+void CheckIsCall(const char *name, const uint32_t base, const uint32_t offset, const uint8_t instruction)
 {
 	if (instruction != 0xE8 && instruction != 0xE9)
 		// Warning to diagnose errors faster
@@ -56,40 +60,36 @@ void check_is_call(const char *name, const uint32_t base, const uint32_t offset,
 		            base + offset, instruction);
 }
 
-uint32_t replace_function(uint32_t offset, void *func)
+void ReplaceFunction(const uint32_t offset, void *func)
 {
-	DWORD dummy;
-
-	VirtualProtect(reinterpret_cast<void*>(offset), 5, PAGE_EXECUTE_READWRITE, &dummy);
-
+	ModPage(offset, 5);
 	*reinterpret_cast<unsigned char*>(offset) = 0xE9;
 	*reinterpret_cast<uint32_t*>(offset + 1) = reinterpret_cast<uint32_t>(func) - offset - 5;
-	return 0;
 }
 
-uint32_t get_relative_call(uint32_t base, uint32_t offset)
+uint32_t GetRelativeCall(const uint32_t base, const uint32_t offset)
 {
 	const uint8_t instruction = *reinterpret_cast<uint8_t*>(base + offset);
-	check_is_call(__func__, base, offset, instruction);
+	CheckIsCall(__func__, base, offset, instruction);
 	const uint32_t ret = base + *reinterpret_cast<uint32_t*>(base + offset + 1) + offset + 5;
 	return ret;
 }
 
-uint32_t get_absolute_value(uint32_t base, uint32_t offset) { return *reinterpret_cast<uint32_t*>(base + offset); }
-
-void replace_call(uint32_t offset, void *func)
+uint32_t GetAbsoluteValue(const uint32_t base, const uint32_t offset)
 {
-	DWORD dummy;
-	check_is_call(__func__, offset, 0, *reinterpret_cast<uint8_t*>(offset));
-	VirtualProtect(reinterpret_cast<void*>(offset), 5, PAGE_EXECUTE_READWRITE, &dummy);
+	return *reinterpret_cast<uint32_t*>(base + offset);
+}
+
+void ReplaceCall(const uint32_t offset, void *func)
+{
+	CheckIsCall(__func__, offset, 0, *reinterpret_cast<uint8_t*>(offset));
+	ModPage(offset, 5);
 	*reinterpret_cast<uint32_t*>(offset + 1) = reinterpret_cast<uint32_t>(func) - offset - 5;
 }
 
-uint32_t replace_call_function(uint32_t offset, void* func)
+void ReplaceCallFunction(const uint32_t offset, void* func)
 {
-	DWORD dummy;
-	VirtualProtect(reinterpret_cast<void*>(offset), 5, PAGE_EXECUTE_READWRITE, &dummy);
+	ModPage(offset, 5);
 	*reinterpret_cast<unsigned char*>(offset) = 0xE8;
 	*reinterpret_cast<uint32_t*>(offset + 1) = reinterpret_cast<uint32_t>(func) - offset - 5;
-	return 0;
 }

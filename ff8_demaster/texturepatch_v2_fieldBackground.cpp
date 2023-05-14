@@ -275,7 +275,7 @@ void ApplyFieldBackgroundPatch()
 	_asm_FieldBgRetAddr3 = InjectJMP(IMAGE_BASE + GetAddress(_ASM_FIELDBGRETADDR3), (DWORD)_asm_CheckTextureReplacementExists, 20);
 
 	//disable tpage 16&17 limit
-	modPage(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT), 1);
+	ModPage(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT), 1);
 	*(BYTE*)(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT)) = 0xEB;
 
 	//we now inject JMP when CMP fieldIfd, gover and do out stuff, then return to glSegment

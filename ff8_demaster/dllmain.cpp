@@ -145,7 +145,7 @@ BOOL WINAPI DllMain(
 	MH_CreateHookApi(L"OPENGL32", "glViewport", HookGlViewport, &oglViewport);
 
 	//uint32_t getModeName = get_relative_call(GetAddress(CHANGEMODE), 0x1FC);
-	replace_call_function(GetAddressBase(CHANGEMODE)+0x1FC, GetModeName);
+	ReplaceCallFunction(GetAddressBase(CHANGEMODE)+0x1FC, GetModeName);
 
 	//LET'S GET THE HACKING DONE
 	if (DIRECT_IO)

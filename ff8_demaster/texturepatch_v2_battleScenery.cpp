@@ -307,8 +307,8 @@ void ApplyBattleFieldPatch()
 	//fixes balamb low-res and library low-res for example @ 15.08.2022
 	DWORD bgPatchWidth = IMAGE_BASE + GetAddress(BGRESPATCH1);
 	DWORD bgPatchHeight = IMAGE_BASE + GetAddress(BGRESPATCH1) + 0xC;
-	modPage(bgPatchWidth, 1);
-	modPage(bgPatchHeight, 1);
+	ModPage(bgPatchWidth, 1);
+	ModPage(bgPatchHeight, 1);
 	*(BYTE*)bgPatchWidth = 0xE0; //SHL instead of SHR
 	*(BYTE*)bgPatchHeight = 0xE0; //SHL instead of SHR
 

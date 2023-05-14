@@ -139,10 +139,10 @@ void ApplyFieldEntityPatch()
 
 
 	//step 2. disable out of bounds error- we know that, but we are using new, bigger buffers
-	modPage(IMAGE_BASE + GetAddress(FIELDCHARENT1), 1);
+	ModPage(IMAGE_BASE + GetAddress(FIELDCHARENT1), 1);
 	*(BYTE*)(IMAGE_BASE + GetAddress(FIELDCHARENT1)) = 0xEB; //JBE -> JMP
 
-	modPage(IMAGE_BASE + GetAddress(FIELDCHARENT2), 1);
+	ModPage(IMAGE_BASE + GetAddress(FIELDCHARENT2), 1);
 	*(BYTE*)(IMAGE_BASE + GetAddress(FIELDCHARENT2)) = 0xEB; //JBE -> JMP
 
 	//1160545A - set

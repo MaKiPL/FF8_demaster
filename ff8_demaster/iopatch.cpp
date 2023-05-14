@@ -174,7 +174,7 @@ void ApplyDirectIO()
 	BYTE* fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC1);
 	IO_backAddress = (DWORD)fopenPatchMnemonic + 6;
 	DWORD jmpParam = (DWORD)directIO_fopenReroute - (DWORD)fopenPatchMnemonic - 5;
-	modPage((DWORD)fopenPatchMnemonic, 5);
+	ModPage((DWORD)fopenPatchMnemonic, 5);
  	*fopenPatchMnemonic = 0xE9; //JMP [DW]
  	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
 
@@ -184,7 +184,7 @@ void ApplyDirectIO()
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC2);
 	IO_backAddress2 = (DWORD)fopenPatchMnemonic + 5;
 	jmpParam = (DWORD)directIO_fopenReroute2 - (DWORD)fopenPatchMnemonic - 5;
-	modPage((DWORD)fopenPatchMnemonic, 5);
+	ModPage((DWORD)fopenPatchMnemonic, 5);
  	*fopenPatchMnemonic = 0xE9; //JMP [DW]
  	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
  	*(fopenPatchMnemonic + 5) = 0x90; //NOP
@@ -193,7 +193,7 @@ void ApplyDirectIO()
 	//First fseek
 
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC3);
-	modPage((DWORD)fopenPatchMnemonic, 4); //PUSH + NOP
+	ModPage((DWORD)fopenPatchMnemonic, 4); //PUSH + NOP
 	IO_originalBytes[0] = *((DWORD*)fopenPatchMnemonic);
 	IO_seekAddresses[0] = (DWORD)fopenPatchMnemonic;
 	*((DWORD*)fopenPatchMnemonic) = IO_SEEKASM1; //PUSH 0 NOP PUSH...
@@ -203,7 +203,7 @@ void ApplyDirectIO()
 
 
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC4);
-	modPage((DWORD)fopenPatchMnemonic, 4); //XOR EAX, EAX + NOP
+	ModPage((DWORD)fopenPatchMnemonic, 4); //XOR EAX, EAX + NOP
 	IO_seekAddresses[1] = (DWORD)fopenPatchMnemonic;
 	IO_originalBytes[1] = *((DWORD*)fopenPatchMnemonic);
 	*((DWORD*)fopenPatchMnemonic) = IO_SEEKASM2; //XOR EAX, EAX; NOP; PUSH...
@@ -215,7 +215,7 @@ void ApplyDirectIO()
 
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC5); //MOV EAX, ESI; MOV ECX, [EBP-0ch]   [//8BC6 8B4DF4]
 	IO_backAddress3 = (DWORD)fopenPatchMnemonic + 6;
-	modPage((DWORD)fopenPatchMnemonic, 5); //JMP
+	ModPage((DWORD)fopenPatchMnemonic, 5); //JMP
 	jmpParam = (DWORD)directIO_fopenReroute3 - (DWORD)fopenPatchMnemonic - 5;
 	*fopenPatchMnemonic = 0xE9; //JMP [DW]
 	*(DWORD*)(fopenPatchMnemonic + 1) = jmpParam;
@@ -224,7 +224,7 @@ void ApplyDirectIO()
 
 
 	fopenPatchMnemonic = (BYTE*)(IMAGE_BASE + IO_FUNC6);
-	modPage((DWORD)fopenPatchMnemonic, 2);
+	ModPage((DWORD)fopenPatchMnemonic, 2);
 	IO_backAddress4 = (DWORD)fopenPatchMnemonic;
 	IO_originalBytes6 = *((WORD*)fopenPatchMnemonic);
 	*(WORD*)fopenPatchMnemonic = 0x9090;		//NOP NOP

@@ -8,7 +8,7 @@ unsigned int uvPatchAddresses[] =
 
 BOOL uvPatchModMnemonic(DWORD address)
 {
-	if (!modPage(address, 4))
+	if (!ModPage(address, 4))
 		return FALSE;
 	*((BYTE*)address + 3) = 0;
 	return TRUE;

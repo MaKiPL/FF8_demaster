@@ -13,9 +13,10 @@
 
 #define EXPORT __declspec(dllexport)
 
+// ReSharper disable once CppInconsistentNaming
 BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize = 5);
-BOOL modPage(DWORD address, int size);
-void ReplaceCALLWithNOP(DWORD address);
+BOOL ModPage(DWORD address, int size = 5);
+void ReplaceWithNOP(DWORD address, int instructionSize = 5);
 void InjectDWORD(DWORD address, DWORD value);
 
 
@@ -30,11 +31,11 @@ void InjectDWORD(DWORD address, DWORD value);
 /****************************************************************************/
 //From FFNx : https://github.com/julianxhokaxhiu/FFNx/blob/master/src/patch.h
 
-uint32_t replace_function(uint32_t offset, void *func);
-uint32_t get_relative_call(uint32_t base, uint32_t offset);
-uint32_t get_absolute_value(uint32_t base, uint32_t offset);
-void replace_call(uint32_t offset, void *func);
-uint32_t replace_call_function(uint32_t offset, void* func);
+void ReplaceFunction(uint32_t offset, void *func);
+uint32_t GetRelativeCall(uint32_t base, uint32_t offset);
+uint32_t GetAbsoluteValue(uint32_t base, uint32_t offset);
+void ReplaceCall(uint32_t offset, void *func);
+void ReplaceCallFunction(uint32_t offset, void* func);
 
 inline DWORD IMAGE_BASE;
 inline DWORD OPENGL_HANDLE;
