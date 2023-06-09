@@ -9,9 +9,12 @@
 #include "debug.h"
 #include "mymemory.h"
 #include "image.h"
+#include "file.h"
 
 
 #define EXPORT __declspec(dllexport)
+
+#define DEBUG_BREAK_IF_DEBUGGER if(IsDebuggerPresent()) DebugBreak();
 
 // ReSharper disable once CppInconsistentNaming
 BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize = 5);

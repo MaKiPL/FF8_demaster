@@ -15,6 +15,7 @@ inline int FIELD_BACKGROUND;
 inline int WORLD_TEXTURES;
 inline int LINEAR_PATCH;
 inline int OPENGL_HOOK;
+inline int FILL_ASPECT_RATIO;
 inline int BATTLE_STAGE_FORCE_RELOAD;
 inline int HASH_ENABLED;
 inline int HASH_OUTPUT;

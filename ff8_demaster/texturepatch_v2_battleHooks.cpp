@@ -166,6 +166,9 @@ __declspec(naked) void _bhp()
 void ApplyBattleHookPatch()
 {
 	currentStage = -1;
-	_bhpBackAdd1 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(_BHPBACKADD1), (DWORD)_bhp, 17);
-	_bhpBackAdd2 = (DWORD)InjectJMP(IMAGE_BASE + GetAddress(_BHPBACKADD2), (DWORD)_bhpMonsterStruct, 5); //GetBattleMonsterStructPalCount _notfound
+	_bhpBackAdd1 = reinterpret_cast<DWORD>(InjectJMP(IMAGE_BASE + GetAddress(_BHPBACKADD1),
+		reinterpret_cast<DWORD>(_bhp), 17));
+	_bhpBackAdd2 = reinterpret_cast<DWORD>(InjectJMP(IMAGE_BASE + GetAddress(_BHPBACKADD2),
+		reinterpret_cast<DWORD>(_bhpMonsterStruct), 5)); //GetBattleMonsterStructPalCount _notfound
+	
 }

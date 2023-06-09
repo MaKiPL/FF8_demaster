@@ -26,6 +26,7 @@ void ReadConfigFile()
     LINEAR_PATCH = conf.GetInteger("", "LINEAR_PATCH", 1);
     DEBUG_PATCH = conf.GetInteger("", "DEBUG_PATCH", 0);
     OPENGL_HOOK = conf.GetInteger("", "OPENGL_HOOK", 0);
+    FILL_ASPECT_RATIO = conf.GetInteger("", "FILL_ASPECT_RATIO", 1);
     BATTLE_STAGE_ANIMATION_DELAY = conf.GetInteger("", "BATTLE_STAGE_ANIMATION_DELAY", 100);
     BATTLE_STAGE_FORCE_RELOAD = conf.GetInteger("", "BATTLE_STAGE_FORCE_RELOAD", 0);
 	HASH_ENABLED = conf.GetInteger("", "HASH_ENABLED", 1);

@@ -24,6 +24,16 @@ void* __stdcall HookGlViewport(GLint x, GLint y, GLsizei width, GLsizei height);
 typedef void __stdcall GlViewport(GLint x, GLint y, GLsizei width, GLsizei height);
 inline void* oglViewport;
 
+struct frameStructure
+{
+    char * pixels;
+    int width;
+    int height;
+    int channels;
+};
+
+inline frameStructure frame;
+
 
 //====Other OpenGL functions
 typedef void(__stdcall* OglClear)(GLbitfield);
@@ -36,4 +46,4 @@ typedef void(__stdcall* OglBufferData)(GLenum target, GLsizeiptr size, const voi
 static OglBufferData oglBufferData;
 
 
-void HookGlFunctionsPostGLFW();
+void CreateImGuiImplementation();

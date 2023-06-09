@@ -46,6 +46,9 @@ void GetWindow()
 	const unsigned int wndGlfwInit = IMAGE_BASE + GetAddress(WINDOWTITLE) - 0xA2
 	 + *reinterpret_cast<DWORD*>(IMAGE_BASE + GetAddress(WINDOWTITLE) - 0xA2) + 4;
 	MH_CreateHook(reinterpret_cast<LPVOID>(wndGlfwInit), HookGlfwInit, &glfwInitTrampoline);
+
+	const unsigned int wndGlfwSetInputMode = IMAGE_BASE + GetAddress(WINDOWTITLE) + 0x162; //PUSH GLFW_HIDDEN_CURSOR
+	InjectDWORD(wndGlfwSetInputMode+1, GLFW_CURSOR_NORMAL);
 }
 
 
