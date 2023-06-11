@@ -6,6 +6,8 @@
 #include <INIReader.h>
 #include "renderer.h"
 #include <memory>
+#include <Psapi.h>
+
 #include "debug.h"
 #include "mymemory.h"
 #include "image.h"
@@ -44,6 +46,14 @@ inline DWORD IMAGE_BASE;
 inline DWORD OPENGL_HANDLE;
 inline const char* DIRECT_IO_EXPORT_DIR = "DEMASTER_EXP\\";
 inline DWORD DIRECT_IO_EXPORT_DIR_LEN = strlen(DIRECT_IO_EXPORT_DIR);
+
+struct ModuleInformation
+{
+    char * name;
+    MODULEINFO info;
+};
+
+inline std::vector<ModuleInformation> moduleInformations;
 
 extern bx::DefaultAllocator texAllocator;
 

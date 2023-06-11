@@ -11,9 +11,9 @@
 #include "minhook/include/MinHook.h"
 #include "imgui/imgui.h"
 #include "imgui/backends/imgui_impl_opengl3.h"
-#include "imgui/backends/imgui_impl_glfw.h"
 #include <GLFW/glfw3.h>
 #include "coreHeader.h"
+#include "imgui/backends/imgui_impl_win32.h"
 
 void CheckGlew()
 {
@@ -28,8 +28,9 @@ void CheckGlew()
 int HookGlfwInit()
 {
     //int testInit = glfwInit(); //this creates glfw on our thread - nice!
-    int testInit = static_cast<int(*)()>(glfwInitTrampoline)();
-    return testInit;
+    //int glfwInit_ = glfwInit();
+    int initGlfw = static_cast<int(*)()>(glfwInitTrampoline)();
+    return initGlfw;
 }
 
 
@@ -37,12 +38,18 @@ int ffWindowWidth, ffWindowHeight;
 GLFWwindow* HookGlfwWindow(const int width, const int height, const char* title, GLFWmonitor* monitor,
     GLFWwindow* share)
 {
+    //GLFWwindow* ffWindow = nullptr;
     ffWindow = static_cast<GLFWwindow*(*)(int, int, const char*, GLFWmonitor*, GLFWwindow*)>(glfwWindowTrampoline)
     (width, height, title, monitor, share);
     if(ffWindow == nullptr)
     {
         ffWindow = glfwCreateWindow(width, height, title, monitor, share);
     }
+    // int testa;
+    // int testb;
+    // glfwGetWindowSize(ffWindow, &testa, &testb);
+    // GLFWwindow * currentContext = glfwGetCurrentContext();
+    // OutputDebug("currentContext: %p", currentContext);
     ffWindowWidth = width;
     ffWindowHeight = height;
     OutputDebug("OpenGL version: %s", glGetString(GL_VERSION));
@@ -57,10 +64,10 @@ void CreateImGuiImplementation()
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     ImGui::StyleColorsDark();
-    if(!ImGui_ImplGlfw_InitForOpenGL(ffWindow, true))
+    HWND test = GetForegroundWindow();
+    if(!ImGui_ImplWin32_Init(test))
     {
-        OutputDebug("Error initializing ImGui");
-        return;
+        
     }
     if(!ImGui_ImplOpenGL3_Init("#version 130"))
     {
@@ -82,9 +89,25 @@ BOOL* __stdcall HookSwapBuffers(const HDC hdc)
 {
     if(IMGUI_DEBUG)
     {
-        bStartedSwapBuffers = true;
+        glfwPollEvents();
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::SetNextWindowSize(ImVec2(300,300), ImGuiCond_Always);
+        ImGui::Begin("DEMASTER DEBUG WINDOW");
+        ImGui::Text("Looks like I'm working!");
+        ImGui::End();
+
+        // ImGui::Begin("SECOND WINDOW TEST");
+        // ImGui::Text("Sample text");
+        // ImGui::DragFloat("sample float test", &testFloat, 0.1f);
+        // ImGui::End();
+
+        ImGui::Render();
         //glViewport(0, 0, ffWindowWidth, ffWindowHeight);
         ImDrawData* drawData = ImGui::GetDrawData();
+        /*
         drawData->DisplaySize.x = static_cast<float>(ffWindowWidth);
         drawData->DisplaySize.y = static_cast<float>(ffWindowHeight);
 
@@ -96,7 +119,7 @@ BOOL* __stdcall HookSwapBuffers(const HDC hdc)
                 drawCmd.ClipRect.z = static_cast<float>(ffWindowWidth);
                 drawCmd.ClipRect.w = static_cast<float>(ffWindowHeight);
             }
-        }
+        }*/
         
         
         ImGui_ImplOpenGL3_RenderDrawData(drawData);
@@ -114,8 +137,6 @@ void HookGlUseProgram(const GLuint program)
     OutputDebug("\nglUseProgram: %d", program);
     return static_cast<void(__stdcall*)(GLuint)>(glewUseProgramTrampoline)(program);
 }
-
-float testFloat = 0.0f;
 
 static GLsizei firstWidth, firstHeight;
 
@@ -137,6 +158,7 @@ void ViewportBackdoorInject(bool& backdoorUsed)
         MH_CreateHookApi(L"OPENGL32", "glTexSubImage2D", HookGlTexSubImage2D, &ogl_subTexImage2D);
         MH_CreateHookApi(L"OPENGL32", "glTextureSubImage2D", HookGlTextureSubImage2D,
                          &ogl_subTextureImage2D);
+        MH_CreateHookApi(L"OPENGL32", "glEnable", HookGlEnable, &ogl_enable);
     }
     MH_CreateHook(&SwapBuffers, &HookSwapBuffers, &swapBuffersTrampoline);
     MH_EnableHook(MH_ALL_HOOKS);
@@ -147,6 +169,7 @@ void ViewportBackdoorInject(bool& backdoorUsed)
     //leave below as final line
     backdoorUsed = true;
 }
+
 
 void GetBackBufferPixels(const GLsizei width, const GLsizei height)
 {
@@ -176,24 +199,6 @@ void* __stdcall HookGlViewport(const GLint x, const GLint y, const GLsizei width
 
     //GetBackBufferPixels(width, height);
     
-    if(IMGUI_DEBUG && !bStartedSwapBuffers)
-    {
-        glfwPollEvents();
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        ImGui::Begin("DEMASTER DEBUG WINDOW");
-        ImGui::Text("Looks like I'm working!");
-        ImGui::End();
-
-        ImGui::Begin("SECOND WINDOW TEST");
-        ImGui::Text("Sample text");
-        ImGui::DragFloat("sample float test", &testFloat, 0.1f);
-        ImGui::End();
-
-        ImGui::Render();
-    }
     GLsizei finalX = x;
     GLsizei finalY = y;
     GLsizei finalWidth = width;
@@ -209,6 +214,18 @@ void* __stdcall HookGlViewport(const GLint x, const GLint y, const GLsizei width
 
     return static_cast<void* (__stdcall*)(GLint, GLint, GLsizei, GLsizei)>(oglViewport)
     (finalX, finalY, finalWidth, finalHeight);
+}
+
+void* __stdcall HookGlEnable(GLenum cap)
+{
+    GLenum returnCap = cap;
+    if(cap==GL_SCISSOR_TEST && FILL_ASPECT_RATIO)
+    {
+        returnCap = -1;
+        glDisable(GL_SCISSOR_TEST);
+    }
+        
+    return static_cast<void* (__stdcall*)(GLenum)>(ogl_enable)(returnCap);
 }
 
 [[maybe_unused]]

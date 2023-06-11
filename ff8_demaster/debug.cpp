@@ -1,29 +1,41 @@
 ﻿#include "debug.h"
+#include "coreHeader.h"
 
 #include <string>
 
+bool StringContainsBadCharacters(const std::string& str)
+{
+    for (const auto c : str)
+        if ((c < 0x20 && c != 0x0A) || c > 0x7E)
+            return true;
+    return false;
+}
+
 void OutputDebug(const char* fmt, ...)
 {
-#if _DEBUG
+    if(fmt < reinterpret_cast<const char*>(0x100))
+        return;
     if (IsBadReadPtr(fmt, 4)) return;
-    std::string fmtString = std::string(fmt);
+    const std::string fmtString = std::string(fmt);
     if (fmtString.substr(0, 7) == std::string("GLERROR"))
         return;
+    if(StringContainsBadCharacters(fmtString))
+        return;
+    
     va_list args;
-    char tmp_str[1024];
+    char tmpStr[1024];
 
     va_start(args, fmt);
-    vsnprintf(tmp_str, sizeof(tmp_str), fmt, args);
+    vsnprintf(tmpStr, sizeof(tmpStr), fmt, args);
     va_end(args);
 
-    printf(tmp_str);
+    printf(tmpStr);
 
     if (logFile)
     {
-        fwrite(tmp_str, sizeof(char), strlen(tmp_str), logFile.get());
+        fwrite(tmpStr, sizeof(char), strlen(tmpStr), logFile.get());
         fflush(logFile.get());
     }
-#endif
 }
 
 //Maki: Why this doesn't work?

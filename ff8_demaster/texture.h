@@ -90,6 +90,8 @@ void* __stdcall HookGlTextureSubImage2D( 	GLuint texture,
 	  const void *pixels);
 
 
+
+
 void NullHookGlTexImage2D(GLenum target,
 	GLint level,
 	GLint internalformat,

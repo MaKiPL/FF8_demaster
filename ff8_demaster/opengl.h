@@ -2,6 +2,7 @@
 #include <GL/glew.h>
 #include "GLFW/include/GLFW/glfw3.h"
 #include "imgui/imgui.h"
+#include "coreHeader.h"
 
 
 void CheckGlew();
@@ -45,5 +46,10 @@ static OglClearColor oglClearColor;
 typedef void(__stdcall* OglBufferData)(GLenum target, GLsizeiptr size, const void* data, GLenum usage);
 static OglBufferData oglBufferData;
 
+inline LPVOID ogl_enable;
+void* __stdcall HookGlEnable( GLenum cap);
 
+
+
+inline float testFloat = 0.0f;
 void CreateImGuiImplementation();

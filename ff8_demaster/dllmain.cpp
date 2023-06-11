@@ -7,6 +7,7 @@
 #include "texture.h"
 #include "config.h"
 #include "opengl.h"
+#include "Psapi.h"
 
 
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
@@ -117,6 +118,25 @@ const char * GetModeName(const int mode)
 	return result;
 }
 
+
+void GetModulesInformation()
+{
+	const HANDLE hProcess = GetCurrentProcess();
+	HMODULE modules[1024];
+	DWORD cb;
+	EnumProcessModules(hProcess, modules, sizeof modules, &cb);
+	const size_t modulesCount = cb / sizeof HMODULE;
+	for(size_t idx = 0; idx<modulesCount; idx++)
+	{
+		char* moduleFileName = new char[256];
+		GetModuleFileNameA(modules[idx], moduleFileName, 256);
+		MODULEINFO moduleinfo;
+		GetModuleInformation(hProcess, modules[idx], &moduleinfo, sizeof MODULEINFO);
+		ModuleInformation mod = {moduleFileName, moduleinfo};
+		moduleInformations.push_back(mod);
+	}
+}
+
 BOOL WINAPI DllMain(
 
 	HINSTANCE hinstDLL, // handle to DLL module
@@ -138,6 +158,7 @@ BOOL WINAPI DllMain(
 	
 	IMAGE_BASE = reinterpret_cast<DWORD>(GetModuleHandleA(moduleName));
 	OPENGL_HANDLE = reinterpret_cast<DWORD>(GetModuleHandleA("OPENGL32"));
+	GetModulesInformation();
 
 	OutputDebug("IMAGE_BASE at: %lX; OPENGL at: %lX\n", IMAGE_BASE, OPENGL_HANDLE);
 
@@ -157,7 +178,7 @@ BOOL WINAPI DllMain(
 		ApplyUVPatch();
 	if (TEXTURE_PATCH && DIRECT_IO)
 		ReplaceTextureFunction();
-	if (DEBUG_PATCH)
+	if (DEVELOPER_MODE)
 		InjectJMP(IMAGE_BASE + GetAddress(NULLSUB_DEBUG), reinterpret_cast<DWORD>(OutputDebug));
 	if (LINEAR_PATCH)
 		ApplyFilteringPatch();
