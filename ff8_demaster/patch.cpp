@@ -75,6 +75,11 @@ uint32_t GetRelativeCall(const uint32_t base, const uint32_t offset)
 	return ret;
 }
 
+uint32_t GetRelativeJmp(const uint32_t base, const uint32_t offset)
+{
+	return base + *reinterpret_cast<uint32_t*>(base + offset + 1) + offset + 5;
+}
+
 uint32_t GetAbsoluteValue(const uint32_t base, const uint32_t offset)
 {
 	return *reinterpret_cast<uint32_t*>(base + offset);

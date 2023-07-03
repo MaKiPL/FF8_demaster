@@ -80,14 +80,27 @@ if(HASH_ENABLED) //=======HASHING====//
 		const auto [low64, high64] = XXH128(data, hashLength, 0x85EBCA77U);
 		hashCopy = high64;
 		std::filesystem::path destinationPath = std::filesystem::current_path();
-		destinationPath.append(std::string(DIRECT_IO_EXPORT_DIR)
-			+ "hashOutput");
+		if(battleMagicTextureSignal)
+			destinationPath.append(std::string(DIRECT_IO_EXPORT_DIR)
+				+ "textures/battle.fs/magic_hd");
+		else
+			destinationPath.append(std::string(DIRECT_IO_EXPORT_DIR)
+				+ "hashOutput");
 		if (!std::filesystem::exists(destinationPath))
 			std::filesystem::create_directory(destinationPath);
-		std::stringstream ss;
-		ss << std::setw(16) << std::setfill('0') << std::hex
-			<< std::uppercase << high64 << std::dec << std::nouppercase;
-		destinationPath.append(ss.str());
+		if(battleMagicTextureSignal)
+		{
+			std::stringstream ss;
+			ss << std::setw(3) << std::setfill('0') << std::dec << battleMagicTextureID;
+			destinationPath.append(ss.str());
+			if (!exists(destinationPath))
+				create_directory(destinationPath);
+			battleMagicTextureSignal = false;
+		}
+			std::stringstream ss;
+			ss << std::setw(16) << std::setfill('0') << std::hex
+				<< std::uppercase << high64 << std::dec << std::nouppercase;
+			destinationPath.append(ss.str());
 		if (!knownTextures.contains(high64))
 		{
 			OutputDebug("New hash for textureId: %u. Hash: %016llX%016llX ",
@@ -413,6 +426,7 @@ void ReplaceTextureFunction()
 		ApplyBattleHookPatch();
 		ApplyBattleMonsterPatch();
 		ApplyBattleFieldPatch();
+		ApplyBattleMagicPatch();
 	}
 	if (FIELD_BACKGROUND)
 	{

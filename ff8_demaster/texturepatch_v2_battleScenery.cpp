@@ -315,4 +315,26 @@ void ApplyBattleFieldPatch()
 	//this disables textureLimit for resolution
 	InjectJMP(IMAGE_BASE + GetAddress(BATTLEJMPPATCH1), (DWORD)(IMAGE_BASE + GetAddress(BATTLEJMPPATCH2)), 6);
 }
+
+int MagicCheckID(const int id)
+{
+	OutputDebug("\nMagic casted: %d\n", id);
+	battleMagicTextureID = id;
+	battleMagicTextureSignal = true;
+	const int result=id-327;
+	if (result <= 3 )
+		__asm
+	{
+		CALL MAGIC_CHECKID_JMPABOVE
+	}
+	return result;
+}
+
+void ApplyBattleMagicPatch()
+{
+	OutputDebug("Applying battle magic patch\n");
+	MAGIC_CHECKID = GetRelativeCall(IMAGE_BASE + GetAddress(MAGICIDLOAD), 0x2F);
+	MAGIC_CHECKID_JMPABOVE = GetRelativeCall(MAGIC_CHECKID, 0x11);
+	ReplaceCallFunction(IMAGE_BASE + GetAddress(MAGICIDLOAD) + 0x2F, MagicCheckID);
+}
 #undef CRASHLOG

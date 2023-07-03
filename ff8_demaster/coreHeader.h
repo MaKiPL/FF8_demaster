@@ -38,6 +38,7 @@ void InjectDWORD(DWORD address, DWORD value);
 
 void ReplaceFunction(uint32_t offset, void *func);
 uint32_t GetRelativeCall(uint32_t base, uint32_t offset);
+uint32_t GetRelativeJmp(uint32_t base, uint32_t offset);
 uint32_t GetAbsoluteValue(uint32_t base, uint32_t offset);
 void ReplaceCall(uint32_t offset, void *func);
 void ReplaceCallFunction(uint32_t offset, void* func);
@@ -67,6 +68,7 @@ void ApplyFieldEntityPatch();
 void ApplyBattleHookPatch();
 void ApplyBattleMonsterPatch();
 void ApplyBattleFieldPatch();
+void ApplyBattleMagicPatch();
 void ApplyFieldBackgroundPatch();
 void ApplyWorldPatch();
 DWORD GetFieldBackgroundReplacementExist();
@@ -86,6 +88,9 @@ inline DWORD TEX_TYPE;
 
 inline int currentMode;
 inline std::string currentModeStr;
+
+inline bool battleMagicTextureSignal = false;
+inline int battleMagicTextureID = -1;
 
 static enum Modes
 {
