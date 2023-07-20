@@ -35,9 +35,11 @@ int HookGlfwInit()
 
 
 int ffWindowWidth, ffWindowHeight;
+
 GLFWwindow* HookGlfwWindow(const int width, const int height, const char* title, GLFWmonitor* monitor,
-    GLFWwindow* share)
+                           GLFWwindow* share)
 {
+    
     //GLFWwindow* ffWindow = nullptr;
     ffWindow = static_cast<GLFWwindow*(*)(int, int, const char*, GLFWmonitor*, GLFWwindow*)>(glfwWindowTrampoline)
     (width, height, title, monitor, share);
@@ -61,11 +63,11 @@ void CreateImGuiImplementation()
     IMGUI_CHECKVERSION();
     imguiContext = ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
+    
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     ImGui::StyleColorsDark();
-    HWND test = GetForegroundWindow();
-    if(!ImGui_ImplWin32_Init(test))
+    if(!ImGui_ImplWin32_Init(GetForegroundWindow()))
     {
         
     }
@@ -79,6 +81,16 @@ void CreateImGuiImplementation()
 inline bool bStartedSwapBuffers = false;
 
 LPVOID swapBuffersTrampoline;
+
+void RegisterImguiInput(int button, bool down)
+{
+if(IMGUI_DEBUG)
+{
+    ImGuiIO &io = ImGui::GetIO();
+    io.AddMouseButtonEvent(button, down);
+}
+
+}
 
 /**
  * \brief This hook intercepts the wglSwapBuffers call for operations before the actual Windows API SwapBuffers(HDC)
@@ -94,9 +106,42 @@ BOOL* __stdcall HookSwapBuffers(const HDC hdc)
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::SetNextWindowSize(ImVec2(300,300), ImGuiCond_Always);
+        //RegisterImguiInput(0, true);
+        ImGuiIO &io = ImGui::GetIO();
+
+        
+        int vk = GetSystemMetrics(SM_SWAPBUTTON) ? VK_RBUTTON : VK_LBUTTON;
+        if(GetAsyncKeyState(vk) < 0)
+        {
+            io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+        }
+        else
+        {
+            io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+        }
+        
+
+
+        
+
+
+        
+
+        ImGui::SetNextWindowSize(ImVec2(600,800), ImGuiCond_FirstUseEver);
         ImGui::Begin("DEMASTER DEBUG WINDOW");
-        ImGui::Text("Looks like I'm working!");
+        ImGui::Text("Active bound textures: %d", activeTextures.size());
+        GLuint activeBoundTexture = 0;
+        for(const GLuint& texture : activeTextures)
+        {
+            glBindTexture(GL_TEXTURE_2D,texture);
+            int w, h;
+            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+            
+            ImGui::Text("Texture: %d %dx%d", texture, w, h);
+            ImGui::Image(reinterpret_cast<ImTextureID>(texture),
+                ImVec2(256,256), ImVec2(0,0), ImVec2(1,1));
+        }
         ImGui::End();
 
         // ImGui::Begin("SECOND WINDOW TEST");
@@ -125,8 +170,6 @@ BOOL* __stdcall HookSwapBuffers(const HDC hdc)
         ImGui_ImplOpenGL3_RenderDrawData(drawData);
         bStartedSwapBuffers = false;
     }
-
-    //add your logic here
     
     return static_cast<BOOL* (__stdcall*)(HDC)>(swapBuffersTrampoline)(hdc);
 }
@@ -158,6 +201,7 @@ void ViewportBackdoorInject(bool& backdoorUsed)
         MH_CreateHookApi(L"OPENGL32", "glTexSubImage2D", HookGlTexSubImage2D, &ogl_subTexImage2D);
         MH_CreateHookApi(L"OPENGL32", "glTextureSubImage2D", HookGlTextureSubImage2D,
                          &ogl_subTextureImage2D);
+        MH_CreateHookApi(L"OPENGL32", "glDeleteTextures", HookGlDeleteTextures, &ogl_deleteTexture);
         MH_CreateHookApi(L"OPENGL32", "glEnable", HookGlEnable, &ogl_enable);
     }
     MH_CreateHook(&SwapBuffers, &HookSwapBuffers, &swapBuffersTrampoline);

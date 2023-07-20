@@ -79,7 +79,7 @@ void* __stdcall HookGlTexSubImage2D( 	GLenum target,
 	  GLenum type,
 	  const void * pixels);
 inline LPVOID ogl_subTextureImage2D;
-void* __stdcall HookGlTextureSubImage2D( 	GLuint texture,
+void* __stdcall HookGlTextureSubImage2D( 	GLenum target,
 	  GLint level,
 	  GLint xoffset,
 	  GLint yoffset,
@@ -87,7 +87,10 @@ void* __stdcall HookGlTextureSubImage2D( 	GLuint texture,
 	  GLsizei height,
 	  GLenum format,
 	  GLenum type,
-	  const void *pixels);
+	  const void * pixels);
+inline LPVOID ogl_deleteTexture;
+void* __stdcall HookGlDeleteTextures(GLsizei n,
+	const GLuint* textures);
 
 
 

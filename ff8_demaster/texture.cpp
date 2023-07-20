@@ -10,8 +10,13 @@
 #include "config.h"
 
 
+inline GLuint lastGlBoundTexture = 0;
 void* __stdcall HookGlBindTexture(GLenum target, GLuint texture)
 {
+	if(!activeTextures.contains(texture))
+		activeTextures.insert(texture);
+	if(target == GL_TEXTURE_2D)
+		lastGlBoundTexture = texture;
 	return static_cast<void* (__stdcall*)(GLenum, GLuint)>(ogl_bind_texture)(target, texture);
 }
 
@@ -55,8 +60,12 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 {
 	int boundId;
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &boundId);
+#if DEBUG_SKIP_SMALL_TEXTURES
+	if(width>256 && height>256)
+#endif // !DEBUG_SKIP_SMALL_TEXTURES
 	OutputDebug("glTexImage2D (%d): format: %d, %dx%d, void: %08x\n",
 		boundId, internalformat, width, height, data);
+
 	int lengthModifier = 0;
 	if (internalformat == GL_RGBA || internalformat == GL_BGRA
 		|| internalformat == GL_RGBA8)
@@ -103,8 +112,11 @@ if(HASH_ENABLED) //=======HASHING====//
 			destinationPath.append(ss.str());
 		if (!knownTextures.contains(high64))
 		{
+#if DEBUG_LOG_HASH
 			OutputDebug("New hash for textureId: %u. Hash: %016llX%016llX ",
 				boundId, high64, low64);
+#endif // DEBUG_LOG_HASH
+			
 			knownTextures.insert(std::pair(high64, TexImageInformation{
 							low64,static_cast<GLuint>(boundId), internalformat, width, height }));
 if(HASH_OUTPUT) //======OUTPUT OF HASHED TEXTURES======//
@@ -171,7 +183,10 @@ if(HASH_OUTPUT) //======OUTPUT OF HASHED TEXTURES======//
 					if (const bimg::ImageContainer* imageContainer = img.get();
 						imageContainer->m_data != nullptr)
 					{
+						#if DEBUG_LOG_HASH
 						OutputDebug("Loading custom HD texture: %s!", destinationPath.string().c_str());
+#endif // DEBUG_LOG_HASH
+						
 
 						
 						if(bimg::isCompressed(imageContainer->m_format))
@@ -221,13 +236,16 @@ void* __stdcall HookGlTexSubImage2D( 	GLenum target,
 	  GLenum type,
 	  const void * pixels)
 {
-	OutputDebug("Hooked glTexSubImage2D width: %d height: %d\n", width, height);
+#if DEBUG_SKIP_SMALL_TEXTURES
+	if(width>384 || height>384)
+#endif //DEBUG_SKIP_SMALL_TEXTURES
+	OutputDebug("Hooked glTexSubImage2D width: %d height: %d. Texture bound: %d\n", width, height, lastGlBoundTexture);
 	return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei,
 									  GLenum, GLenum, const void*)>(ogl_subTexImage2D)
 	(target, level, xoffset, yoffset, width, height, format, type, pixels);
 }
 
-void* __stdcall HookGlTextureSubImage2D( 	GLuint texture,
+void* __stdcall HookGlTextureSubImage2D( GLuint texture,
 	  GLint level,
 	  GLint xoffset,
 	  GLint yoffset,
@@ -238,9 +256,18 @@ void* __stdcall HookGlTextureSubImage2D( 	GLuint texture,
 	  const void *pixels)
 {
 	OutputDebug("Hooked glTextureSubImage2D width: %d height: %d\n", width, height);
-	return static_cast<void* (__stdcall*)(GLuint, GLint, GLint, GLint, GLsizei, GLsizei,
-								  GLenum, GLenum, const void*)>(ogl_subTexImage2D)
-(texture, level, xoffset, yoffset, width, height, format, type, pixels);
+	return static_cast<void* (__stdcall*)(GLuint, GLint, GLint, GLint, GLsizei, GLsizei,GLenum,
+		GLenum, const void*)>(ogl_subTexImage2D) (texture, level, xoffset, yoffset, width,height,format,type,pixels);
+}
+
+void* __stdcall HookGlDeleteTextures( GLsizei n,
+	  const GLuint * textures)
+{
+	for(int i=0; i<n; i++)
+		if(activeTextures.contains(textures[i]))
+			activeTextures.erase(textures[i]);
+	return static_cast<void* (__stdcall*)(GLsizei, const GLuint*)>(ogl_deleteTexture)
+	(n,textures);
 }
 
 //this is null sub- basically hooking api requires static cast to function pointer. However if there's need to
@@ -325,7 +352,10 @@ void _cltVoid()
 		return;
 	if (textureType == 57) //field
 		return;
-	OutputDebug("\ncommon_load_texture: tex_type: %s, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n", GetTextureType(textureType), palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
+#if LOG_VERBOSE
+	OutputDebug("\ncommon_load_texture: tex_type: %s, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n",
+		GetTextureType(textureType), palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
+#endif //LOG_VERBOSE
 
 	return;
 }

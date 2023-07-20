@@ -31,9 +31,9 @@ __declspec(naked) void directIO_fopenReroute()
 	}
 	if(bInvalidFile==true) //check state if was invalid file before
 	{
-		*((DWORD*)IO_seekAddresses[0]) = IO_SEEKASM1;
-		*((DWORD*)IO_seekAddresses[1]) = IO_SEEKASM2;
-		*((WORD*)IO_backAddress4) = 0x9090;
+		*reinterpret_cast<DWORD*>(IO_seekAddresses[0]) = IO_SEEKASM1;
+		*reinterpret_cast<DWORD*>(IO_seekAddresses[1]) = IO_SEEKASM2;
+		*reinterpret_cast<WORD*>(IO_backAddress4) = 0x9090;
 	}
 
 	bInvalidFile = false;
@@ -43,17 +43,22 @@ __declspec(naked) void directIO_fopenReroute()
 
 	if (GetFileAttributesA(IO_backlogFilePath) == INVALID_FILE_ATTRIBUTES)
 	{
+#if DEBUG_LOG_IO
 		OutputDebug("%s: %s, %s\n", __func__, IO_backlogFilePath, "file not found");
+#endif
 		strcpy(IO_backlogFilePath, (char*)filePathBuffer);
 		bInvalidFile = true;
-		*((DWORD*)IO_seekAddresses[0]) = IO_originalBytes[0];
-		*((DWORD*)IO_seekAddresses[1]) = IO_originalBytes[1];
-		*((WORD*)IO_backAddress4) = IO_originalBytes6;
+		*reinterpret_cast<DWORD*>(IO_seekAddresses[0]) = IO_originalBytes[0];
+		*reinterpret_cast<DWORD*>(IO_seekAddresses[1]) = IO_originalBytes[1];
+		*reinterpret_cast<WORD*>(IO_backAddress4) = IO_originalBytes6;
 
 		//rewrite functions to original one
 	}
+#if DEBUG_LOG_IO
 	else
 		OutputDebug("%s: %s\n", __func__, IO_backlogFilePath);
+#endif // DEBUG_LOG_IO
+	
 
 	__asm
 	{

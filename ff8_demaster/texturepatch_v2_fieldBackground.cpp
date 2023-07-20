@@ -42,19 +42,25 @@ bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 				maplistVector.emplace_back(std::move(mapname));
 			}
 		}
+#if LOG_VERBOSE
 		OutputDebug("%s::%d- %s Maplist!\toldsize: %d\tsize: %d\n", __func__, __LINE__, (force_retry ? "ReLoaded" : "Loaded"), oldsize, maplistVector.size());
+#endif
 	}
 
 	if (maplistVector.size() <= static_cast<size_t>(fieldId))
 	{
 		if (!force_retry)
 			return GetFieldBackgroundFilename(buffer, true);
+#if LOG_VERBOSE
 		OutputDebug("%s::%d- Invalid fieldId: %d / %d\n", __func__, __LINE__, fieldId, maplistVector.size());
+#endif
 		{
 			size_t i = 0;
 			for (const auto map : maplistVector)
 			{
+#if LOG_VERBOSE
 				OutputDebug("\t%d - %s", i++, map.c_str());
+#endif
 			}
 		}
 		return true; //failed to read fieldId
@@ -63,7 +69,10 @@ bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 	const std::string& mapName(maplistVector[fieldId]);
 	const std::string dirName(mapName.substr(0,2U)); //get only two chars
 	sprintf(buffer, "field_bg\\%s\\%s\\%s_", dirName.c_str(), mapName.c_str(), mapName.c_str());
+#if DEBUG_LOG_FIELDBG
 	OutputDebug("%s::%d- %s\n", __func__, __LINE__, buffer);
+#endif
+	
 	return false; // no issues found.
 }
 
@@ -104,15 +113,20 @@ char* GetFieldBackgroundReplacementTextureName()
 
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
-
+#if LOG_VERBOSE
 		OutputDebug("%s: %s, %s\n", __func__, localn, "palette not found");
+#endif
+		
 		lastFieldName = localn2;
 		//return localn2; //Maki: it's easier this way for me to replace whenn using no PNG
 	}
 	else
 	{
 		lastFieldName = localn; //Maki : localn2 was here instead of localn - probably debug
+#if LOG_VERBOSE
 		OutputDebug("%s: %s\n", __func__, localn);
+#endif
+		
 	}
 
 

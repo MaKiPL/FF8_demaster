@@ -11,7 +11,7 @@
 enum ADDRESS_NAME
 {
    UVPATCH0, UVPATCH1, UVPATCH2, UVPATCH3, UVPATCH4, UVPATCH5, UVPATCH6, UVPATCH7, UVPATCH8, UVPATCH9, UVPATCH10, UVPATCH11, UVPATCH12,
-   UVFUNCPNTR, WORLDGETTEXIDX0, WORLDGETTEXIDX1, WORLDGETTEXIDX2, WORLDGETTEXIDX3, FCPBACKADD1, FIELDCHARENT1, FIELDCHARENT2, FCPBACKADD2,
+   UVFUNCPNTR, WORLDGETTEXIDX0, WORLDGETTEXIDX1, WORLDGETTEXIDX2, WORLDGETTEXIDX3, FCPBACKADD1, FIELDCHARENT1, FIELDCHARENT2, FCP_PRETEXSUBIMAGE,
    BGFILENAME1, BGFILENAME2, CHECKTEXREPAVAIL, _ASM_FIELDBGRETADDR3, DISABLETPAGELIMIT, _ASM_FIELDBGRETADDR2, DS_FREE, DS_TEXIMG,
    _BSPBACKADD1, _BSPBACKADD2, BATTLEJMPPATCH1, BATTLEJMPPATCH2, BTLMON0, BTLMON1, BTLMON2, BTLMON3, BTLMON4, BTLMON5, BTLMON6, BHP,
    _BHPBACKADD1, _BHPBACKADD2, NEWGLTEX_CHARA, BCPBACKADD1, BCPBACKADD2, BCPBACKADD3, CLTBACKADD1, CLTBACKADD2, UPLOADVRAM, IOFUNC1,
@@ -72,7 +72,7 @@ const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 	{ DS_FREE              , std::vector<unsigned int>{ 0x0       , 0x166b2a8 , 0x166b2a8 ,0x166B2A8,} },
 	{ DS_TEXIMG            , std::vector<unsigned int>{ 0x0       , 0x166b4a0 , 0x166b4b4 ,0x166B4AC,} },
 	{ FCPBACKADD1          , std::vector<unsigned int>{ 0x0       , 0x16061CC , 0x1606aac ,0x16066AC,} },
-	{ FCPBACKADD2          , std::vector<unsigned int>{ 0x0       , 0x160C4AD , 0x160cd8d ,0x160C94D,} },
+	{ FCP_PRETEXSUBIMAGE   , std::vector<unsigned int>{ 0x0       , 0x160C4AD , 0x160cd8d ,0x160C940,} },
 	{ FIELDCHARENT1        , std::vector<unsigned int>{ 0x0       , 0x160C43A , 0x160cd1c ,0x160C8DC,} },
 	{ FIELDCHARENT2        , std::vector<unsigned int>{ 0x0       , 0x160C467 , 0x160cd47 ,0x160C907,} },
 	{ FILTERPATCH1         , std::vector<unsigned int>{ 0x0       , 0x15693EF , 0x156987f ,0x156985F,} },
@@ -161,7 +161,7 @@ const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 {NEWGLTEX_CHARA       , std::vector<unsigned int>{ 0x0 , 0x0 , 0x163DAC0 , 0x163D500 }},
 {FIELDCHARENT1        , std::vector<unsigned int>{ 0x0 , 0x0 , 0x163E88C , 0x163E2CC }},
 {FIELDCHARENT2        , std::vector<unsigned int>{ 0x0 , 0x0 , 0x163E8B7 , 0x163E2F7 }},
-{FCPBACKADD2          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x163E8FD , 0x163E33D }},
+{FCP_PRETEXSUBIMAGE   , std::vector<unsigned int>{ 0x0 , 0x0 , 0x163E8FD , 0x163E330 }},
 {BHP                  , std::vector<unsigned int>{ 0x0 , 0x0 , 0x167A558 , 0x1679F98 }},
 {DS_FREE              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x169D2A8 , 0x169D2A8 }},
 {DS_TEXIMG            , std::vector<unsigned int>{ 0x0 , 0x0 , 0x169D4B4 , 0x169D4AC }},

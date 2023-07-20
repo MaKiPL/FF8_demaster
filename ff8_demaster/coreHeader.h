@@ -1,3 +1,4 @@
+// ReSharper disable CppClangTidyModernizeMacroToEnum
 #pragma once
 
 #include <sstream>
@@ -13,6 +14,20 @@
 #include "image.h"
 #include "file.h"
 
+
+//===================DEFINE CONFIGURATIONS=====================//
+//DEBUG_SKIP_SMALL_TEXTURES - in various places adds check for texture size and skips if too small 256, sometimes 384
+#define DEBUG_SKIP_SMALL_TEXTURES 1
+
+//below defines control which logs are actually displayed and which not for visibility during development
+#define DEBUG_LOG_HASH 0
+#define LOG_VERBOSE 0
+#define DEBUG_LOG_IO 0
+#define DEBUG_LOG_FIELDBG 0
+//End of debug log controls
+
+
+inline std::set<GLuint> activeTextures;
 
 #define EXPORT __declspec(dllexport)
 
