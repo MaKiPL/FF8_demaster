@@ -1,37 +1,37 @@
-## ff8_demaster welcome!
+# ff8_demaster mod
 
-You can use the [editor on GitHub](https://github.com/MaKiPL/FF8_demastered/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+## Description
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+ff8_demaster is core mod/patch dedicated to Final Fantasy VIII: Remastered game. The mod is a base mod for all other modifications, as it's non-intrusive, works by dependency injecting itself to the game and provides various features described below.
 
-### Markdown
+## Features
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+ABC
+ABC
 
-```markdown
-Syntax highlighted code block
+## Requirements
 
-# Header 1
-## Header 2
-### Header 3
+* Final Fantasy VIII: Remaster with latest patch (1.0.3.0)
+* Run the game at least once witout any mods
 
-- Bulleted
-- List
+For the mod to work you need the latest ____1.0.3.0____ patched Final Fantasy VIII: Remaster game.
+It works both on Japanese and EFIGS (English,French,Italian,German,Spanish) versions of the game.
+The bare minimum is to have the game patche to 1.0.3.0 version which is the latest version of the game. It's due to the fact, that the addresses that I hook and inject into are different between all versions from 1.0.0.0 to 1.0.3.0 + independent one for Japanese version. The mod is not compatible with any other version of the game. Please also run the game at least once after downloading from Steam.
 
-1. Numbered
-2. List
 
-**Bold** and _Italic_ and `Code` text
 
-[Link](url) and ![Image](src)
-```
+## Installation
 
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
+* Download https://github.com/makiPL/ff8_demaster/releases/latest
+* Unpack into game directory
+* If it's the first time installing the mod then:
+  * Run Program `ffviii_demaster_manager.exe`
+  * The program will prompt you to unpack files. Agree
+  * Wait until the files are unpacked
+  * After it opens after unpack, then close the window and totally forget about this software. It's used __ONLY__ for unpacking the files in first place
+* Install any available mods. Current standard are mods made by MCINDUS: <https://forums.qhimm.com/index.php?topic=19218.0>
+* Run the game
 
-### Jekyll Themes
+## Uninstall
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/MaKiPL/FF8_demastered/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+* Remove or move the `ff8_demaster.dll` file from the game directory. That's all
