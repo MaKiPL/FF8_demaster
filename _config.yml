@@ -2,6 +2,7 @@ remote_theme: pages-themes/leap-day@v0.2.0
 plugins:
 - jekyll-remote-theme # add this line to the plugins list if you already have one
 
-title: "Final Fantasy VIII Remastered: demaster mod by Maki"
+title: FF8_demaster mod for FFVIII by Maki
+description: Final Fantasy VIII Remastered game core mod which allows all texture replacement, fixes to original game and more!
 
 show_downloads: true
