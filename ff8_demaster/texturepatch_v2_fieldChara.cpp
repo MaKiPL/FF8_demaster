@@ -133,9 +133,13 @@ __declspec(naked) void _fcpObtainData()
 
 DWORD _fcpCurrentTexMode;
 
+void ReportXOffset(const DWORD x)
+{
+	OutputDebug("x offset: %d. Bound texture: %d\n", x, lastGlBoundTexture);
+}
 
 
-DWORD fcpH, fcpW, fcpX, fcpY;
+DWORD fcpH, fcpW, fcpX, fcpY, pixels;
 /**
  * \brief Injected before call to glTexSubImage2D which creates other half of the atlas for field characters?
  * Need to push:
@@ -151,22 +155,32 @@ DWORD fcpH, fcpW, fcpX, fcpY;
  */
 __declspec(naked) void _fcpSetYoffset()
 {
+	//fcp_width and fcp_height is resolution of final buffer to be created. Should be at least 2 times bigger
+	//than original texture
 	__asm
 	{
-		MOV fcpH, EDI
-		MOV fcpW, ESI
+		MOV fcpH, EDI //fcp height
+		MOV fcpW, ESI //fcp width
 
-		PUSH [EBP+0x0C]
-		POP EAX
+#if LOG_VERBOSE
+		MOV pixels, EBX //pixels
+#endif // LOG_VERBOSE
+		
+		MOV EAX,[EBP+0x0C]
 		MOV fcpY, EAX
-		PUSH [EBP+0x08]
-		POP EAX
+		MOV EAX, [EBP+0x08]
 		MOV fcpX, EAX
+		
+		
 	}
-	
-	OutputDebug("TEX_TYPE: %d Resolution: %d x %d offset: %d x %d. fcpRes: %d x %d\n", TEX_TYPE, fcpW, fcpH, fcpX,
-		fcpY, width_fcp, height_fcp);
-	
+#if LOG_VERBOSE
+	OutputDebug("TEX_TYPE_PRE: %d Resolution: %dx%d offset: %dx%d. fcpRes: %dx%d. Pixels=%08X\n", TEX_TYPE,
+	fcpW, fcpH, fcpX, fcpY, width_fcp, height_fcp, pixels);
+#else
+	OutputDebug("TEX_TYPE: %d Resolution: %dx%d offset: %dx%d. fcpRes: %dx%d\n", TEX_TYPE,
+	fcpW, fcpH, fcpX, fcpY, width_fcp, height_fcp);
+#endif
+		
 	__asm
 	{
 		PUSH EBX //Pixels
@@ -174,20 +188,38 @@ __declspec(naked) void _fcpSetYoffset()
 		PUSH 0x1908 //GL_UNSIGNED_BYTE
 		PUSH fcpH //Tex Height
 		PUSH fcpW //Tex Width
-		
-		// CMP[EBP + 0x0C], 0 //no need to skip. 0>>1 will give 0
-		// JE originalcode
 
+		//We need to check if the texture type is 57 (field character). If we reuse the code for any other texture
+		//type like Battle Character, then the algorithm with getting the height from height_fcp will be wrong for
+		//battle chara and produce glitches.
+		//In field, the character is always 384x384 or 768x768. In rare cases individual textures have 284 in height
+		//The buffer that is created is double the size of bigger texture (smaller is loaded second).
+		//The bigger texture gets into first row of the atlas/buffer created and by using glTexSubImage2D
+		//the second texture is drawn just after the first one. So if first is 384x384, then the buffer/atlas should be
+		//384x768 (384*2). The second should be 384, and will be drawn at Yoffset = first texture height
+		//for battle characters instead- the Yoffset is not patterned, therefore some texture can be bigger than the
+		//other, and the second one should be after the first one. Weapons texture resolutions are loaded first AFAIR
+		//then the bigger character texture. The calculation of weaponheight*2 is not enough for the buffer size. 
+		CMP [TEX_TYPE], TEX_TYPE_FIELD_CHARACTER
+		JE _fieldOffset //if TRUE, then goes to Yoffset of height_fcp/2 (will show always directly 50% of buffer height)
+						//If the buffer is 288, then it's always upped to 384 and then multiplied=768. That way I'll
+						//support Irvine modded and Irvine original texture fixing finally the famous prison crash 
+		PUSH [EBP+0x0C] //Yoffset
+		PUSH [EBP+0x08] //Xoffset
+		JMP _epilogue
 
+		_fieldOffset:
 		MOV EAX, fcpY
 		TEST EAX, EAX //if original Y offset is 0, then do nothing with it 
-		JE skipYoffset
+		JE _skipYoffset
 		MOV EAX, [height_fcp] //if original Y offset is other than 0, like 384px for 768px texture, then
 		SHR EAX, 1 //the height_fcp contains whole target buffer size, so we need to draw into the 
-		skipYoffset: //second half of the image. So 1536px height should be 1536/2=768 yOffset instead of 384
+		_skipYoffset: //second half of the image. So 1536px height should be 1536/2=768 yOffset instead of 384
 		PUSH EAX // yOffset
-		PUSH 0 //xOffset
-
+		PUSh 0
+		
+		
+		_epilogue:
 		PUSH 0 // Level
 		PUSH 0xDE1 //GL_TEXTURE_2D const
 
@@ -199,15 +231,16 @@ void ApplyFieldEntityPatch()
 {
 	//step 1. obtain needed data for tex_struct and etc.
 	//Maki: ouch, same-name vars
-	fcpBackAdd1 = InjectJMP(IMAGE_BASE + GetAddress(FCPBACKADD1), (DWORD)_fcpObtainData, 18);
+	fcpBackAdd1 = InjectJMP(IMAGE_BASE + GetAddress(FCPBACKADD1),
+		reinterpret_cast<DWORD>(_fcpObtainData), 18);
 
 
 	//step 2. disable out of bounds error- we know that, but we are using new, bigger buffers
 	ModPage(IMAGE_BASE + GetAddress(FIELDCHARENT1), 1);
-	*(BYTE*)(IMAGE_BASE + GetAddress(FIELDCHARENT1)) = 0xEB; //JBE -> JMP
+	*reinterpret_cast<BYTE*>(IMAGE_BASE + GetAddress(FIELDCHARENT1)) = 0xEB; //JBE -> JMP
 
 	ModPage(IMAGE_BASE + GetAddress(FIELDCHARENT2), 1);
-	*(BYTE*)(IMAGE_BASE + GetAddress(FIELDCHARENT2)) = 0xEB; //JBE -> JMP
+	*reinterpret_cast<BYTE*>(IMAGE_BASE + GetAddress(FIELDCHARENT2)) = 0xEB; //JBE -> JMP
 
 	//1160545A - set
 	fcpBackAdd2GlTexSubImage = InjectJMP(IMAGE_BASE + GetAddress(FCP_PRETEXSUBIMAGE),

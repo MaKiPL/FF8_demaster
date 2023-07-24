@@ -14,6 +14,7 @@
 #include <GLFW/glfw3.h>
 #include "coreHeader.h"
 #include "imgui/backends/imgui_impl_win32.h"
+#include <filesystem>
 
 void CheckGlew()
 {
@@ -92,6 +93,81 @@ if(IMGUI_DEBUG)
 
 }
 
+//You might ask- why? Well.. I don't even know :D
+#define CREATE_PATH_OR_RETURN(imgNumber, varName, extension) __CREATE_SAVEPATH(varName) \
+__PATH_DIRS_OR_RET(varName) varName += std::to_string(imgNumber) + extension;
+#define __CREATE_SAVEPATH(varName) std::filesystem::path varName = std::filesystem::current_path() \
+   / DIRECT_IO_EXPORT_DIR / "textures" / "SavedTextures" / "img";
+#define __PATH_DIRS_OR_RET(varName) if(!std::filesystem::exists(varName)) \
+    if(!std::filesystem::create_directories(varName)) { \
+    OutputDebug("MakiImGui save texture failed, because path %s could not be created", (varName).string().c_str());\
+        return;}
+
+void MakiIm_SaveTexture(const GLuint selectedTextureId, const int width, const int height)
+{
+    CREATE_PATH_OR_RETURN(selectedTextureId, texSavePath, ".png")
+    BYTE* pixelBuffer = new BYTE[width * height * 4];
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixelBuffer);
+    //glReadPixels(0,0,width,height,GL_RGBA,GL_UNSIGNED_BYTE,pixelBuffer);
+    bx::FileWriter writer;
+    
+    if (bx::open(&writer, bx::FilePath(texSavePath.string().c_str())))
+    {
+        const int32_t bytesWritten =  bimg::imageWritePng(&writer, width, height,
+            width * 4, pixelBuffer, bimg::TextureFormat::RGBA8,false);
+        OutputDebug("MakiImGui::Saved %d bytes of image(%d) to %s\n", bytesWritten,
+            selectedTextureId, texSavePath.string().c_str());
+    }
+}
+
+void MakiIm_ReplaceTexture(const GLuint texId)
+{
+    //texture is already bound!
+    CREATE_PATH_OR_RETURN(texId, texSavePath, ".png");
+    if(!std::filesystem::exists(texSavePath))
+    {
+        OutputDebug("File for replacement texture %s does not exist",
+            texSavePath.string().c_str());
+        return;
+    }
+    const SafeBimg texReplacement = LoadImageFromFile(texSavePath.string().c_str());
+    
+    RenderTexture(texReplacement.get());
+}
+
+void MakiImGui_DrawActiveTextures(const float w, const float h)
+{
+    ImGui::SetNextWindowSize(ImVec2(w,h), ImGuiCond_Once);
+    ImGui::SetNextWindowCollapsed(true, ImGuiCond_Appearing);
+    ImGui::Begin("DEMASTER::ACTIVE TEXTURES");
+    ImGui::Text("Active bound textures: %d", activeTextures.size());
+    for(const GLuint& texture : activeTextures)
+    {
+        constexpr float imageResolution = 128.0f;
+        constexpr float width = 128.0f;
+        constexpr float rowCount = 2.0f;
+        glBindTexture(GL_TEXTURE_2D,texture);
+        int w, h;
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+
+
+        ImGui::Text("Texture: %d",texture);
+        ImGui::SameLine();
+        ImGui::Image(reinterpret_cast<ImTextureID>(texture),
+                     ImVec2(imageResolution,imageResolution),
+                     ImVec2(0,0), ImVec2(1,1));
+        ImGui::SameLine();
+        if(ImGui::Button(("Save as PNG##" + std::to_string(texture)).c_str()))
+            MakiIm_SaveTexture(texture, w, h);
+        ImGui::SameLine();
+        if(ImGui::Button(("Replace texture##" + std::to_string(texture)).c_str()))
+            MakiIm_ReplaceTexture(texture);
+        ImGui::Text("%dx%d",w, h);
+    }
+    ImGui::End();
+}
+
 /**
  * \brief This hook intercepts the wglSwapBuffers call for operations before the actual Windows API SwapBuffers(HDC)
  * \param hdc as in SwapBuffers(HDC)
@@ -120,52 +196,12 @@ BOOL* __stdcall HookSwapBuffers(const HDC hdc)
             io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
         }
         
-
+        
+        MakiImGui_DrawActiveTextures(400,800);
 
         
-
-
-        
-
-        ImGui::SetNextWindowSize(ImVec2(600,800), ImGuiCond_FirstUseEver);
-        ImGui::Begin("DEMASTER DEBUG WINDOW");
-        ImGui::Text("Active bound textures: %d", activeTextures.size());
-        GLuint activeBoundTexture = 0;
-        for(const GLuint& texture : activeTextures)
-        {
-            glBindTexture(GL_TEXTURE_2D,texture);
-            int w, h;
-            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
-            glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
-            
-            ImGui::Text("Texture: %d %dx%d", texture, w, h);
-            ImGui::Image(reinterpret_cast<ImTextureID>(texture),
-                ImVec2(256,256), ImVec2(0,0), ImVec2(1,1));
-        }
-        ImGui::End();
-
-        // ImGui::Begin("SECOND WINDOW TEST");
-        // ImGui::Text("Sample text");
-        // ImGui::DragFloat("sample float test", &testFloat, 0.1f);
-        // ImGui::End();
-
         ImGui::Render();
-        //glViewport(0, 0, ffWindowWidth, ffWindowHeight);
         ImDrawData* drawData = ImGui::GetDrawData();
-        /*
-        drawData->DisplaySize.x = static_cast<float>(ffWindowWidth);
-        drawData->DisplaySize.y = static_cast<float>(ffWindowHeight);
-
-        
-        for(int cmdListIdx=0; cmdListIdx<drawData->CmdListsCount; cmdListIdx++)
-        {
-            for(ImDrawList* cmdList = drawData->CmdLists[cmdListIdx]; ImDrawCmd&drawCmd : cmdList->CmdBuffer)
-            {
-                drawCmd.ClipRect.z = static_cast<float>(ffWindowWidth);
-                drawCmd.ClipRect.w = static_cast<float>(ffWindowHeight);
-            }
-        }*/
-        
         
         ImGui_ImplOpenGL3_RenderDrawData(drawData);
         bStartedSwapBuffers = false;

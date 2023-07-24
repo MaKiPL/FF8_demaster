@@ -21,7 +21,10 @@ void _bcpObtainTextureDatas(int aIndex)
 	width_bcp = img->m_width * 2;
 	height_bcp = img->m_height * 2;
 
-	OutputDebug("_bcpObtainTextureDatas:: width=%d, height=%d, filename=%s\n", width_bcp, height_bcp, n);
+	width_bcp = height_bcp; //we make it square
+
+	OutputDebug("_bcpObtainTextureDatas:: Resolution: %dx%d bcp: %dx%d, filename=%s\n",
+		img->m_width, img->m_height,width_bcp, height_bcp, n);
 	return;
 }
 

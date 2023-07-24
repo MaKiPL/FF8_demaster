@@ -10,7 +10,6 @@
 #include "config.h"
 
 
-inline GLuint lastGlBoundTexture = 0;
 void* __stdcall HookGlBindTexture(GLenum target, GLuint texture)
 {
 	if(!activeTextures.contains(texture))

@@ -75,6 +75,7 @@ void RenderUncompressedTexture(const bimg::ImageContainer* img, const TextureFor
 	uint32_t height = img->m_height;
 	uint32_t depth = img->m_depth;
 	const uint8_t startLod = bx::min<uint8_t>(0, img->m_numMips - 1);
+	
 
 	for (uint8_t lod = 0, num = img->m_numMips; lod < num; ++lod)
 	{

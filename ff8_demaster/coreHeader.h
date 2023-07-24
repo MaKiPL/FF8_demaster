@@ -17,15 +17,28 @@
 
 //===================DEFINE CONFIGURATIONS=====================//
 //DEBUG_SKIP_SMALL_TEXTURES - in various places adds check for texture size and skips if too small 256, sometimes 384
+#ifndef MAKI_RELEASE
+#define MAKI_RELEASE 0
+// #else
+// #define DEBUG_SKIP_SMALL_TEXTURES 1
+#endif // !MAKI_RELEASE
+
 #define DEBUG_SKIP_SMALL_TEXTURES 1
+
 
 //below defines control which logs are actually displayed and which not for visibility during development
 #define DEBUG_LOG_HASH 0
-#define LOG_VERBOSE 0
-#define DEBUG_LOG_IO 0
-#define DEBUG_LOG_FIELDBG 0
+#define LOG_VERBOSE 1
+#define DEBUG_LOG_IO 1
+#define DEBUG_LOG_FIELDBG 1
 //End of debug log controls
 
+
+
+//===================TEX_TYPE MODE CONSTANTS=====================//
+#define TEX_TYPE_FIELD_CHARACTER 57
+
+inline GLuint lastGlBoundTexture = 0;
 
 inline std::set<GLuint> activeTextures;
 
