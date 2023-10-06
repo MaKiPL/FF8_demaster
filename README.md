@@ -1,8 +1,3 @@
-# IMPORTANT!
-I, **Maki**, the **creator** of **ff8_demastered**, officially support **Ukraine** in military conflict.
-
-![freeukraine](https://mgomulak.pl/freeukraine_.webp)
-
 # ff8_demastered
 FF8_Demastered is unofficial patch for Final Fantasy VIII Remastered game by SquareEnix. It works as DLL-dependency and has custom launcher with brand new functions. Patch makes it possible to load new textures, use non-fixed-resolution textures and will aim in tweaking issues
 
