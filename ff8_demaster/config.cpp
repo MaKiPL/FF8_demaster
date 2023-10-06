@@ -36,4 +36,5 @@ void ReadConfigFile()
     HASH_LOAD_HD_EXT = conf.GetInteger("", "HASH_LOAD_HD_EXT", 1);
     IMGUI_DEBUG = conf.GetInteger("", "IMGUI_DEBUG", 0);
     DEVELOPER_MODE = conf.GetInteger("", "DEVELOPER_MODE", 0);
+    VERBOSE_LOG = conf.GetInteger("", "VERBOSE_LOG", 0);
 }

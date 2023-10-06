@@ -18,7 +18,7 @@ DWORD _bhpMonsterStructVoid()
 	if (batId < 0 || batId>144)
 		return -1;
 	char localn[256]{ 0 };
-	DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\c0m%03d_0", DIRECT_IO_EXPORT_DIR, batId);
+	DDSorPNG(localn, 256, R"(%stextures\battle.fs\hd_new\c0m%03d_0)", DIRECT_IO_EXPORT_DIR, batId);
 	int maxPal = 0;
 	int _strlen = strlen(localn);
 	while (1)

@@ -1,4 +1,6 @@
 ﻿#include "image.h"
+
+#include <filesystem>
 #include <fstream>
 #include "debug.h"
 #include <bimg/bimg.h>
@@ -46,16 +48,17 @@ bool DDSorPNG(char* buffer, const size_t inSize, const char* fmt, ...)
 	const size_t size = inSize - 4U; //for extension
 	va_list args;
 	va_start(args, fmt);
-	vsnprintf(buffer, size, fmt, args);
+	int argLength = vsnprintf(buffer, size, fmt, args);
+	
 	strcat(buffer, ".dds");
 	va_end(args);
-	if (GetFileAttributesA(buffer) == INVALID_FILE_ATTRIBUTES)
+	if (!std::filesystem::exists(buffer))
 	{
 		va_start(args, fmt);
 		vsnprintf(buffer, size, fmt, args);
 		strcat(buffer, ".png");
 		va_end(args);
-		return GetFileAttributesA(buffer) == INVALID_FILE_ATTRIBUTES;
+		return std::filesystem::exists(buffer);
 	}
 	return false;
 }
@@ -111,3 +114,13 @@ void RenderCompressedTexture(const bimg::ImageContainer* img, const TextureForma
 			                       mip.m_data);
 	}
 }
+
+void LoadAndRenderTexture(const char* const filename)
+{
+	std::string localPath = DIRECT_IO_EXPORT_DIR;
+	localPath.append(filename);
+	const SafeBimg img = LoadImageFromFile(localPath.c_str());
+	RenderTexture(img.get());
+}
+
+

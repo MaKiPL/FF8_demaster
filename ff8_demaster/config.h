@@ -21,6 +21,7 @@ inline int HASH_ENABLED;
 inline int HASH_OUTPUT;
 inline int HASH_LOAD_HD;
 inline int DEVELOPER_MODE;
+inline int VERBOSE_LOG;
 
 inline int BATTLE_STAGE_ANIMATION_DELAY;
 inline int HASH_OUTPUT_EXT;

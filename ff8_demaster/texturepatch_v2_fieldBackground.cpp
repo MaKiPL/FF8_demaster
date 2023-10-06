@@ -1,14 +1,44 @@
 #include "coreHeader.h"
+#include "texture.h"
 #define CRASHLOG OutputDebug("%s::%d::%s\n", __FILE__, __LINE__,__func__)
 BYTE* _asm_FieldBgRetAddr1;
 BYTE* _asm_FieldBgRetAddr2;
 BYTE* _asm_FieldBgRetAddr3;
+BYTE* asmFieldBgRetAddr4DdsMod;
 
 #ifndef JAPANESE_PATCH
 int BGFILENAME2_R = 0x118;
 #else
 int BGFILENAME2_R = 0x490;
 #endif
+
+void FillMaplist(bool force_retry, std::vector<std::string>& maplistVector)
+{
+	LOG_FUNCTION
+	if (maplistVector.empty() || force_retry)
+	{
+		const auto oldsize = maplistVector.size();
+		static size_t cachedMaplistSize{};
+		if (maplistVector.capacity() < 982) 
+			maplistVector.reserve(982);
+		const char* const maplistSrc = []() {
+			const char* tmpPtr = reinterpret_cast<const char*>(*reinterpret_cast<DWORD*>
+				(IMAGE_BASE + GetAddress(BGFILENAME2)) + BGFILENAME2_R + cachedMaplistSize);
+			if (*tmpPtr == '\n') //The \n tends to be left at the front on reloading.
+				(void)++tmpPtr, ++cachedMaplistSize;
+			return tmpPtr;
+		}();
+		const std::string maplist = std::string{ maplistSrc };
+		cachedMaplistSize += maplist.size(); // remember how much of the maplist we have read.
+		{
+			auto iss = std::istringstream(maplist, std::ios::in | std::ios::binary);
+			std::string mapname{};
+			while (std::getline(iss, mapname))
+				maplistVector.emplace_back(std::move(mapname));
+		}
+		spdlog::debug("retry={} oldSize={} newSize={}", force_retry, oldsize, maplistVector.size());
+	}
+}
 
 /// <summary>
 /// Gets field map name from maplist data
@@ -18,47 +48,23 @@ int BGFILENAME2_R = 0x490;
 /// <returns>false if no issues</returns>
 bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 {
+	LOG_FUNCTION
 	static std::vector<std::string> maplistVector{};
-	const int fieldId = *(DWORD*)(IMAGE_BASE + GetAddress(BGFILENAME1)) & 0xFFFF;
-	if (maplistVector.empty() || force_retry)
-	{
-		const auto oldsize = maplistVector.size();
-		static size_t cached_maplist_size{};
-		if (maplistVector.capacity() < 982) 
-			maplistVector.reserve(982);
-		const char* const maplist_src = []() {
-			const char* tmp_ptr = (const char*)(*(DWORD*)(IMAGE_BASE + GetAddress(BGFILENAME2)) + BGFILENAME2_R + cached_maplist_size);
-			if (*tmp_ptr == '\n') //The \n tends to be left at the front on reloading.
-				(void)++tmp_ptr, ++cached_maplist_size;
-			return tmp_ptr;
-		}();
-		const std::string maplist = std::string{ maplist_src };
-		cached_maplist_size += maplist.size(); // remember how much of the maplist we have read.
-		{
-			auto iss = std::istringstream(maplist, std::ios::in | std::ios::binary);
-			std::string mapname{};
-			while (std::getline(iss, mapname))
-			{
-				maplistVector.emplace_back(std::move(mapname));
-			}
-		}
-#if LOG_VERBOSE
-		OutputDebug("%s::%d- %s Maplist!\toldsize: %d\tsize: %d\n", __func__, __LINE__, (force_retry ? "ReLoaded" : "Loaded"), oldsize, maplistVector.size());
-#endif
-	}
+	const int fieldId = *reinterpret_cast<DWORD*>(IMAGE_BASE + GetAddress(BGFILENAME1)) & 0xFFFF;
+	FillMaplist(force_retry, maplistVector);
 
 	if (maplistVector.size() <= static_cast<size_t>(fieldId))
 	{
 		if (!force_retry)
 			return GetFieldBackgroundFilename(buffer, true);
-#if LOG_VERBOSE
+#if DEBUG_LOG_VERBOSE
 		OutputDebug("%s::%d- Invalid fieldId: %d / %d\n", __func__, __LINE__, fieldId, maplistVector.size());
 #endif
 		{
 			size_t i = 0;
 			for (const auto map : maplistVector)
 			{
-#if LOG_VERBOSE
+#if DEBUG_LOG_VERBOSE
 				OutputDebug("\t%d - %s", i++, map.c_str());
 #endif
 			}
@@ -68,9 +74,10 @@ bool GetFieldBackgroundFilename(char* buffer, bool force_retry = false)
 
 	const std::string& mapName(maplistVector[fieldId]);
 	const std::string dirName(mapName.substr(0,2U)); //get only two chars
-	sprintf(buffer, "field_bg\\%s\\%s\\%s_", dirName.c_str(), mapName.c_str(), mapName.c_str());
+	sprintf(buffer, R"(field_bg\%s\%s\%s_)", dirName.c_str(), mapName.c_str(), mapName.c_str());
 #if DEBUG_LOG_FIELDBG
-	OutputDebug("%s::%d- %s\n", __func__, __LINE__, buffer);
+	spdlog::debug(buffer);
+	//OutputDebug("%s::%d- %s\n", __func__, __LINE__, buffer);
 #endif
 	
 	return false; // no issues found.
@@ -88,6 +95,7 @@ static int lastFieldnameSubstrPos = -1;
 /// <returns>char* that points to texture of DDS or PNG</returns>
 char* GetFieldBackgroundReplacementTextureName()
 {
+	LOG_FUNCTION
 	//directIO_fopenReroute: DEMASTER_EXP\textures\DEMASTER_EXP\textures\field_bg\bv\bvtr_1\bvtr_1_0_2.png, file not found
 	char n[256]{ 0 };
 	static char n2[256]{ 0 };
@@ -113,7 +121,7 @@ char* GetFieldBackgroundReplacementTextureName()
 
 	if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
 	{
-#if LOG_VERBOSE
+#if DEBUG_LOG_VERBOSE
 		OutputDebug("%s: %s, %s\n", __func__, localn, "palette not found");
 #endif
 		
@@ -123,7 +131,7 @@ char* GetFieldBackgroundReplacementTextureName()
 	else
 	{
 		lastFieldName = localn; //Maki : localn2 was here instead of localn - probably debug
-#if LOG_VERBOSE
+#if DEBUG_LOG_VERBOSE
 		OutputDebug("%s: %s\n", __func__, localn);
 #endif
 		
@@ -138,6 +146,57 @@ char* GetFieldBackgroundReplacementTextureName()
 
 	
 		return lastFieldName; //Maki: yeah, it's for rework, but returning anyway for assembler inject sake
+}
+
+const char * DDS = ".dds";
+const char * PNG = ".png";
+
+__declspec(naked) void _asm_bgModDds()
+{
+	LOG_FUNCTION
+		__asm
+		{
+			PUSH EAX
+			MOV EAX, fieldReplacementFound
+			CMP EAX, 1
+			POP EAX
+			JE _png
+			PUSH DDS
+			JMP _out
+			_png:
+			PUSH PNG
+			_out:
+			JMP _asm_FieldBgRetAddr1
+		}
+}
+
+/*
+ * /////EAX - holds loaded DDS file
+ *EBX - holds filename. i.e. textures\field_bg\bc\bcgate_1\bcgate_1_0.dds
+ */
+//inline void* ddsBuffer= nullptr;
+inline char* ddsFilename = nullptr;
+inline GLsizei ddsWidth, ddsHeight;
+__declspec(naked) void _asm_BufferDdsMod()
+{
+	__asm
+	{
+		//MOV ddsBuffer, EAX
+		MOV ddsFilename, EBX
+	}
+
+	LoadAndRenderTexture(ddsFilename);
+
+	//ddsWidth = reinterpret_cast<GLsizei>(ddsBuffer + 0x0C);
+	//ddsHeight = reinterpret_cast<GLsizei>(ddsBuffer + 0x10);
+
+	//glCompressedTexImage2D(GL_TEXTURE_2D, 0, )
+
+	__asm
+	{
+		JMP asmFieldBgRetAddr4DdsMod
+	}
+	
 }
 
 __declspec(naked) void _asm_InjectFieldBackgroundModule()
@@ -175,6 +234,7 @@ __declspec(naked) void _asm_InjectFieldBackgroundModule()
 //WIP
 void FbgGl()
 {
+	LOG_FUNCTION
  		DWORD tPage = gl_textures[50];
 		int palette = tex_header[52];
 
@@ -204,7 +264,8 @@ void FbgGl()
 /// <returns>0 when not found</returns>
 DWORD GetFieldBackgroundReplacementExist()
 {
-
+	LOG_FUNCTION
+	fieldReplacementFound = 0;
 	const size_t s = 256U;
 	char n[s]{ 0 };
 	char localn[s]{ 0 };
@@ -224,7 +285,8 @@ DWORD GetFieldBackgroundReplacementExist()
 		return 0;
 	}
 
-	fieldReplacementFound = 1;
+	const std::string tmpStr(localn);
+	fieldReplacementFound = tmpStr.ends_with("dds") ? 2 : 1;
 
 
 	OutputDebug("%s: fieldReplacementFound: %d %s\n", __func__, fieldReplacementFound, lastFieldName = localn);
@@ -285,18 +347,25 @@ __declspec(naked) void _asm_InjectExtensionHijack()
 
 void ApplyFieldBackgroundPatch()
 {
-
-	_asm_FieldBgRetAddr3 = InjectJMP(IMAGE_BASE + GetAddress(_ASM_FIELDBGRETADDR3), (DWORD)_asm_CheckTextureReplacementExists, 20);
+	LOG_FUNCTION
+	_asm_FieldBgRetAddr3 = InjectJMP(IMAGE_BASE + GetAddress(_ASM_FIELDBGRETADDR3),
+		reinterpret_cast<DWORD>(_asm_CheckTextureReplacementExists), 20);
 
 	//disable tpage 16&17 limit
 	ModPage(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT), 1);
-	*(BYTE*)(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT)) = 0xEB;
+	*reinterpret_cast<BYTE*>(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT)) = 0xEB;
 
 	//we now inject JMP when CMP fieldIfd, gover and do out stuff, then return to glSegment
-	_asm_FieldBgRetAddr2 = InjectJMP(IMAGE_BASE + GetAddress(_ASM_FIELDBGRETADDR2), (DWORD)_asm_InjectFieldBackgroundModule, 42);//169-11);
+	_asm_FieldBgRetAddr2 = InjectJMP(IMAGE_BASE + GetAddress(_ASM_FIELDBGRETADDR2),
+		reinterpret_cast<DWORD>(_asm_InjectFieldBackgroundModule), 42);//169-11);
 
 	//skips the .png adding
-	//Maki: no, not this way- todo in reborn
 	//_asm_FieldBgRetAddr1 = InjectJMP(IMAGE_BASE+0x16065C0, (DWORD)_asm_InjectExtensionHijack, 0x12);
+	_asm_FieldBgRetAddr1 = InjectJMP(IMAGE_BASE+GetAddress(_ASM_FIELDBGRETADDR2)+0x78,
+		reinterpret_cast<DWORD>(_asm_bgModDds), 5);
+	
+	const uint32_t loadImageFile = GetRelativeCall(IMAGE_BASE+GetAddress(_ASM_FIELDBGRETADDR2),0x99);
+	asmFieldBgRetAddr4DdsMod = InjectJMP(loadImageFile+0x259,
+		reinterpret_cast<DWORD>(_asm_BufferDdsMod), 0x11B);
 }
 #undef CRASHLOG

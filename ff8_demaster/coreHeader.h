@@ -5,6 +5,7 @@
 #include <cstdio>
 
 #include <INIReader.h>
+#include "spdlog/spdlog.h"
 #include "renderer.h"
 #include <memory>
 #include <Psapi.h>
@@ -13,6 +14,8 @@
 #include "mymemory.h"
 #include "image.h"
 #include "file.h"
+
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 
 //===================DEFINE CONFIGURATIONS=====================//
@@ -25,14 +28,17 @@
 
 #define DEBUG_SKIP_SMALL_TEXTURES 1
 
+#define DEMASTER_VERSION "1.4.0"
+
 
 //below defines control which logs are actually displayed and which not for visibility during development
 #define DEBUG_LOG_HASH 0
-#define LOG_VERBOSE 1
+#define DEBUG_LOG_VERBOSE 1
 #define DEBUG_LOG_IO 1
 #define DEBUG_LOG_FIELDBG 1
 //End of debug log controls
 
+#define LOG_FUNCTION spdlog::debug("[{}:{}]", __func__, __LINE__);
 
 
 //===================TEX_TYPE MODE CONSTANTS=====================//

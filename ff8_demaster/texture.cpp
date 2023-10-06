@@ -351,7 +351,7 @@ void _cltVoid()
 		return;
 	if (textureType == 57) //field
 		return;
-#if LOG_VERBOSE
+#if DEBUG_LOG_VERBOSE
 	OutputDebug("\ncommon_load_texture: tex_type: %s, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n",
 		GetTextureType(textureType), palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
 #endif //LOG_VERBOSE

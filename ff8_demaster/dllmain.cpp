@@ -8,10 +8,15 @@
 #include "config.h"
 #include "opengl.h"
 #include "Psapi.h"
+#include "spdlog/sinks/basic_file_sink.h"
 
 
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
-EXPORT void InitTest() { OutputDebug("DEMASTER ENGINE LOADED!\n"); }
+EXPORT void InitTest()
+{
+	spdlog::info("DEMASTER ENGINE LOADED!");
+	spdlog::debug("Demaster version: {}", DEMASTER_VERSION);
+}
 
 #ifndef JAPANESE_PATCH
 #define JAPANESE_PATCH 0
@@ -152,10 +157,20 @@ BOOL WINAPI DllMain(
 	AllocConsole();
 	(void)freopen("CONOUT$", "w", stdout);
 	(void)freopen("CON", "r", stdin);
-	InitTest();
-	ReadConfigFile();
-	if (LOG) logFile = decltype(logFile){ fopen("demasterlog.txt", "wb"), fclose };
 	
+	
+	ReadConfigFile();
+
+	if(VERBOSE_LOG)
+		spdlog::set_level(spdlog::level::debug);
+	else
+		spdlog::set_level(spdlog::level::info);
+	spdlog::set_pattern("[%R.%e] [%l] %v");
+
+	InitTest();
+	
+	if (LOG) logFile = decltype(logFile){ fopen("demasterlog.txt", "wb"), fclose };
+
 	IMAGE_BASE = reinterpret_cast<DWORD>(GetModuleHandleA(moduleName));
 	OPENGL_HANDLE = reinterpret_cast<DWORD>(GetModuleHandleA("OPENGL32"));
 	GetModulesInformation();
