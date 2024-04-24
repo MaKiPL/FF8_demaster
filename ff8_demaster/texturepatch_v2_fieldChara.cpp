@@ -1,51 +1,52 @@
+#include <filesystem>
+
 #include "coreHeader.h"
 
 int width_fcp=768,height_fcp=768;
+
+#define SCSTR(x) x.str().c_str()
 
 BYTE* fcpBackAdd1;
 BYTE* fcpBackAdd2;
 
 //casual is 384x384 or 768x768, therefore the final should be 1st height * 2
-void _fcpObtainTextureDatas(int bIndex, int aIndex)
+void _fcpObtainTextureDatas(const int rowIndex, const int objectIndex)
 {
-	char texPath[256]{ 0 };
-	char tempPath[256]{ 0 };
-	char tempSprint[256]{ 0 };
+	std::ostringstream texPath;
+	std::ostringstream tempSprint;
+	texPath << DIRECT_IO_EXPORT_DIR << "textures\\field.fs\\field_hd";
 
-	sprintf(texPath, "%stextures\\field.fs\\field_hd", DIRECT_IO_EXPORT_DIR);
-
-	if (aIndex >= 0xC19) //those ugly numbers come based on do*emu func (probably)
-		sprintf(tempSprint, "\\%s%03u_%u", "p", aIndex - 3097, bIndex);
-	else if (aIndex < 0x831)
-	{
-		if (aIndex < 0x449)
-			sprintf(tempSprint, "\\%s%03u_%u", "d", aIndex - 97, bIndex);
+	if (objectIndex >= 0xC19) //those ugly numbers come based on do*emu func (probably)
+		tempSprint << "\\p" << std::setfill('0') << std::setw(3) <<  objectIndex - 3097 << "_" << rowIndex;
+	else if (objectIndex < 0x831)
+		if (objectIndex < 0x449)
+			tempSprint << "\\d" << std::setfill('0') << std::setw(3) << objectIndex - 97 << "_" << rowIndex;
 		else
-			sprintf(tempSprint, "\\%s%03u_%u", "n", aIndex - 1097, bIndex);
-	}
+			tempSprint << "\\c" << std::setfill('0') << std::setw(3) << objectIndex - 1097 << "_" << rowIndex;
+		else
+		tempSprint << "\\o" << std::setfill('0') << std::setw(3) << objectIndex - 2097 << "_" << rowIndex;
+
+
+
+	char testPath[256]{0};
+	DDSorPNG(testPath,256, "%s%s", SCSTR(texPath), SCSTR(tempSprint));
+
+	if (!std::filesystem::exists(testPath))
+		DDSorPNG(testPath, 256,"%s_new%s", SCSTR(texPath), SCSTR(tempSprint));
 	else
-		sprintf(tempSprint, "\\%s%03u_%u", "o", aIndex - 2097, bIndex);
-
-	BOOL bNonHdParent = FALSE;
-
-	char testPath[256]{ 0 };
-	DDSorPNG(testPath,256, "%s%s", texPath, tempSprint);
-	if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
+		if (!std::filesystem::exists(testPath))
+			strcat(testPath, std::string(texPath.str() + "_new\\d000.0.png").c_str()); //ERROR !!!!
+	//we have full path, however I want to see if _1.XXX exists. So we have path in PNG or DDS.
+	
+	//take 5th character from the path and if it's 0, then make it 1
+	bool isSingleRowAtlas = false; 
+	if(std::string testPathStr = testPath; testPathStr.ends_with("0.png") || testPathStr.ends_with("0.dds"))
 	{
-		DDSorPNG(testPath, 256,"%s_new%s", texPath, tempSprint);
+		testPathStr[testPathStr.length()-5] = '1';
+		isSingleRowAtlas = std::filesystem::exists(testPathStr);
 	}
-	else
-		bNonHdParent = TRUE;
-
-	if (GetFileAttributesA(testPath) == INVALID_FILE_ATTRIBUTES)
-	{
-		DDSorPNG(testPath,256, "%s_new\\d000_0", tempPath); //ERROR !!!!
-	}
-
-	strcpy(texPath, testPath); //establish path
-
-
-	SafeBimg img = LoadImageFromFile(texPath);
+	
+	const SafeBimg img = LoadImageFromFile(testPath);
 
 	//the most important is height here
 	if (!img)
@@ -53,14 +54,21 @@ void _fcpObtainTextureDatas(int bIndex, int aIndex)
 	if (img->m_height == 288)
 		height_fcp = 768;
 	else height_fcp = img->m_height * 2;
-	
+	uint32_t upperResolution = 384; //288, 576 <> 384,768,1536..
+	const uint32_t scaler = isSingleRowAtlas?1:2;
+	for(int idx=0; idx<5; idx++)
+				if(img->m_height<=upperResolution)
+				{
+					width_fcp = height_fcp = static_cast<int32_t>(upperResolution * scaler);
+					break;
+				}
 
 
-	OutputDebug("_fcpObtainTextureDatas:: width=%d, height=%d, width_fcp=%d, height_fcp=%d, filename=%s\n", img->m_width, img->m_height, width_fcp, height_fcp, texPath);
-	return;
+	OutputDebug("_fcpObtainTextureDatas:: img:%dx%d, fcp:%dx%d, scaler=%d, filename=%s\n", img->m_width,
+		img->m_height, width_fcp, height_fcp, scaler,texPath.str().c_str());
 }
 
-
+//this creates atlas
 __declspec(naked) void _fcpObtainData()
 {
 	__asm

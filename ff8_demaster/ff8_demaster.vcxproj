@@ -72,7 +72,7 @@
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>vendor\include\;vendor\include\compat\msvc;$(IncludePath)</IncludePath>
     <LibraryPath>vendor\lib\;vendor\lib\bgfx;$(LibraryPath)</LibraryPath>
-    <OutDir>E:\FINAL FANTASY VIII REMASTERED\</OutDir>
+    <OutDir>N:\BACKUP\BORYS_HDD\FINAL FANTASY VIII REMASTERED\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>

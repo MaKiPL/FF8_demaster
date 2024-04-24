@@ -3,6 +3,7 @@
 BYTE* _asm_FieldBgRetAddr1;
 BYTE* _asm_FieldBgRetAddr2;
 BYTE* _asm_FieldBgRetAddr3;
+BYTE* asmFieldBgRetAddr4DdsMod;
 
 #ifndef JAPANESE_PATCH
 int BGFILENAME2_R = 0x118;
@@ -126,6 +127,56 @@ char* GetFieldBackgroundReplacementTextureName()
 		return lastFieldName; //Maki: yeah, it's for rework, but returning anyway for assembler inject sake
 }
 
+const char * DDS = ".dds";
+const char * PNG = ".png";
+
+__declspec(naked) void _asm_bgModDds()
+{
+		__asm
+		{
+			PUSH EAX
+			MOV EAX, fieldReplacementFound
+			CMP EAX, 1
+			POP EAX
+			JE _png
+			PUSH DDS
+			JMP _out
+			_png:
+			PUSH PNG
+			_out:
+			JMP _asm_FieldBgRetAddr1
+		}
+}
+
+/*
+ * /////EAX - holds loaded DDS file
+ *EBX - holds filename. i.e. textures\field_bg\bc\bcgate_1\bcgate_1_0.dds
+ */
+//inline void* ddsBuffer= nullptr;
+inline char* ddsFilename = nullptr;
+inline GLsizei ddsWidth, ddsHeight;
+__declspec(naked) void _asm_BufferDdsMod()
+{
+	__asm
+	{
+		//MOV ddsBuffer, EAX
+		MOV ddsFilename, EBX
+	}
+
+	LoadAndRenderTexture(ddsFilename);
+
+	//ddsWidth = reinterpret_cast<GLsizei>(ddsBuffer + 0x0C);
+	//ddsHeight = reinterpret_cast<GLsizei>(ddsBuffer + 0x10);
+
+	//glCompressedTexImage2D(GL_TEXTURE_2D, 0, )
+
+	__asm
+	{
+		JMP asmFieldBgRetAddr4DdsMod
+	}
+
+}
+
 __declspec(naked) void _asm_InjectFieldBackgroundModule()
 {
 	__asm
@@ -190,7 +241,7 @@ void FbgGl()
 /// <returns>0 when not found</returns>
 DWORD GetFieldBackgroundReplacementExist()
 {
-
+	fieldReplacementFound = 0;
 	const size_t s = 256U;
 	char n[s]{ 0 };
 	char localn[s]{ 0 };
@@ -200,6 +251,10 @@ DWORD GetFieldBackgroundReplacementExist()
 		n[0] = '\0';
 		return 0;
 	}
+
+	fieldReplacementFound = 1;
+	const std::string tmpStr(localn);
+	fieldReplacementFound = tmpStr.ends_with("dds") ? 2 : 1;
 
 
 	DDSorPNG(localn, s, "%stextures\\%s0", DIRECT_IO_EXPORT_DIR, n);
@@ -284,5 +339,12 @@ void ApplyFieldBackgroundPatch()
 	//skips the .png adding
 	//Maki: no, not this way- todo in reborn
 	//_asm_FieldBgRetAddr1 = InjectJMP(IMAGE_BASE+0x16065C0, (DWORD)_asm_InjectExtensionHijack, 0x12);
+
+	_asm_FieldBgRetAddr1 = InjectJMP(IMAGE_BASE+GetAddress(_ASM_FIELDBGRETADDR2)+0x78,
+		reinterpret_cast<DWORD>(_asm_bgModDds), 5);
+
+	const uint32_t loadImageFile = GetRelativeCall(IMAGE_BASE+GetAddress(_ASM_FIELDBGRETADDR2),0x99);
+	asmFieldBgRetAddr4DdsMod = InjectJMP(loadImageFile+0x259,
+		reinterpret_cast<DWORD>(_asm_BufferDdsMod), 0x11B);
 }
 #undef CRASHLOG
