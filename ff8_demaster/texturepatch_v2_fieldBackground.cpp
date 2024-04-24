@@ -252,10 +252,6 @@ DWORD GetFieldBackgroundReplacementExist()
 		return 0;
 	}
 
-	fieldReplacementFound = 1;
-	const std::string tmpStr(localn);
-	fieldReplacementFound = tmpStr.ends_with("dds") ? 2 : 1;
-
 
 	DDSorPNG(localn, s, "%stextures\\%s0", DIRECT_IO_EXPORT_DIR, n);
 
@@ -265,7 +261,8 @@ DWORD GetFieldBackgroundReplacementExist()
 		return 0;
 	}
 
-	fieldReplacementFound = 1;
+	const std::string tmpStr(localn);
+	fieldReplacementFound = tmpStr.ends_with("dds") ? 2 : 1;
 
 
 	OutputDebug("%s: fieldReplacementFound: %d %s\n", __func__, fieldReplacementFound, lastFieldName = localn);

@@ -62,6 +62,7 @@ public:
 		return m_nextFrame - 1;
 	}
 	auto get_current_frame_number_and_iterate() noexcept
+	
 	{
 		const auto current_time = std::chrono::steady_clock::now();
 		const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - m_timestamp);
@@ -142,9 +143,9 @@ void _bspGl()
 {
 	DWORD tPage = gl_textures[50];
 	char localn[256]{ 0 };
-	if (DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, bss[tPage - 16].get_current_frame_number_and_iterate()))
+	if (!DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, bss[tPage - 16].get_current_frame_number_and_iterate()))
 	{
-		if (DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, 0))
+		if (!DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, 0))
 			if (!DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage) && bss[tPage - 16].buffer.size() > 1)
 				bss[tPage - 16].buffer.clear();
 		bss[tPage - 16].restart_animation(); // prevents using the wrong frame number for the base texture
