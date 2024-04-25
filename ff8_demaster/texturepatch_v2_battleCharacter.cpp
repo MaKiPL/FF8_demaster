@@ -43,6 +43,7 @@ __declspec(naked) void _bcpObtainData()
 		PUSH [height_bcp]
 		PUSH [width_bcp]
 		PUSH ECX
+		
 		PUSH NEWGLTEX_CHARA
 		CALL GetAddress
 		MOV ECX, EAX

@@ -143,9 +143,9 @@ void _bspGl()
 {
 	DWORD tPage = gl_textures[50];
 	char localn[256]{ 0 };
-	if (!DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, bss[tPage - 16].get_current_frame_number_and_iterate()))
+	if (DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, bss[tPage - 16].get_current_frame_number_and_iterate()))
 	{
-		if (!DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, 0))
+		if (DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage, 0))
 			if (!DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage) && bss[tPage - 16].buffer.size() > 1)
 				bss[tPage - 16].buffer.clear();
 		bss[tPage - 16].restart_animation(); // prevents using the wrong frame number for the base texture
@@ -161,24 +161,19 @@ void _bspGl()
 
 DWORD _bspCheck()
 {
-	int textureType = gl_textures[48];
-	if (textureType != 11) //we want only battle textures
-		return 0;
-	if (currentStage == -1)
-		return 0;
-	DWORD tPage = gl_textures[50];
-	if (tPage < 16)
-		return 0;
-	if (tPage > 21)
+	const DWORD textureType = gl_textures[48];
+	const DWORD tPage = gl_textures[50];
+	if (textureType != 11 || currentStage == -1 || tPage <16 || tPage > 21) //we want only battle textures
 		return 0;
 	char localn[256]{ 0 };
-	if (!DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d", DIRECT_IO_EXPORT_DIR, currentStage, tPage)
+	if (!DDSorPNG(localn, 256, R"(%stextures\battle.fs\hd_new\a0stg%03d_%d)", DIRECT_IO_EXPORT_DIR, currentStage, tPage)
 		|| !DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\a0stg%03d_%d_0", DIRECT_IO_EXPORT_DIR, currentStage, tPage))
 	{
 		OutputDebug("%s: Happy at %s\n", __func__, localn);
 		return 1;
 	}
-	OutputDebug("%s FAILED ON TEXTURE!; Expected: a0stg%03d_%d.(dds|png) or a0stg%03d_%d_0.(dds|png)\n", __func__, currentStage, tPage);
+	OutputDebug("%s FAILED ON TEXTURE!; Expected: a0stg%03d_%d.(dds|png) or a0stg%03d_%d_0.(dds|png)\n",
+		__func__, currentStage, tPage, currentStage, tPage);
 	return 0;
 }
 

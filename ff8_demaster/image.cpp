@@ -59,7 +59,7 @@ bool DDSorPNG(char* buffer, const size_t inSize, const char* fmt, ...)
 		vsnprintf(buffer, size, fmt, args);
 		strcat(buffer, ".png");
 		va_end(args);
-		return std::filesystem::exists(buffer);
+		return !std::filesystem::exists(buffer); //if it exist, then it should return false on success, right?
 	}
 	return false;
 }
