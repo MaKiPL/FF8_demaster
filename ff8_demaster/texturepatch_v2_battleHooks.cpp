@@ -1,4 +1,5 @@
 #include "coreHeader.h"
+#include "texture.h"
 
 DWORD _bhpBackAdd1;
 DWORD _bhpBackAdd2;
@@ -9,6 +10,8 @@ DWORD* texture_file_enemy_ex_Id;
 //instead of hardcoding data to DLL, we make it dynamic so it seeks the textures on it's own
 DWORD _bhpMonsterStructVoid()
 {
+	//InjectMonsterAtlasResolution(0x180);
+	
 	int batId;
 	__asm
 	{
@@ -21,7 +24,16 @@ DWORD _bhpMonsterStructVoid()
 	DDSorPNG(localn, 256, "%stextures\\battle.fs\\hd_new\\c0m%03d_0", DIRECT_IO_EXPORT_DIR, batId);
 	int maxPal = 0;
 	int _strlen = strlen(localn);
-	while (1)
+	
+	if(GetFileAttributesA(localn) != INVALID_FILE_ATTRIBUTES)
+	{
+		DWORD res = GetImageResolutionFast(localn).width;
+		InjectMonsterAtlasResolution(res);
+	}
+	else
+		InjectMonsterAtlasResolution(DEFAULT_MONSTER_ATLAS_TEX_RESOLUTION);
+	
+	while (true)
 	{
 		localn[_strlen - 5] = '0' + maxPal;
 		if (GetFileAttributesA(localn) == INVALID_FILE_ATTRIBUTES)
@@ -35,6 +47,7 @@ DWORD _bhpMonsterStructVoid()
 		}
 		maxPal++;
 	}
+	//InjectMonsterAtlasResolution(DEFAULT_MONSTER_ATLAS_TEX_RESOLUTION);
 	OutputDebug("_bhpMonsterStructVoid::Custom worker- found C0M%03d that have %d pages\n", batId, maxPal);
 	return maxPal;
 }
@@ -55,6 +68,14 @@ __declspec(naked) void _bhpMonsterStruct()
 		POP EBP
 		RETN
 	}
+}
+
+void InjectMonsterAtlasResolution(const DWORD monsterTexResolution)
+{
+	OutputDebug("InjectMonsterAtlasResolution::Injecting atlas resolution of: %d\n", monsterTexResolution);
+	InjectDWORD(IMAGE_BASE + 0x1606D9D+6, monsterTexResolution*2);
+	InjectDWORD(IMAGE_BASE + 0x1606DAE+6, monsterTexResolution*2);
+	InjectWORD(IMAGE_BASE + 0x16051D1+1, static_cast<WORD>(monsterTexResolution));
 }
 
 BYTE _bhpVoid()
@@ -81,6 +102,7 @@ BYTE _bhpVoid()
 	}
 	else if (bhpChechker == 'c')
 	{
+		InjectMonsterAtlasResolution(DEFAULT_MONSTER_ATLAS_TEX_RESOLUTION);
 		char monsId[4];
 		strncpy(monsId, &_bhpStrPointer[3], 3);
 		monsId[3] = '\0';
@@ -91,6 +113,13 @@ BYTE _bhpVoid()
 			return 0;
 
 		*texture_file_enemy_ex_Id = 1000 + intMonsId;
+
+		DWORD monsterTexResolution = GetImageResolutionFast(localPath).width;
+
+		OutputDebug("_bhpVoid::Injecting atlas resolution of: %d\n", monsterTexResolution);
+
+		InjectMonsterAtlasResolution(monsterTexResolution);
+		
 		return 1;
 	}
 	else 
@@ -104,6 +133,7 @@ BYTE _bhpVoid()
 //then let's search texture replacement our way by checking file exists and not hardcoded struct
 __declspec(naked) void _bhp()
 {
+	InjectMonsterAtlasResolution(DEFAULT_MONSTER_ATLAS_TEX_RESOLUTION);
 	__asm
 	{
 		//set current [ebp+str] to our dword for debugging and pre-checkin

@@ -41,6 +41,12 @@ void InjectDWORD(const DWORD address, const DWORD value)
 	*reinterpret_cast<DWORD*>(address) = value;
 }
 
+void InjectWORD(const DWORD address, const WORD value)
+{
+	ModPage(address, 2);
+	*reinterpret_cast<WORD*>(address) = value;
+}
+
 /****************************************************************************/
 //    Copyright (C) 2009 Aali132                                            //
 //    Copyright (C) 2018 quantumpencil                                      //

@@ -25,6 +25,9 @@ Vector2Di GetImageResolutionFast(const char* filePath);
 void ReadPNGHeaderResolutionFast(std::istream& stream, Vector2Di& resolution);
 void ReadDDSHeaderResolutionFast(std::istream& stream, Vector2Di& resolution);
 
+inline constexpr DWORD DEFAULT_MONSTER_ATLAS_TEX_RESOLUTION = 0x180;
+void InjectMonsterAtlasResolution(const DWORD monsterTexResolution);
+
 #define MAGIC_PNG 0x474E5089
 #define MAGIC_DDS 0x20534444
 

@@ -352,6 +352,8 @@ void ReadPNGHeaderResolutionFast(std::istream& stream, Vector2Di &resolution)
 	}
 	stream.read(reinterpret_cast<char*>(&resolution.width), sizeof(uint32_t));
 	stream.read(reinterpret_cast<char*>(&resolution.height), sizeof(uint32_t));
+	resolution.height = _byteswap_ulong(resolution.height);
+	resolution.width = _byteswap_ulong(resolution.width);
 }
 
 void ReadDDSHeaderResolutionFast(std::istream& stream, Vector2Di& resolution)

@@ -21,6 +21,7 @@ BYTE* InjectJMP(DWORD address, DWORD functionAddress, int JMPsize = 5);
 BOOL ModPage(DWORD address, int size = 5);
 void ReplaceWithNOP(DWORD address, int instructionSize = 5);
 void InjectDWORD(DWORD address, DWORD value);
+void InjectWORD(DWORD address, WORD value);
 
 
 /****************************************************************************/
