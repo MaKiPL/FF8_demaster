@@ -312,7 +312,7 @@ void _cltVoid()
 		return;
 	if (textureType == 57) //field
 		return;
-	OutputDebug("\ncommon_load_texture: tex_type: %s, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n", GetTextureType(textureType), palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
+	//OutputDebug("\ncommon_load_texture: tex_type: %s, pal: %d, unk: %08x, bHaveHD: %s, Tpage: %d\n", GetTextureType(textureType), palette, unknownDword, bHaveHD > 0 ? "TRUE" : "FALSE", tPage);
 
 	return;
 }
@@ -375,10 +375,11 @@ void ReadDDSHeaderResolutionFast(std::istream& stream, Vector2Di& resolution)
 Vector2Di GetImageResolutionFast(const char* filePath)
 {
 	Vector2Di resolution{};
+	
 	std::ifstream inFile;
 	inFile.open(filePath, std::ios::in | std::ios::binary);
 	if(!inFile.is_open())
-		{OutputDebug("%s error. File not opened", __func__); return resolution;}
+		{OutputDebug("%s error. File %s not opened\n", __func__, filePath); return resolution;}
 	uint32_t magic = 0;
 	inFile.read(reinterpret_cast<char*>(&magic), sizeof(uint32_t));
 	switch(magic)
@@ -390,9 +391,10 @@ Vector2Di GetImageResolutionFast(const char* filePath)
 			ReadDDSHeaderResolutionFast(inFile,resolution);
 			break;
 		default:
-			OutputDebug("%s error. Unknown file format- only DDS and PNG are supported. I'm too lazy", __func__);
+			OutputDebug("%s error. Unknown file format- only DDS and PNG are supported. I'm too lazy\n", __func__);
 	}
 	inFile.close();
+	OutputDebug("%s: %s resolution: %dx%d\n", __func__, filePath, resolution.width, resolution.height);
 	return resolution;
 }
 

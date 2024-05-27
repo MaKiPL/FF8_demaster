@@ -1,6 +1,7 @@
 #include <filesystem>
 
 #include "coreHeader.h"
+#include "texture.h"
 
 int width_fcp=768,height_fcp=768;
 
@@ -39,33 +40,57 @@ void _fcpObtainTextureDatas(const int rowIndex, const int objectIndex)
 	//we have full path, however I want to see if _1.XXX exists. So we have path in PNG or DDS.
 	
 	//take 5th character from the path and if it's 0, then make it 1
-	bool isSingleRowAtlas = false; 
-	if(std::string testPathStr = testPath; testPathStr.ends_with("0.png") || testPathStr.ends_with("0.dds"))
+	bool isSingleRowAtlas = false;
+	std::string testPathStr = testPath;
+	if(testPathStr.ends_with("0.png") || testPathStr.ends_with("0.dds"))
 	{
 		testPathStr[testPathStr.length()-5] = '1';
-		isSingleRowAtlas = std::filesystem::exists(testPathStr);
+		isSingleRowAtlas = !std::filesystem::exists(testPathStr);
 	}
+
+	//No need to load whole image- let's do it the GetImageResolutionFast way
+	//const SafeBimg img = LoadImageFromFile(testPath);
 	
-	const SafeBimg img = LoadImageFromFile(testPath);
-
-	//the most important is height here
-	if (!img)
+	if(!std::filesystem::exists(testPath))
 		return;
-	if (img->m_height == 288)
-		height_fcp = 768;
-	else height_fcp = img->m_height * 2;
-	uint32_t upperResolution = 384; //288, 576 <> 384,768,1536..
-	const uint32_t scaler = isSingleRowAtlas?1:2;
-	for(int idx=0; idx<5; idx++)
-				if(img->m_height<=upperResolution)
-				{
-					width_fcp = height_fcp = static_cast<int32_t>(upperResolution * scaler);
-					break;
-				}
+
+	Vector2Di textureResolution0 = GetImageResolutionFast(testPath);
+
+	uint32_t finalHeight = textureResolution0.height*2;
+	
+	if(!isSingleRowAtlas)
+	{
+		const Vector2Di textureResolution1 = GetImageResolutionFast(testPathStr.c_str());
+		if(textureResolution1.height>textureResolution0.height)
+			finalHeight = textureResolution1.height*2;
+	}
+
+	height_fcp = static_cast<int>(finalHeight);
+
+	OutputDebug("_fcpObtainTextureDatas:: img:%dx%d, fcp:%dx%d, filename=%s\n", textureResolution0.width,
+		textureResolution0.height, width_fcp, height_fcp, testPath);
+
+	//If we take two textures, take their bigger height variant (d017_0 is 384 and 288), then bigger one * 2 is 768
+	//in this case. Therefore there's no need to check the height if it's %384 and work on upscaling it to bigger number.
+	//It should work out-of-box. d017_0 and d019_0 are the 288 textures. Even in upscale- 576 for d017_0, but 768 for
+	//d017_1, so the 768*2=1536 is the final height no matter the first texture
+
+	
+	// if (finalHeight%384 != 0) //d017_0 and d019_0. The modulo is clever :D
+	// 	height_fcp = 768;
+	
+	// uint32_t upperResolution = 384; //288, 576 <> 384,768,1536..
+	// const uint32_t scaler = isSingleRowAtlas?1:2;
+	// for(int idx=0; idx<5; idx++)
+	// 			if(img->m_height<=upperResolution)
+	// 			{
+	// 				width_fcp = height_fcp = static_cast<int32_t>(upperResolution * scaler);
+	// 				break;
+	// 			}
 
 
-	OutputDebug("_fcpObtainTextureDatas:: img:%dx%d, fcp:%dx%d, scaler=%d, filename=%s\n", img->m_width,
-		img->m_height, width_fcp, height_fcp, scaler,texPath.str().c_str());
+	// OutputDebug("_fcpObtainTextureDatas:: img:%dx%d, fcp:%dx%d, scaler=%d, filename=%s\n", img->m_width,
+	// 	img->m_height, width_fcp, height_fcp, scaler,texPath.str().c_str());
 }
 
 //this creates atlas
