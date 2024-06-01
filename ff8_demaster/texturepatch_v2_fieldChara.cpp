@@ -9,6 +9,9 @@ int width_fcp=768,height_fcp=768;
 
 BYTE* fcpBackAdd1;
 BYTE* fcpBackAdd2;
+BYTE* fcpBackAdd3; //for blinking
+
+inline bool hd_rectangle_texture = false;
 
 //casual is 384x384 or 768x768, therefore the final should be 1st height * 2
 void _fcpObtainTextureDatas(const int rowIndex, const int objectIndex)
@@ -31,6 +34,8 @@ void _fcpObtainTextureDatas(const int rowIndex, const int objectIndex)
 
 	char testPath[256]{0};
 	DDSorPNG(testPath,256, "%s%s", SCSTR(texPath), SCSTR(tempSprint));
+
+	hd_rectangle_texture=false;
 
 	if (!std::filesystem::exists(testPath))
 		DDSorPNG(testPath, 256,"%s_new%s", SCSTR(texPath), SCSTR(tempSprint));
@@ -66,6 +71,8 @@ void _fcpObtainTextureDatas(const int rowIndex, const int objectIndex)
 	}
 
 	height_fcp = static_cast<int>(finalHeight);
+
+	hd_rectangle_texture = textureResolution0.height == textureResolution0.width;
 
 	OutputDebug("_fcpObtainTextureDatas:: img:%dx%d, fcp:%dx%d, filename=%s\n", textureResolution0.width,
 		textureResolution0.height, width_fcp, height_fcp, testPath);
@@ -148,7 +155,7 @@ __declspec(naked) void _fcpSetYoffset()
 	{
 		CMP [TEX_TYPE], 57
 		JNE originalcode
-		CMP[EBP + 0x0C], 0 //the hell is this? original code?
+		CMP[EBP + 0x0C], 0 //this is width. Caution
 		JE originalcode
 		MOV EAX, [height_fcp]
 		SHR EAX, 1 //768/2
@@ -164,20 +171,60 @@ __declspec(naked) void _fcpSetYoffset()
 	}
 }
 
+__declspec(naked) void _fcpFieldCharBlink()
+{
+	__asm
+	{
+		//it comapres DWORD PTR [ebp-0x8c] to 0x300. We want it to be modulo 768 instead
+		//I do not store and restore the registers. It doesn't matter but destroy the stack
+
+		//we want all field_hd textures to be not blinking (there's no 0x300 texture in field_hd)
+		CMP hd_rectangle_texture, 0
+		MOV BL, 0
+		JE _start
+		JMP _out
+		
+
+		//let's start:
+		_start:
+		MOV EAX, [width_fcp] //EAX is now lower-half
+		XOR EDX, EDX //as DIV works on EDX:EAX, we need to make sure it's empty
+		MOV EBX, 0x300 //Yes, we divide the dynamic width by maximum vanilla atlas
+
+		DIV EBX //EAX=quotient, EDX=remainder
+
+		//If EDX contains remainder, then it's simple modulo of 768. If atlas is 768*N, then it's 0
+
+		//check if EDX is 0
+		TEST EDX, EDX //it saves the flags
+
+		//although we restored all the values, the flags are still there. The original code was setting the BL. We do the same
+		SETE BL //set BL if EDX is 0
+
+		_out:
+		JMP fcpBackAdd3
+	}
+}
+
 void ApplyFieldEntityPatch()
 {
 	//step 1. obtain needed data for tex_struct and etc.
 	//Maki: ouch, same-name vars
-	fcpBackAdd1 = InjectJMP(IMAGE_BASE + GetAddress(FCPBACKADD1), (DWORD)_fcpObtainData, 18);
+	fcpBackAdd1 = InjectJMP(IMAGE_BASE + GetAddress(FCPBACKADD1), reinterpret_cast<DWORD>(_fcpObtainData), 18);
 
 
 	//step 2. disable out of bounds error- we know that, but we are using new, bigger buffers
 	ModPage(IMAGE_BASE + GetAddress(FIELDCHARENT1), 1);
-	*(BYTE*)(IMAGE_BASE + GetAddress(FIELDCHARENT1)) = 0xEB; //JBE -> JMP
+	*reinterpret_cast<BYTE*>(IMAGE_BASE + GetAddress(FIELDCHARENT1)) = 0xEB; //JBE -> JMP
 
 	ModPage(IMAGE_BASE + GetAddress(FIELDCHARENT2), 1);
-	*(BYTE*)(IMAGE_BASE + GetAddress(FIELDCHARENT2)) = 0xEB; //JBE -> JMP
+	*reinterpret_cast<BYTE*>(IMAGE_BASE + GetAddress(FIELDCHARENT2)) = 0xEB; //JBE -> JMP
 
 	//1160545A - set
-	fcpBackAdd2 = InjectJMP(IMAGE_BASE + GetAddress(FCPBACKADD2), (DWORD)_fcpSetYoffset, 6);
+	fcpBackAdd2 = InjectJMP(IMAGE_BASE + GetAddress(FCPBACKADD2), reinterpret_cast<DWORD>(_fcpSetYoffset), 6);
+
+	//0x1160594F - checks for tex height. If not 768, then it's not blinking. CMP + SETZ bl, thne mov al, bl
+	//DISABLED- TODO, 3rd character is crashing when going into menu lol 
+	fcpBackAdd3 = InjectJMP(IMAGE_BASE+GetAddress(FIELD_CHAR_BLINK),
+		reinterpret_cast<DWORD>(_fcpFieldCharBlink), 13);
 }

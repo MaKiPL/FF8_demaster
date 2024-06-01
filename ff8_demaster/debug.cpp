@@ -5,6 +5,10 @@
 void OutputDebug(const char* fmt, ...)
 {
 #if _DEBUG
+    int invalid_dd = reinterpret_cast<int>(fmt);
+    if(invalid_dd == 0x11C8EDD0
+        || invalid_dd == 0x19e8cc)
+        return; //some invalid shit?? size_dd
     if (IsBadReadPtr(fmt, 4)) return;
     std::string fmtString = std::string(fmt);
     if (fmtString.substr(0, 7) == std::string("GLERROR"))

@@ -186,14 +186,14 @@ void WtpGl()
 
 int GetTextureIndex()
 {
-	void* pixels = (void*)pixelsPtr;
-	DWORD tPage = gl_textures[50];
-	int palette = tex_header[52];
-	int textureType = gl_textures[48];
-	DWORD texA = *(DWORD*)(IMAGE_BASE + GetAddress(WORLDGETTEXIDX0)) + 1;
-	DWORD texB = *(DWORD*)(IMAGE_BASE + GetAddress(WORLDGETTEXIDX1)) + 1;
-	DWORD texC = *(DWORD*)(IMAGE_BASE + GetAddress(WORLDGETTEXIDX2)) + 1;
-	DWORD texD = *(DWORD*)(IMAGE_BASE + GetAddress(WORLDGETTEXIDX3)) + 1;
+	//void* pixels = (void*)pixelsPtr;
+	const DWORD tPage = gl_textures[50];
+	const int palette = tex_header[52];
+	const int textureType = gl_textures[48];
+	const DWORD texA = *reinterpret_cast<DWORD*>(IMAGE_BASE + GetAddress(WORLDGETTEXIDX0)) + 1;
+	const DWORD texB = *reinterpret_cast<DWORD*>(IMAGE_BASE + GetAddress(WORLDGETTEXIDX1)) + 1;
+	const DWORD texC = *reinterpret_cast<DWORD*>(IMAGE_BASE + GetAddress(WORLDGETTEXIDX2)) + 1;
+	const DWORD texD = *reinterpret_cast<DWORD*>(IMAGE_BASE + GetAddress(WORLDGETTEXIDX3)) + 1;
 
 	if (textureType == 18)
 	{
