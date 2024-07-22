@@ -7,6 +7,12 @@ Usually:<br/>
 _D:\SteamLibrary\steamapps\common\FINAL FANTASY VIII Remastered_<br/>
 2. If it's your first run- please open FFVIII_Demaster_Manager.exe to unpacking files
 
+## SteamDeck / Proton:
+https://www.protondb.com/app/1026680
+
+Basically run this with:
+`export WINEDLLOVERRIDES="dinput8=n,b"; %command%`
+
 ## Troubleshooting
 ### Compiling:
 `Error	MSB8020	The build tools for v142 (Platform Toolset = 'v142') cannot be found.`<br/>
