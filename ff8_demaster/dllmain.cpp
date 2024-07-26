@@ -127,6 +127,8 @@ BOOL WINAPI DllMain(
 		return 0;
 
 	SetUnhandledExceptionFilter(ExceptionHandler);
+
+	
 	
 
 	AllocConsole();
@@ -135,6 +137,11 @@ BOOL WINAPI DllMain(
 	InitTest();
 	ReadConfigFile();
 	if (LOG) logFile = decltype(logFile){ fopen("demasterlog.txt", "wb"), fclose };
+	
+#if USE_SERVER
+		serverInst.WriteBuffer("LOL", 3);
+		serverInst.WriteBuffer("ABCDEF", 6);
+#endif
 	
 	IMAGE_BASE = reinterpret_cast<DWORD>(GetModuleHandleA(moduleName));
 	OPENGL_HANDLE = reinterpret_cast<DWORD>(GetModuleHandleA("OPENGL32"));

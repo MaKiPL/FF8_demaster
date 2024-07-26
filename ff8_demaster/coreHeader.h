@@ -3,6 +3,8 @@
 #include <sstream>
 #include <cstdio>
 
+#define WIN32_LEAN_AND_MEAN
+
 #include <INIReader.h>
 #include "renderer.h"
 #include <memory>
@@ -10,6 +12,7 @@
 #include "mymemory.h"
 #include "image.h"
 #include "file.h"
+#include "server.h"
 
 
 #define EXPORT __declspec(dllexport)
@@ -105,3 +108,5 @@ inline DWORD parm1; //arg+8
 inline DWORD* langIdent_ESI;
 
 inline int currentStage;
+
+inline server serverInst("127.0.0.1", 1337);

@@ -11,6 +11,16 @@ int BGFILENAME2_R = 0x118;
 int BGFILENAME2_R = 0x490;
 #endif
 
+int GetPalette()
+{
+	return tex_header[52];
+}
+
+int GetTPage()
+{
+	return gl_textures[50];
+}
+
 /// <summary>
 /// Gets field map name from maplist data
 /// </summary>
@@ -72,6 +82,8 @@ DWORD fieldBackgroundRequestedTPage;
 DWORD fieldReplacementFound;
 
 
+
+
 static char* lastFieldName;
 static int lastFieldnameSubstrPos = -1;
 /// <summary>
@@ -85,7 +97,7 @@ char* GetFieldBackgroundReplacementTextureName()
 	static char n2[256]{ 0 };
 	static char localn[256]{ 0 }; //Maki: static so when assigned to lastFieldName it doesn't get fucked out
 	static char localn2[256]{ 0 };
-	int palette = tex_header[52];
+	int palette = GetPalette();
 
 	
 
@@ -212,8 +224,8 @@ __declspec(naked) void _asm_InjectFieldBackgroundModule()
 //WIP
 void FbgGl()
 {
- 		DWORD tPage = gl_textures[50];
-		int palette = tex_header[52];
+ 		DWORD tPage = GetTPage();
+		int palette = GetPalette();
 
 		char localn[256]{0};
 		if (DDSorPNG(localn, 256, "%stextures\\%s%u_%u", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundReplacementTextureName(), tPage - 16, palette))
@@ -224,7 +236,7 @@ void FbgGl()
 		}
 		else if (DDSorPNG(localn, 256, "%stextures\\%s%s%u", DIRECT_IO_EXPORT_DIR, GetFieldBackgroundReplacementTextureName(), tPage - 16))
 		{
-			SafeBimg texture = LoadImageFromFile(localn);
+			const SafeBimg texture = LoadImageFromFile(localn);
 			if (texture)
 				RenderTexture(texture.get());
 		}
@@ -328,7 +340,7 @@ void ApplyFieldBackgroundPatch()
 
 	//disable tpage 16&17 limit
 	ModPage(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT), 1);
-	*(BYTE*)(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT)) = 0xEB;
+	*reinterpret_cast<BYTE*>(IMAGE_BASE + GetAddress(DISABLETPAGELIMIT)) = 0xEB;
 
 	//we now inject JMP when CMP fieldIfd, gover and do out stuff, then return to glSegment
 	_asm_FieldBgRetAddr2 = InjectJMP(IMAGE_BASE + GetAddress(_ASM_FIELDBGRETADDR2), (DWORD)_asm_InjectFieldBackgroundModule, 42);//169-11);

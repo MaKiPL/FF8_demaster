@@ -8,6 +8,7 @@
 #include <xxhash.h>
 
 #include "config.h"
+#include "opengl.h"
 
 
 void* __stdcall HookGlBindTexture(GLenum target, GLuint texture)
@@ -55,8 +56,7 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 {
 	int boundId;
 	glGetIntegerv(GL_TEXTURE_BINDING_2D, &boundId);
-	OutputDebug("glTexImage2D (%d): format: %d, %dx%d, void: %08x\n",
-		boundId, internalformat, width, height, data);
+	//OutputDebug("glTexImage2D (%d): format: %d, %dx%d, void: %08x\n",boundId, internalformat, width, height, data);
 	int lengthModifier = 0;
 	if (internalformat == GL_RGBA || internalformat == GL_BGRA
 		|| internalformat == GL_RGBA8)
@@ -192,6 +192,9 @@ if(HASH_OUTPUT) //======OUTPUT OF HASHED TEXTURES======//
 		}
 	}
 }
+	//no hashing
+	std::string textureStr = "GLTexImage2D: ID: " + std::to_string(GetCurrentBoundTextureID()) + " Width: " + std::to_string(width) + " Height: " + std::to_string(height);
+	serverInst.WriteBuffer(textureStr.c_str(), textureStr.length());
 	return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
 	                                      GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
 		(target, level, internalformat, width, height

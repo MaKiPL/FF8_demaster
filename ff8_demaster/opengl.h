@@ -47,3 +47,5 @@ static OglBufferData oglBufferData;
 
 
 void CreateImGuiImplementation();
+
+GLuint GetCurrentBoundTextureID();

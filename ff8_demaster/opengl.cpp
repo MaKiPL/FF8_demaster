@@ -1,10 +1,9 @@
 ﻿// ReSharper disable CppZeroConstantCanBeReplacedWithNullptr
 
 
+#include "coreHeader.h"
 #include "opengl.h"
-#ifdef APIENTRY
-#undef APIENTRY
-#endif
+
 #include "config.h"
 #include "debug.h"
 #include "texture.h"
@@ -13,7 +12,6 @@
 #include "imgui/backends/imgui_impl_opengl3.h"
 #include "imgui/backends/imgui_impl_glfw.h"
 #include <GLFW/glfw3.h>
-#include "coreHeader.h"
 
 void CheckGlew()
 {
@@ -69,6 +67,14 @@ void CreateImGuiImplementation()
     }
     
 }
+
+GLuint GetCurrentBoundTextureID()
+{
+    GLint currentTexture;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &currentTexture);
+    return static_cast<GLuint>(currentTexture);
+}
+
 inline bool bStartedSwapBuffers = false;
 
 LPVOID swapBuffersTrampoline;

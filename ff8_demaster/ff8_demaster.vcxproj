@@ -106,7 +106,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NOMINMAX;GLEW_STATIC;WIN32;_WIN32;_DEBUG;FF8DEMASTER_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;GLEW_STATIC;WIN32;_WIN32;_DEBUG;FF8DEMASTER_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;USE_SERVER=1;_WIN32_WINNT=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>Default</ConformanceMode>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
@@ -244,6 +244,7 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
     <ClCompile Include="mymemory.cpp" />
     <ClCompile Include="opengl.cpp" />
     <ClCompile Include="patch.cpp" />
+    <ClCompile Include="server.cpp" />
     <ClCompile Include="texture.cpp" />
     <ClCompile Include="texturepatch_v2_battleCharacter.cpp" />
     <ClCompile Include="texturepatch_v2_battleHooks.cpp" />
@@ -281,6 +282,7 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
     <ClInclude Include="mymemory.h" />
     <ClInclude Include="opengl.h" />
     <ClInclude Include="renderer.h" />
+    <ClInclude Include="server.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="texturepatch_battle_data.h" />
   </ItemGroup>
