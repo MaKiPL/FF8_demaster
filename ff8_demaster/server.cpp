@@ -10,9 +10,8 @@ server::server(const std::string& ip, int port)
 }
 
 server::~server()
-{
+= default;
 
-}
 #else
 server::server(const std::string& ip, int port)
 {
@@ -24,6 +23,21 @@ server::~server()
     //
 }
 #endif
+
+std::string server::GetCurrentDateTime()
+{
+    const std::time_t now = std::time(nullptr);
+    const std::tm* timeinfo = localtime(&now);
+    char buffer[80];
+    size_t _ = strftime(buffer, sizeof(buffer), "[%Y-%m-%d %H:%M:%S] ", timeinfo);
+    return buffer;
+}
+
+void server::WriteLog(const std::string& log)
+{
+    const std::string logMessage = std::format("MAKILOG|{}{}\n", GetCurrentDateTime(), log);
+    WriteBuffer(logMessage.c_str(), logMessage.length());
+}
 
 void server::WriteBuffer(const char* buffer, const size_t size)
 {

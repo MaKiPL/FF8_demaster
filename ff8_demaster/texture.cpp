@@ -193,8 +193,7 @@ if(HASH_OUTPUT) //======OUTPUT OF HASHED TEXTURES======//
 	}
 }
 	//no hashing
-	std::string textureStr = "GLTexImage2D: ID: " + std::to_string(GetCurrentBoundTextureID()) + " Width: " + std::to_string(width) + " Height: " + std::to_string(height);
-	serverInst.WriteBuffer(textureStr.c_str(), textureStr.length());
+	serverInst.WriteLog(std::format("GLTexSubImage2D: ID: {} Width: {} Height: {}", GetCurrentBoundTextureID(), width, height));
 	return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
 	                                      GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
 		(target, level, internalformat, width, height
