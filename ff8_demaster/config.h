@@ -25,4 +25,6 @@ inline int BATTLE_STAGE_ANIMATION_DELAY;
 inline int HASH_OUTPUT_EXT;
 inline int HASH_LOAD_HD_EXT;
 
+inline int WINDOW_OVERWRITE;
+
 void ReadConfigFile();

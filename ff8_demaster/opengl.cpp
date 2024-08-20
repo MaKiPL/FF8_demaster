@@ -133,6 +133,7 @@ static GLsizei firstWidth, firstHeight;
 void ViewportBackdoorInject(bool& backdoorUsed)
 {
     OutputDebug("OpenGL version: %s", glGetString(GL_VERSION));
+    
     //Maki: PUT BACKDOORS FOR EXTENSIONS HERE
     if (TEXTURE_PATCH && DIRECT_IO)
     {

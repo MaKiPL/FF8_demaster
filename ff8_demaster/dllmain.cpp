@@ -35,6 +35,39 @@ __declspec(naked) void AsmReplaceWindowTitle()
 	}
 }
 
+void glfwErrorCallback(const int error, const char* description)
+{
+	OutputDebug("GLFW error: %s (%d)\n", description, error);
+}
+
+inline void* oGlfwErrorCallback;
+void * HookGlfwErrorCallback([[maybe_unused]] int error_callback)
+{
+	return static_cast<void* (*)(void*)>(oGlfwErrorCallback)(glfwErrorCallback);
+}
+
+inline void* oGlfwSetWindowHint;
+void*  HookGlfwSetWindowHint(int hint, int value)
+{
+	OutputDebug("GlfwSetWindowHint hooked: hint %d, value %d\n", hint, value);
+	int newHint = hint;
+	int newValue = value;
+	
+	if(WINDOW_OVERWRITE)
+	{
+		static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_CONTEXT_VERSION_MINOR, 3);
+		static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+		static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
+
+		
+		// ModPage(0x1156E0E5, 1);
+		// *reinterpret_cast<BYTE*>(0x1156E0E5) = 0xEB;
+		
+	}
+	return static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(newHint, newValue);
+}
 
 void GetWindow()
 {
@@ -46,9 +79,19 @@ void GetWindow()
 	const unsigned int wndGlfwInit = IMAGE_BASE + GetAddress(WINDOWTITLE) - 0xA2
 	 + *reinterpret_cast<DWORD*>(IMAGE_BASE + GetAddress(WINDOWTITLE) - 0xA2) + 4;
 	MH_CreateHook(reinterpret_cast<LPVOID>(wndGlfwInit), HookGlfwInit, &glfwInitTrampoline);
+	
 
 	const unsigned int wndGlfwSetInputMode = IMAGE_BASE + GetAddress(WINDOWTITLE) + 0x162; //PUSH GLFW_HIDDEN_CURSOR
 	InjectDWORD(wndGlfwSetInputMode+1, GLFW_CURSOR_NORMAL);
+
+	
+	const unsigned int wndGlfwSetWindowHint = IMAGE_BASE + GetAddress(WINDOWTITLE)-0x5D;
+	MH_CreateHook(reinterpret_cast<LPVOID>(GetRelativeCall(wndGlfwSetWindowHint, -2)),
+		HookGlfwSetWindowHint, &oGlfwSetWindowHint);
+
+	const unsigned int wndGlfwErrorCallback = IMAGE_BASE + GetAddress(WINDOWTITLE) - 0xAB;
+	MH_CreateHook(reinterpret_cast<LPVOID>(GetRelativeCall(wndGlfwErrorCallback, 0)),
+		HookGlfwErrorCallback, &oGlfwErrorCallback);
 }
 
 
