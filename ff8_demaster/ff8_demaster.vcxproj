@@ -106,7 +106,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NOMINMAX;GLEW_STATIC;WIN32;_WIN32;_DEBUG;FF8DEMASTER_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;USE_SERVER=1;_WIN32_WINNT=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;GLEW_STATIC;WIN32;_WIN32;_DEBUG;FF8DEMASTER_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;USE_SERVER=0;_WIN32_WINNT=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>Default</ConformanceMode>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
@@ -170,7 +170,7 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NOMINMAX;GLEW_STATIC;WIN32;_DEBUG;FF8DEMASTER_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;JAPANESE_PATCH=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;GLEW_STATIC;WIN32;_DEBUG;FF8DEMASTER_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;JAPANESE_PATCH=1;USE_SERVER=0;_WIN32_WINNT=0x0601;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>

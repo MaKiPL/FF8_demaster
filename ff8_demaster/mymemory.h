@@ -172,7 +172,7 @@ const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 {BGFILENAME2          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x18A85A4 , 0x18A8418 }},
 { CHANGEMODE      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x16327C0,} }, //+1FC for JP and EFIGS
 { STEAMADDR      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x16FED48,} }, //+1FC for JP and EFIGS
-{ FIELD_CHAR_BLINK      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x0,} }, //TODO
+{ FIELD_CHAR_BLINK      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x1637192,} }, //TODO
 #endif
 };
 

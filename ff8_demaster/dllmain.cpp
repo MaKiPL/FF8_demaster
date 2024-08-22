@@ -55,11 +55,13 @@ void*  HookGlfwSetWindowHint(int hint, int value)
 	
 	if(WINDOW_OVERWRITE)
 	{
-		static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_CONTEXT_VERSION_MINOR, 3);
-		static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-		static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-		static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
+		if(hint == GLFW_DECORATED)
+			newValue = GLFW_TRUE;
+		//static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		//static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_CONTEXT_VERSION_MINOR, 3);
+		//static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		//static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
+		//static_cast<void* (*)(GLenum, GLuint)>(oGlfwSetWindowHint)(GLFW_CONTEXT_NO_ERROR, GLFW_TRUE);
 
 		
 		// ModPage(0x1156E0E5, 1);
