@@ -70,12 +70,22 @@ __declspec(naked) void _bhpMonsterStruct()
 	}
 }
 
+//sub_116059B0
 void InjectMonsterAtlasResolution(const DWORD monsterTexResolution)
 {
 	OutputDebug("InjectMonsterAtlasResolution::Injecting atlas resolution of: %d\n", monsterTexResolution);
-	InjectDWORD(IMAGE_BASE + 0x1606D9D+6, monsterTexResolution*2);
-	InjectDWORD(IMAGE_BASE + 0x1606DAE+6, monsterTexResolution*2);
-	InjectWORD(IMAGE_BASE + 0x16051D1+1, static_cast<WORD>(monsterTexResolution));
+	
+	constexpr int addr1Shift = 0x13ED + 6;
+	constexpr int addr2Shift = 0x13FE + 6;
+	
+	#ifdef JAPANESE_PATCH 
+	addr1Shift = 0x130F+6;
+	addr2Shift = 0x1320+6;
+	#endif
+	
+	InjectDWORD(IMAGE_BASE + GetAddress(SUB_116059B0)+addr1Shift, monsterTexResolution*2); //sub_116059B0+13ED + 6
+	InjectDWORD(IMAGE_BASE + GetAddress(SUB_116059B0)+addr2Shift, monsterTexResolution*2); //sub_116059B0+13FE + 6
+	InjectWORD(IMAGE_BASE + GetAddress(LOAD_BATTLE_EXT)+0xBC1+1, static_cast<WORD>(monsterTexResolution)); //load_battle_ext+BC1 + 1
 }
 
 BYTE _bhpVoid()

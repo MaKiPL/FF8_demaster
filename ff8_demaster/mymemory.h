@@ -16,7 +16,7 @@ enum ADDRESS_NAME
    _BSPBACKADD1, _BSPBACKADD2, BATTLEJMPPATCH1, BATTLEJMPPATCH2, BTLMON0, BTLMON1, BTLMON2, BTLMON3, BTLMON4, BTLMON5, BTLMON6, BHP,
    _BHPBACKADD1, _BHPBACKADD2, NEWGLTEX_CHARA, BCPBACKADD1, BCPBACKADD2, BCPBACKADD3, CLTBACKADD1, CLTBACKADD2, UPLOADVRAM, IOFUNC1,
    IOFUNC2, IOFUNC3, IOFUNC4, IOFUNC5, IOFUNC6, FILTERPATCH1, FILTERPATCH2, FILTERPATCH3, FILTERPATCH4, WINDOWTITLE, NULLSUB_DEBUG,
-BGRESPATCH1, GLFWINIT, GLFWWINDOWHINT, CHANGEMODE, STEAMADDR, FIELD_CHAR_BLINK
+BGRESPATCH1, GLFWINIT, GLFWWINDOWHINT, CHANGEMODE, STEAMADDR, FIELD_CHAR_BLINK, SUB_116059B0, LOAD_BATTLE_EXT
 };
 
 enum ADDRESS_NAME_STEAM
@@ -106,6 +106,8 @@ const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 	{ CHANGEMODE      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x1600EB0,} },
 	{ STEAMADDR      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x16EED10,} },
 	{ FIELD_CHAR_BLINK      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x160594F,} },
+	{ SUB_116059B0      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x16059B0,} }, 
+	{ LOAD_BATTLE_EXT      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x1604610,} },
 #else
 {NULLSUB_DEBUG        , std::vector<unsigned int>{ 0x0 , 0x0 , 0x33E50   , 0x33E50   }},
 {IOFUNC1              , std::vector<unsigned int>{ 0x0 , 0x0 , 0x3649C   , 0x3649C   }},
@@ -172,7 +174,9 @@ const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 {BGFILENAME2          , std::vector<unsigned int>{ 0x0 , 0x0 , 0x18A85A4 , 0x18A8418 }},
 { CHANGEMODE      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x16327C0,} }, //+1FC for JP and EFIGS
 { STEAMADDR      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x16FED48,} }, //+1FC for JP and EFIGS
-{ FIELD_CHAR_BLINK      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x1637192,} }, //TODO
+{ FIELD_CHAR_BLINK      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x1637192,} }, 
+{ SUB_116059B0      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x1638422,} }, //todo 
+{ LOAD_BATTLE_EXT      , std::vector<unsigned int>{ 0x0       , 0x0 , 0x0 ,0x1635F20,} }, //todo
 #endif
 };
 
