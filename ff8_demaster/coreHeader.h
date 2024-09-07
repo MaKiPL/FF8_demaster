@@ -47,6 +47,7 @@ void ReplaceCallFunction(uint32_t offset, void* func);
 inline DWORD IMAGE_BASE;
 inline DWORD OPENGL_HANDLE;
 inline const char* DIRECT_IO_EXPORT_DIR = "DEMASTER_EXP\\";
+inline const std::string HEXT_PATH = std::string("HEXT\\");
 inline DWORD DIRECT_IO_EXPORT_DIR_LEN = strlen(DIRECT_IO_EXPORT_DIR);
 
 extern bx::DefaultAllocator texAllocator;

@@ -7,6 +7,7 @@
 #include "texture.h"
 #include "config.h"
 #include "opengl.h"
+#include "hext.h"
 
 
 //DO NOT DELETE- it acts as an anchor for EFIGS.dll import
@@ -208,6 +209,9 @@ BOOL WINAPI DllMain(
 		InjectJMP(IMAGE_BASE + GetAddress(NULLSUB_DEBUG), reinterpret_cast<DWORD>(OutputDebug));
 	if (LINEAR_PATCH)
 		ApplyFilteringPatch();
+
+    if(!InjectHext())
+        OutputDebug("InjectHext() - not injected\n");
 
 	
 	MH_EnableHook(MH_ALL_HOOKS);

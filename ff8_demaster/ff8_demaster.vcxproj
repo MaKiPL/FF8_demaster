@@ -227,6 +227,7 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
     <ClCompile Include="debug.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="file.cpp" />
+    <ClCompile Include="hext.cpp" />
     <ClCompile Include="image.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_opengl3.cpp" />
@@ -260,6 +261,7 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
     <ClInclude Include="coreHeader.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="file.h" />
+    <ClInclude Include="hext.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="imgui\backends\imgui_impl_glfw.h" />
     <ClInclude Include="imgui\backends\imgui_impl_opengl3.h" />
@@ -283,6 +285,7 @@ del $(SolutionDir).dist\$(Configuration)\$(AssemblyName).lib</Command>
     <ClInclude Include="opengl.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="server.h" />
+    <ClInclude Include="string_helper.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="texturepatch_battle_data.h" />
   </ItemGroup>

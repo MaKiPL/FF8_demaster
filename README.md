@@ -37,4 +37,7 @@ Default steam install: `C:\Program Files (x86)\Steam\steamapps\common\FINAL FANT
 | [GLEW](https://github.com/nigels-com/glew)                   | Khronos License (MIT) |
 | [inih](https://github.com/jtilly/inih)                       | New BSD               |
 | [StackWalker](https://github.com/JochenKalmbach/StackWalker) | BSD-2-Clause          |
-| [TinySTL](https://github.com/mendsley/tinystl)               | BSD-2-Clause          |<!-- no longer used?-->
+
+## Third party
+
+HEXT based on HEXT format from [HEXT Tools](https://forums.qhimm.com/index.php?topic=13574.0) by Daniel L. P. Burke
