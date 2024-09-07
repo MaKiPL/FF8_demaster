@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <string>
 
+//Based on https://github.com/julianxhokaxhiu/FFNx/blob/290759fa6509e2a6f822a7d3c048984dd8d4ea5a/src/utils.h#L62
+
 
 // trim from start (in place)
 inline void ltrim(std::string &s) {
@@ -15,13 +17,13 @@ inline void rtrim(std::string &s) {
         return !std::isspace(ch);
     }).base(), s.end());
 }
-inline void trim(std::string &s)
+inline void Trim(std::string &s)
 {
     ltrim(s);
     rtrim(s);
 }
 
-inline std::vector<std::string> split(std::string s, const std::string& delimiter) {
+inline std::vector<std::string> Split(std::string s, const std::string& delimiter) {
     size_t pos_start = 0, pos_end, delim_len = delimiter.length();
     std::vector<std::string> res;
 
@@ -33,4 +35,21 @@ inline std::vector<std::string> split(std::string s, const std::string& delimite
 
     res.push_back (s.substr (pos_start));
     return res;
+}
+
+inline bool Contains (const std::string& s, const std::string& token)
+{
+    return s.find(token) != std::string::npos;
+}
+
+inline bool ReplaceOnce(std::string& str, const std::string& from, const std::string& to)
+{
+    const size_t startPos = str.find(from);
+
+    if (startPos == std::string::npos)
+        return false;
+
+    str.replace(startPos, from.length(), to);
+
+    return true;
 }

@@ -210,8 +210,7 @@ BOOL WINAPI DllMain(
 	if (LINEAR_PATCH)
 		ApplyFilteringPatch();
 
-    if(!InjectHext())
-        OutputDebug("InjectHext() - not injected\n");
+    hextPatcher.ApplyAll(std::string());
 
 	
 	MH_EnableHook(MH_ALL_HOOKS);
