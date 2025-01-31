@@ -21,6 +21,7 @@ struct Vector2Di
 	uint32_t height;
 };
 
+inline Vector2Di lastGetImageResolution;
 Vector2Di GetImageResolutionFast(const char* filePath);
 void ReadPNGHeaderResolutionFast(std::istream& stream, Vector2Di& resolution);
 void ReadDDSHeaderResolutionFast(std::istream& stream, Vector2Di& resolution);

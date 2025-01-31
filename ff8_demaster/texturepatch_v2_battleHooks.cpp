@@ -1,5 +1,6 @@
 #include "coreHeader.h"
 #include "texture.h"
+#include "minhook/include/MinHook.h"
 
 DWORD _bhpBackAdd1;
 DWORD _bhpBackAdd2;
@@ -85,7 +86,7 @@ void InjectMonsterAtlasResolution(const DWORD monsterTexResolution)
 	
 	InjectDWORD(IMAGE_BASE + GetAddress(SUB_116059B0)+addr1Shift, monsterTexResolution*2); //sub_116059B0+13ED + 6
 	InjectDWORD(IMAGE_BASE + GetAddress(SUB_116059B0)+addr2Shift, monsterTexResolution*2); //sub_116059B0+13FE + 6
-	InjectWORD(IMAGE_BASE + GetAddress(LOAD_BATTLE_EXT)+0xBC1+1, static_cast<WORD>(monsterTexResolution)); //load_battle_ext+BC1 + 1
+	InjectWORD(IMAGE_BASE + GetAddress(LOAD_BATTLE_EXT)+0xBC1+1, static_cast<WORD>(monsterTexResolution*2)); //load_battle_ext+BC1 + 1
 }
 
 BYTE _bhpVoid()
@@ -132,6 +133,24 @@ BYTE _bhpVoid()
 		
 		return 1;
 	}
+	else if (bhpChechker == 'm')
+	{
+		//for GFs we want to inject atlas resolution only if replacement is found (and all vanilla HD textures SHOULD still be there anyway)
+		char gfId[4];
+		strncpy(gfId, &_bhpStrPointer[3], 3);
+		gfId[3] = '\0';
+		int intGfId = atoi(gfId);
+
+		DDSorPNG(localPath, 256, "%stextures\\battle.fs\\hd_new\\mag%03d_0", DIRECT_IO_EXPORT_DIR, intGfId);
+		if (GetFileAttributesA(localPath) == INVALID_FILE_ATTRIBUTES) //file doesn't exist, so please do not replace textures
+			return 0;
+
+		const DWORD gfTexResolution = GetImageResolutionFast(localPath).width;
+		OutputDebug("_bhpVoid::Injecting MAG/GFs atlas resolution of: %d\n", gfTexResolution);
+		InjectMonsterAtlasResolution(gfTexResolution);
+		
+		return 1;
+	}
 	else 
 		return 0;
 
@@ -173,7 +192,8 @@ __declspec(naked) void _bhp()
 		mov    ecx, DWORD PTR[ebp - 0x44]
 		MOV ECX, [ECX]
 		TEST ECX, ECX
-		JNZ _isreplaced
+		NOP //We want FORCE our methods no matter what, at least for GFs
+		//JNZ _isreplaced
 
 		//NOT REPLACED? Then call our function [bhpStrPointer is already set]
 		CALL _bhpVoid
@@ -203,6 +223,66 @@ __declspec(naked) void _bhp()
 	}
 }
 
+DWORD * GetAtlasResolutionGfs(const uint32_t battleId, const int32_t a2, DWORD* width, DWORD* height)
+{
+	DWORD *result; // eax
+
+	if ( battleId > 0x386 )
+	{
+		if (battleId != 0x446)
+		{
+			result = reinterpret_cast<DWORD*>(battleId - 1121);
+			if (battleId != 1121 || a2)
+				return result;
+		}
+		*width = 768;
+		result = height;
+		*height = 768;
+		return result;
+	}
+	if ( battleId == 902 ) //Chocobo
+	{
+		*width = 768;
+		result = height;
+		*height = 768;
+		return result;
+	}
+	if ( battleId == 95 ) //c0m095 - That flying stingbee in Balamb in Elone scene;
+	{
+		*width = 1536;
+		result = height;
+		*height = 768;
+	}
+	else
+	{
+		result = reinterpret_cast<DWORD*>(battleId - 99);
+		if ( battleId == 99 ) //oilboyles - Balamb underground?
+		{
+			if ( a2 == 1 )
+			{
+				*width = 1152;
+				result = height;
+				*height = 768;
+			}
+		}
+		else
+		{
+			result = reinterpret_cast<DWORD*>(battleId - 184);
+			if ( battleId == 184 ) //Shiva
+			{
+				*width = lastGetImageResolution.width;
+				result = height;
+				*height = lastGetImageResolution.height*2; //because there's _1 texture, so we double the height
+				//We now need to override what InjectAtlas function did, but this is offset, so we have to adjust it to the base image height instead
+				InjectWORD(IMAGE_BASE + GetAddress(LOAD_BATTLE_EXT)+0xBC1+1, static_cast<WORD>(lastGetImageResolution.height));
+			}
+		}
+	}
+	return result;
+}
+
+void* BHP_Atlas_Detour;
+
 void ApplyBattleHookPatch()
 {
 	currentStage = -1;
@@ -210,5 +290,7 @@ void ApplyBattleHookPatch()
 		reinterpret_cast<DWORD>(_bhp), 17));
 	_bhpBackAdd2 = reinterpret_cast<DWORD>(InjectJMP(IMAGE_BASE + GetAddress(_BHPBACKADD2),
 		reinterpret_cast<DWORD>(_bhpMonsterStruct), 5)); //GetBattleMonsterStructPalCount _notfound
+	MH_CreateHook(reinterpret_cast<LPVOID>(IMAGE_BASE + GetAddress(BHP_ATLAS)), GetAtlasResolutionGfs, &BHP_Atlas_Detour);
+	//ReplaceFunction(IMAGE_BASE + GetAddress(BHP_ATLAS), GetAtlasResolutionGfs);
 	
 }

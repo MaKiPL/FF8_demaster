@@ -151,6 +151,8 @@ DWORD _fcpCurrentTexMode;
 
 __declspec(naked) void _fcpSetYoffset()
 {
+	//ESI - width
+	//EDI - height
 	__asm
 	{
 		CMP [TEX_TYPE], 57

@@ -397,6 +397,7 @@ Vector2Di GetImageResolutionFast(const char* filePath)
 	}
 	inFile.close();
 	OutputDebug("%s: %s resolution: %dx%d\n", __func__, filePath, resolution.width, resolution.height);
+	lastGetImageResolution = resolution;
 	return resolution;
 }
 
