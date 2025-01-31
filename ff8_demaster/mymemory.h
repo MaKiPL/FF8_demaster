@@ -70,7 +70,7 @@ const std::map<ADDRESS_NAME, std::vector<unsigned int>> PATCHADDRESS =
 	{ DS_TEXIMG            , std::vector<unsigned int>{ 0x0       , 0x166b4a0 , 0x166b4b4 ,0x166B4AC,} },
 	{ FCPBACKADD1          , std::vector<unsigned int>{ 0x0       , 0x16061CC , 0x1606aac ,0x16066AC,} },
 	{ FCPBACKADD2          , std::vector<unsigned int>{ 0x0       , 0x160C4AD , 0x160cd8d ,0x160C94D,} },
-	{ FIELDCHARENT1        , std::vector<unsigned int>{ 0x0       , 0x160C43A , 0x160cd1c ,0x160C8DC,} },
+	{ FIELDCHARENT1        , std::vector<unsigned int>{ 0x0       , 0x160C43A , 0x160cd1c ,0x160C8DA,} },
 	{ FIELDCHARENT2        , std::vector<unsigned int>{ 0x0       , 0x160C467 , 0x160cd47 ,0x160C907,} },
 	{ FILTERPATCH1         , std::vector<unsigned int>{ 0x0       , 0x15693EF , 0x156987f ,0x156985F,} },
 	{ FILTERPATCH2         , std::vector<unsigned int>{ 0x0       , 0x1569409 , 0x1569899 ,0x1569879,} },

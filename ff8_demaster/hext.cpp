@@ -57,7 +57,7 @@ int Hext::GetAddress(const std::string& token) const
     return ret + inGlobalOffset;
 }
 
-std::vector<char> Hext::getBytes(const std::string& token)
+std::vector<char> Hext::GetBytes(const std::string& token)
 {
     std::vector<char> ret;
 
@@ -87,12 +87,12 @@ std::vector<char> Hext::getBytes(const std::string& token)
     return ret;
 }
 
-bool Hext::hasCheckpoint(const std::string& token)
+bool Hext::HasCheckpoint(const std::string& token)
 {
     return token.starts_with("!");
 }
 
-bool Hext::parseCheckpoint(std::string token, std::string checkpoint)
+bool Hext::ParseCheckpoint(const std::string& token, const std::string& checkpoint)
 {
     if (token.starts_with("!"))
         if (Contains(token, checkpoint))
@@ -154,7 +154,7 @@ bool Hext::ParseGlobalOffset(const std::string& token)
     return false;
 }
 
-bool Hext::parseMemoryPermission(const std::string& token) const
+bool Hext::ParseMemoryPermission(const std::string& token) const
 {
     if (Contains(token, ":"))
     {
@@ -178,7 +178,7 @@ bool Hext::ParseMemoryPatch(const std::string& token) const
     {
         std::vector<std::string> parts = Split(token, "=");
         int addr = GetAddress(parts[0]);
-        std::vector<char> bytes = getBytes(parts[1]);
+        std::vector<char> bytes = GetBytes(parts[1]);
 
         DWORD dummy;
         ModPage(addr, bytes.size());
@@ -206,7 +206,7 @@ void Hext::Apply(const std::string& filename)
         if (line.empty()) continue;
 
         // Check if delayed, if so it should not be applied
-        if (hasCheckpoint(line)) {
+        if (HasCheckpoint(line)) {
             ifs.close();
             return;
         }
@@ -221,7 +221,7 @@ void Hext::Apply(const std::string& filename)
         if (ParseGlobalOffset(line)) continue;
 
         // Check if is a memory permission range
-        if (parseMemoryPermission(line)) continue;
+        if (ParseMemoryPermission(line)) continue;
 
         // Check if is a memory patch instruction
         if (ParseMemoryPatch(line)) continue;
@@ -245,7 +245,7 @@ void Hext::ApplyDelayed(const std::string& filename, const std::string& checkpoi
         if (ParseComment(line)) continue;
 
         // Check if is a delayed patch.
-        if (parseCheckpoint(line, checkpoint))
+        if (ParseCheckpoint(line, checkpoint))
         {
             matchCheckpoint = true;
             continue;
@@ -260,7 +260,7 @@ void Hext::ApplyDelayed(const std::string& filename, const std::string& checkpoi
             if (ParseGlobalOffset(line)) continue;
 
             // Check if is a memory permission range
-            if (parseMemoryPermission(line)) continue;
+            if (ParseMemoryPermission(line)) continue;
 
             // Check if is a memory patch instruction
             if (ParseMemoryPatch(line)) continue;
@@ -285,7 +285,7 @@ void Hext::ApplyAll(const std::string& checkpoint)
         {
             for (const auto& entry : std::filesystem::directory_iterator(hext_patching_path))
             {
-                if (entry.is_regular_file())
+                if (entry.is_regular_file() && entry.path().extension() == "*.txt")
                     ApplyDelayed(entry.path().string(), checkpoint);
                 inGlobalOffset = 0;
             }
@@ -294,7 +294,7 @@ void Hext::ApplyAll(const std::string& checkpoint)
         {
             for (const auto& entry : std::filesystem::directory_iterator(hext_patching_path))
             {
-                if (entry.is_regular_file())
+                if (entry.is_regular_file() && entry.path().extension() == ".txt")
                     Apply(entry.path().string());
                 inGlobalOffset = 0;
             }

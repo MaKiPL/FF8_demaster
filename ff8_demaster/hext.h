@@ -39,14 +39,14 @@ private:
 	bool isMultilineComment = false;
 
 	int GetAddress(const std::string& token) const;
-    static std::vector<char> getBytes(const std::string& token);
+    static std::vector<char> GetBytes(const std::string& token);
 
-    static bool hasCheckpoint(const std::string& token);
-    static bool parseCheckpoint(std::string token, std::string checkpoint);
+    static bool HasCheckpoint(const std::string& token);
+    static bool ParseCheckpoint(const std::string& token, const std::string& checkpoint);
     static bool ParseCommands(std::string token);
 	bool ParseComment(const std::string& token);
 	bool ParseGlobalOffset(const std::string& token);
-	bool parseMemoryPermission(const std::string& token) const;
+	bool ParseMemoryPermission(const std::string& token) const;
 	bool ParseMemoryPatch(const std::string& token) const;
 
 public:
