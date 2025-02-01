@@ -1,5 +1,5 @@
-# ff8_demastered
-FF8_Demastered is unofficial patch for Final Fantasy VIII Remastered game by SquareEnix. It works as DLL-dependency and has custom launcher with brand new functions. Patch makes it possible to load new textures, use non-fixed-resolution textures and will aim in tweaking issues
+# ff8_demaster
+FF8_Demaster is unofficial patch for Final Fantasy VIII Remastered game by SquareEnix. It works as DLL-dependency and has custom launcher with brand new functions. Patch makes it possible to load new textures, use non-fixed-resolution textures and will aim in tweaking issues
 
 ## Usage:
 1. Just drop to your folder of Final Fantasy VIII Remastered installation.
@@ -8,7 +8,7 @@ _D:\SteamLibrary\steamapps\common\FINAL FANTASY VIII Remastered_<br/>
 2. If it's your first run- please open FFVIII_Demaster_Manager.exe to unpacking files
 
 ## SteamDeck / Proton:
-https://www.protondb.com/app/1026680
+[https://www.protondb.com/app/1026680#nyIcYa992E](https://www.protondb.com/app/1026680#nyIcYa992E)
 
 Basically run this with:
 `export WINEDLLOVERRIDES="dinput8=n,b"; %command%`
