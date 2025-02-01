@@ -11,7 +11,6 @@ DWORD* texture_file_enemy_ex_Id;
 //instead of hardcoding data to DLL, we make it dynamic so it seeks the textures on it's own
 DWORD _bhpMonsterStructVoid()
 {
-	//InjectMonsterAtlasResolution(0x180);
 	
 	int batId;
 	__asm
@@ -86,7 +85,7 @@ void InjectMonsterAtlasResolution(const DWORD monsterTexResolution)
 	
 	InjectDWORD(IMAGE_BASE + GetAddress(SUB_116059B0)+addr1Shift, monsterTexResolution*2); //sub_116059B0+13ED + 6
 	InjectDWORD(IMAGE_BASE + GetAddress(SUB_116059B0)+addr2Shift, monsterTexResolution*2); //sub_116059B0+13FE + 6
-	InjectWORD(IMAGE_BASE + GetAddress(LOAD_BATTLE_EXT)+0xBC1+1, static_cast<WORD>(monsterTexResolution*2)); //load_battle_ext+BC1 + 1
+	InjectWORD(IMAGE_BASE + GetAddress(LOAD_BATTLE_EXT)+0xBC1+1, static_cast<WORD>(monsterTexResolution)); //load_battle_ext+BC1 + 1
 }
 
 BYTE _bhpVoid()
