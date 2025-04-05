@@ -21,14 +21,19 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 	if (fdwReason != DLL_PROCESS_ATTACH)
 		return false;
 
+	// Create log
 	DR_CREATE_LOGGER
 	spdlog::info("Demaster Reborn initializing...");
 
+	// Config.cfg file handling
 	CONFIG = std::make_unique<Config>();
 
+	// Get image base of selected language DLL
 	FF8DLL = CONFIG->GetStringValue("LANG") == "JP"? JPDLL : EFIGSDLL;
 	IMAGEBASE = reinterpret_cast<DWORD>(GetModuleHandleA(FF8DLL.c_str()));
 	spdlog::info("[MAIN] FF8 DLL: {} ({:#x})", FF8DLL,IMAGEBASE);
+
+	
 
 	return true;
 }
