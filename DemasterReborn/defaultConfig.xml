@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<config>
-    <language type="string">en</language>
-    <firstBoot type="bool">true</firstBoot>
-    <forceUnpack type="bool">true</forceUnpack>
-
-</config>

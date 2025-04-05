@@ -9,7 +9,8 @@
 #define LOGFILENAME "dr_log.txt"
 #define LOGFILESIZE 1048576
 #define LOGFILECNT 3
-#define DR_CREATE_LOGGER spdlog::rotating_logger_mt(LOGNAME,			\
+#define DR_CREATE_LOGGER AllocConsole(); \
+	spdlog::rotating_logger_mt(LOGNAME,			\
 	LOGFILENAME,LOGFILESIZE, LOGFILECNT); spdlog::info(					\
-	"Demaster Reborn v. {}\t Build date: {} {}\tfor: {}\n \tBy Maki",	\
+	"Demaster Reborn v. {}\t Build date: {} {}\tfor: {} \tBy Maki",	\
 	DRVERSION, __DATE__, __TIME__, ENGINEVER);

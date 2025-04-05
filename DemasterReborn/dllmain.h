@@ -8,13 +8,14 @@
 #include <iostream>
 #include <string>
 #include <filesystem>
+#include <Windows.h>
+
+inline std::string FF8DLL;
+inline DWORD IMAGEBASE = 0x1000000;
 
 //internal
 #include "config.h"
-std::unique_ptr<Config> config;
-#include "language.h"
-std::unique_ptr<Language> language;
+inline std::unique_ptr<Config> CONFIG;
 
 //vcpkg
 #include "log.h"
-#include <pugixml.hpp>

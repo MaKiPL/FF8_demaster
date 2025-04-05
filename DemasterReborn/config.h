@@ -8,10 +8,12 @@
 class Config
 {
 private:
-	const std::filesystem::path path = "config.xml";
+	const std::filesystem::path defaultConfigPath = "DefaultConfig.cfg";
+	const std::filesystem::path configPath = "Config.cfg";
 
 	std::map <std::string, std::string> config;
-	bool check_value_exists(const std::string &key);
+	bool CheckValueExists(const std::string &key) const;
+	void LoadConfig();
 
 public:
 	Config();

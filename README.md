@@ -12,4 +12,22 @@ This is WIP for Demaster Reborn- In order to find legacy, please change branch t
 
 For legacy releases, everything is on your right of the screen in **Releases** section
 
-![freeukraine](https://mgomulak.pl/freeukraine_.webp)
+## Roadmap - key points
+
+* It works with EFIGS and JP
+* It works only on 1.0.3.0 - this version would not change. Supporting previous ones is not worth the effort.
+* It should work with all mods that are compatible with Demaster.
+* Minimize assembler amount and prefer function rewriting.
+
+## Roadmap
+
+1. Auto unpacking of the game files
+2. IO patch
+3. Field background patch
+4. Field models patch
+5. World patch
+6. World models patch
+7. Battle stages patch
+8. Battle monster/character patch
+9. Battle FX patch
+10. New videoplayer
