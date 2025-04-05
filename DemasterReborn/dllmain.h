@@ -13,6 +13,8 @@
 inline std::string FF8DLL;
 inline DWORD IMAGEBASE = 0x1000000;
 
+inline std::string EXPORTPATH = "DEMASTER_EXP/";
+
 //internal
 #include "config.h"
 inline std::unique_ptr<Config> CONFIG;
