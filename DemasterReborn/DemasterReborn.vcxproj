@@ -50,11 +50,17 @@
   <ItemGroup>
     <ClCompile Include="config.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="patchio.cpp" />
+    <ClCompile Include="zzz.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="dllmain.h" />
+    <ClInclude Include="memory.h" />
+    <ClInclude Include="patch.h" />
+    <ClInclude Include="patchio.h" />
+    <ClInclude Include="zzz.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

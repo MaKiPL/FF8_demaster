@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.php": "php",
+        "type_traits": "c",
+        "*.rh": "c"
+    }
+}

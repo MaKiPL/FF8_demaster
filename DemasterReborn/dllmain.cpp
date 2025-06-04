@@ -2,6 +2,8 @@
 #include <windows.h>
 #include <thread>
 
+#include "memory.h"
+#include "patchio.h"
 #include "zzz.h"
 
 int main(int argc, char *argv[])
@@ -30,8 +32,9 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 	// Config.cfg file handling
 	CONFIG = std::make_unique<Config>();
 
-	// Get image base of selected language DLL
+	// Get image base of selected language DLL and set language pointer
 	FF8DLL = CONFIG->GetStringValue("LANG") == "JP"? JPDLL : EFIGSDLL;
+	LANGUAGE_POINTER = FF8DLL == EFIGSDLL? 0 : 1;
 	IMAGEBASE = reinterpret_cast<DWORD>(GetModuleHandleA(FF8DLL.c_str()));
 	spdlog::info("[MAIN] FF8 DLL: {} ({:#x})", FF8DLL,IMAGEBASE);
 
@@ -42,6 +45,9 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 		zzz zzzMain("main.zzz", forceUnpack);
 		zzz zzzOther("other.zzz", forceUnpack);
 	}
+
+	if (CONFIG->GetIntValue("PATCH_IO"))
+		PatchIO();
 
 	return true;
 }
