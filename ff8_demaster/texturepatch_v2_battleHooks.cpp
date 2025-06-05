@@ -173,7 +173,8 @@ __declspec(naked) void _bhp()
 		MOV texture_file_enemy_ex_Id, ECX //we would need that later
 		MOV ECX, [ECX]
 		TEST ECX, ECX
-		JNZ _isreplaced
+		//JNZ _isreplaced
+		NOP //I don't know why the fuck commenting out above instruction fixes things, honestly
 
 		//texture_file_enemy_id [1157dade]
 		mov    ecx, DWORD PTR[ebp - 0x30]
@@ -231,6 +232,7 @@ DWORD * GetAtlasResolutionGfs(const uint32_t battleId, const int32_t a2, DWORD* 
 		if (battleId != 0x446)
 		{
 			result = reinterpret_cast<DWORD*>(battleId - 1121);
+			OutputDebug("GetAtlasResolutionGfs: unknown battleId: %d (%d x %d). EAX: %d\n", battleId, *width, *height, result);
 			if (battleId != 1121 || a2)
 				return result;
 		}
@@ -277,6 +279,7 @@ DWORD * GetAtlasResolutionGfs(const uint32_t battleId, const int32_t a2, DWORD* 
 			}
 		}
 	}
+	OutputDebug("Applying atlas resolution (BattleID: %d): %d x %d\n",battleId, *width, *height);
 	return result;
 }
 

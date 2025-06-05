@@ -68,8 +68,8 @@ public:
 		const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - m_timestamp);
 		if (duration > std::chrono::milliseconds(BATTLE_STAGE_ANIMATION_DELAY))
 		{
-			if (m_nextFrame != 1 || buffer.size()>0)
-				OutputDebug("%s::%d::Frame Update: duration: %lld ms, Current animation frame: %d\n", __func__, __LINE__, static_cast<long long int>(duration.count()), currentFrame());
+			// if (m_nextFrame != 1 || buffer.size()>0)
+			// 	OutputDebug("%s::%d::Frame Update: duration: %lld ms, Current animation frame: %d\n", __func__, __LINE__, static_cast<long long int>(duration.count()), currentFrame());
 			m_timestamp = current_time;
 			++m_nextFrame;
 		}
@@ -86,12 +86,12 @@ public:
 
 	void update(battleSceneryPathandTexture&& new_img)
 	{
-		OutputDebug("%s::%d::Updating: tpage: %d, buffer count: \n", __func__, __LINE__, tpage, buffer.size());
+		//OutputDebug("%s::%d::Updating: tpage: %d, buffer count: \n", __func__, __LINE__, tpage, buffer.size());
 
 		const auto current_frame = currentFrame();
 		if (static_cast<size_t>(current_frame) < buffer.size())
 		{
-			OutputDebug("\tcurrent frame: %d\n\told path: %s\n\tnew path: %s\n", current_frame, buffer[current_frame].localPath.c_str(), new_img.localPath.c_str());
+			//OutputDebug("\tcurrent frame: %d\n\told path: %s\n\tnew path: %s\n", current_frame, buffer[current_frame].localPath.c_str(), new_img.localPath.c_str());
 			buffer[current_frame] = std::move(new_img);
 			return;
 		}
