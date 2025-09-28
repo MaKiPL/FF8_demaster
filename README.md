@@ -41,3 +41,9 @@ Default steam install: `C:\Program Files (x86)\Steam\steamapps\common\FINAL FANT
 ## Third party
 
 HEXT based on HEXT format from [HEXT Tools](https://forums.qhimm.com/index.php?topic=13574.0) by Daniel L. P. Burke
+
+## Compilation
+
+1. Install vcpkg
+2. Do a `vcpkg integrate install`
+3. That's all. VS/Rider should automatically utilize the vcpkg.json file to add ports

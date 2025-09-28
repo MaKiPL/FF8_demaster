@@ -1,5 +1,7 @@
 ﻿#include "server.h"
 
+#include <format>
+
 #include "debug.h"
 
 #if USE_SERVER

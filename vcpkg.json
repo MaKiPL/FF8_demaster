@@ -1,0 +1,6 @@
+{
+  "dependencies": [
+    "glfw3",
+    "xxhash"
+  ]
+}
