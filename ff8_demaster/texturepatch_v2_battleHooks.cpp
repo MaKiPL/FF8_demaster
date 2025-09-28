@@ -171,9 +171,13 @@ __declspec(naked) void _bhp()
 		//check texture_file_enemy_ex_id [1157db04]
 		MOV ECX, DWORD PTR[ebp - 0x34] //texture_file_enemy_ex_id
 		MOV texture_file_enemy_ex_Id, ECX //we would need that later
+
+		// Let's skip the checks no matter what
+		// We will be forcing our methods
+		JMP _notReplacing
+		//
 		MOV ECX, [ECX]
 		TEST ECX, ECX
-		//JNZ _isreplaced
 		NOP //I don't know why the fuck commenting out above instruction fixes things, honestly
 
 		//texture_file_enemy_id [1157dade]
@@ -196,13 +200,14 @@ __declspec(naked) void _bhp()
 		//JNZ _isreplaced
 
 		//NOT REPLACED? Then call our function [bhpStrPointer is already set]
+			_notReplacing:
 		CALL _bhpVoid
 		MOV BL, AL
 		JMP _isreplaced2
-		_isreplaced:
+			_isreplaced:
 		XOR BL, BL
 		//OR currentStage, 0xFFFFFFFF
-		_isreplaced2:
+			_isreplaced2:
 		cmp     dword ptr[ebp - 0x14], 0x10
 		JB	_exitbph
 		push   DWORD PTR[ebp - 0x28]
@@ -225,20 +230,34 @@ __declspec(naked) void _bhp()
 
 DWORD * GetAtlasResolutionGfs(const uint32_t battleId, const int32_t a2, DWORD* width, DWORD* height)
 {
-	DWORD *result; // eax
+	DWORD *result = nullptr; // eax
+	OutputDebug("GetAtlasResolutionGfs: battleId: %d, a2: %d. (Resolution: %dx%d)\n", battleId, a2, *width, *height);
 
 	if ( battleId > 0x386 )
 	{
-		if (battleId != 0x446)
+		//if (battleId != 0x446)
+		//{
+			//result = reinterpret_cast<DWORD*>(battleId - 1121);
+			//OutputDebug("GetAtlasResolutionGfs: unknown battleId: %d (%d x %d). EAX: %d\n", battleId, *width, *height, result);
+			 // if (a2)
+				// return result;
+		//}
+		switch (battleId)
 		{
-			result = reinterpret_cast<DWORD*>(battleId - 1121);
-			OutputDebug("GetAtlasResolutionGfs: unknown battleId: %d (%d x %d). EAX: %d\n", battleId, *width, *height, result);
-			if (battleId != 1121 || a2)
-				return result;
+		case 1121: //Ultimecia battle 1st phase
+			*height = *width = 1536;
+			break;
+		case 1122: //Ultimecia Griever + last phase Ultimecia
+		case 1126:
+			*height = *width = 1536;
+			InjectWORD(IMAGE_BASE + GetAddress(LOAD_BATTLE_EXT)+0xBC1+1, static_cast<WORD>(768));
+			break;
+		default:
+			//*height = *width = 768;
+			break;
 		}
-		*width = 768;
 		result = height;
-		*height = 768;
+		OutputDebug("GetAtlasResolutionGfs: battleId: %d. Setting resolution: (%d x %d)\n", battleId, *width, *height);
 		return result;
 	}
 	if ( battleId == 902 ) //Chocobo
