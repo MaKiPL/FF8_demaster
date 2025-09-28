@@ -1,5 +1,7 @@
 ﻿#pragma once
+#if USE_SERVER
 #include <asio.hpp>
+#endif
 #include <string>
 
 class server
