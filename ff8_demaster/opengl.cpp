@@ -4,6 +4,8 @@
 #include "coreHeader.h"
 #include "opengl.h"
 
+#include <filesystem>
+
 #include "config.h"
 #include "debug.h"
 #include "texture.h"
@@ -73,6 +75,177 @@ GLuint GetCurrentBoundTextureID()
     GLint currentTexture;
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &currentTexture);
     return static_cast<GLuint>(currentTexture);
+}
+
+void DumpTextureToDisk(GLuint textureID)
+{
+    std::string directoryPath;
+    CheckCreateImGuiTextureDumpDirectory(directoryPath);
+    std::string textureFilePath = directoryPath + "texture_" + std::to_string(textureID) + ".png";
+
+    if (g_capturedTextures.find(textureID) == g_capturedTextures.end())
+    {
+        OutputDebug("DumpTextureToDisk: Texture ID %u not found in captured list.", textureID);
+        return;
+    }
+
+    const auto& texInfo = g_capturedTextures[textureID];
+    const int width = texInfo.width;
+    const int height = texInfo.height;
+
+    GLint isCompressed = 0;
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED, &isCompressed);
+
+    bx::FileWriter writer;
+    if (!bx::open(&writer, bx::FilePath(textureFilePath.c_str())))
+    {
+        OutputDebug("Failed to open file for writing: %s", textureFilePath.c_str());
+        glBindTexture(GL_TEXTURE_2D, 0);
+        return;
+    }
+
+    bx::DefaultAllocator allocator;
+
+    if (isCompressed)
+    {
+        // --- NEW: Query the current internal format directly from the GPU ---
+        GLint currentInternalFormat = 0;
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &currentInternalFormat);
+
+        // Optional: Log if the format has changed from what we initially captured
+        if (currentInternalFormat != texInfo.internalFormat)
+        {
+            OutputDebug("Texture %u format updated on GPU: %s -> %s", textureID,
+                InternalFormatToString(texInfo.internalFormat),
+                InternalFormatToString(currentInternalFormat));
+        }
+
+        GLint compressedSize = 0;
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressedSize);
+
+        std::vector<unsigned char> compressedData(compressedSize);
+        glGetCompressedTexImage(GL_TEXTURE_2D, 0, compressedData.data());
+
+        // Use the NEWLY QUERIED format for decompression
+        bimg::TextureFormat::Enum srcFormat = GLFormatToBimgFormat(currentInternalFormat);
+
+        if (srcFormat != bimg::TextureFormat::Unknown)
+        {
+            std::vector<unsigned char> decompressedPixels(width * height * 4);
+
+            bimg::imageDecodeToRgba8(
+                &allocator,
+                decompressedPixels.data(),
+                compressedData.data(),
+                width,
+                height,
+                width * 4,
+                srcFormat
+            );
+
+            bimg::imageWritePng(&writer, width, height, width * 4, decompressedPixels.data(), bimg::TextureFormat::RGBA8, true);
+        }
+        else
+        {
+            OutputDebug("Failed to dump texture %u: Unsupported compressed format (%s).", textureID, InternalFormatToString(currentInternalFormat));
+        }
+    }
+    else
+    {
+        // This path is for textures that are confirmed to be uncompressed
+        OutputDebug("Dumping uncompressed texture ID %u...", textureID);
+        const int channels = 4;
+        std::vector<unsigned char> pixels(width * height * channels);
+
+        GLint previous_alignment;
+        glGetIntegerv(GL_PACK_ALIGNMENT, &previous_alignment);
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+        glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+
+        glPixelStorei(GL_PACK_ALIGNMENT, previous_alignment);
+
+        bimg::imageWritePng(&writer, width, height, width * channels, pixels.data(), bimg::TextureFormat::RGBA8, true);
+    }
+
+    bx::close(&writer);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void ReuploadTexture(GLuint textureID)
+{
+    std::string directoryPath;
+    CheckCreateImGuiTextureDumpDirectory(directoryPath);
+    std::string textureFilePath = directoryPath + "texture_" + std::to_string(textureID) + ".png";
+    if (!std::filesystem::exists(textureFilePath))
+    {
+        OutputDebug("ReuploadTexture: Texture ID %u not found in captured list (file doesn't exist).", textureID);
+        return;
+    }
+    bx::DefaultAllocator allocator;
+    bx::FileReader reader;
+    
+    if (bx::open(&reader, textureFilePath.c_str()))
+    {
+        uint32_t size = static_cast<uint32_t>(bx::getSize(&reader));
+        void* buffer = bx::alloc(&allocator, size);
+        bx::read(&reader, buffer, size);
+        bx::close(&reader);
+        
+        bimg::ImageContainer* imageContainer = bimg::imageParse(&allocator, buffer, size, bimg::TextureFormat::RGBA8);
+
+        if (nullptr != imageContainer)
+        {
+            const int width = imageContainer->m_width;
+            const int height = imageContainer->m_height;
+            const void* data = imageContainer->m_data;
+
+            // Flip the image vertically to correct the orientation
+            const int channels = 4; // RGBA
+            const int rowSize = width * channels;
+            std::vector<unsigned char> flippedData(width * height * channels);
+            const unsigned char* srcData = static_cast<const unsigned char*>(data);
+            
+            for (int y = 0; y < height; ++y)
+            {
+                const unsigned char* srcRow = srcData + y * rowSize;
+                unsigned char* dstRow = flippedData.data() + (height - 1 - y) * rowSize;
+                std::memcpy(dstRow, srcRow, rowSize);
+            }
+
+            GLint previous_alignment;
+            glGetIntegerv(GL_UNPACK_ALIGNMENT, &previous_alignment);
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+            glBindTexture(GL_TEXTURE_2D, textureID);
+
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, flippedData.data());
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            glPixelStorei(GL_UNPACK_ALIGNMENT, previous_alignment);
+
+            OutputDebug("Successfully re-uploaded texture %u from %s", textureID, textureFilePath.c_str());
+            
+            bimg::imageFree(imageContainer);
+        }
+        else
+            OutputDebug("ReuploadTexture: Failed to parse image file for texture ID %u.", textureID);
+        
+        bx::free(&allocator, buffer);
+    }
+    else
+        OutputDebug("ReuploadTexture: Failed to open file for texture ID %u.", textureID);
+}
+
+void CheckCreateImGuiTextureDumpDirectory(std::string& directoryPath)
+{
+    std::string textureFilePath = std::string(DIRECT_IO_EXPORT_DIR) + "IMGUI_DUMPS/";
+    directoryPath = textureFilePath;
+    if(!std::filesystem::exists(textureFilePath))
+    {
+        std::filesystem::create_directory(textureFilePath);
+    }
 }
 
 inline bool bStartedSwapBuffers = false;
@@ -186,15 +359,13 @@ void* __stdcall HookGlViewport(const GLint x, const GLint y, const GLsizei width
     if(IMGUI_DEBUG && !bStartedSwapBuffers)
     {
         glfwPollEvents();
-
-        // --- 1. Get HWND directly from the active OpenGL Device Context ---
+        
         HDC hdc = wglGetCurrentDC();
         HWND hwnd = WindowFromDC(hdc);
 
         ImGuiIO& io = ImGui::GetIO();
         io.DisplaySize = ImVec2(static_cast<float>(ffWindowWidth), static_cast<float>(ffWindowHeight));
-
-        // --- 2. Setup time step using Win32 ---
+        
         static INT64 g_Time = 0;
         static INT64 g_TicksPerSecond = 0;
         if (!g_TicksPerSecond)
@@ -206,8 +377,7 @@ void* __stdcall HookGlViewport(const GLint x, const GLint y, const GLsizei width
         QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&current_time));
         io.DeltaTime = static_cast<float>(current_time - g_Time) / g_TicksPerSecond;
         g_Time = current_time;
-
-        // --- 3. Read mouse input using Win32 (only if window is valid and focused) ---
+        
         if (hwnd && GetForegroundWindow() == hwnd)
         {
             POINT mouse_screen_pos;
@@ -227,16 +397,50 @@ void* __stdcall HookGlViewport(const GLint x, const GLint y, const GLsizei width
 
         
         ImGui_ImplOpenGL3_NewFrame();
-        //ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("DEMASTER DEBUG WINDOW");
-        ImGui::Text("Looks like I'm working!");
-        ImGui::End();
+        ImGui::Begin("DEMASTER TEXTURE WINDOW");
+        ImGui::Text("Captured %zu textures", g_capturedTextures.size());
+        for (const auto& tex : g_capturedTextures)
+        {
+            const auto& texInfo = tex.second;
+            float aspect = static_cast<float>(texInfo.width) / static_cast<float>(texInfo.height);
+            ImVec2 thumb_size = { 128.0f * aspect, 128.0f };
 
-        ImGui::Begin("SECOND WINDOW TEST");
-        ImGui::Text("Sample text");
-        ImGui::DragFloat("sample float test", &testFloat, 0.1f);
+            ImGui::Text("ID: %u (%dx%d) [%s]", texInfo.id, texInfo.width, texInfo.height, InternalFormatToString(texInfo.internalFormat));
+
+            ImGui::SameLine();
+            ImGui::PushID(texInfo.id);
+            if(ImGui::Button("Dump"))
+            {
+                DumpTextureToDisk(texInfo.id);
+            }
+            
+            ImGui::SameLine();
+            if(ImGui::Button("Upload"))
+            {
+                ReuploadTexture(texInfo.id);
+            }
+            ImGui::PopID();
+            ImVec2 image_pos = ImGui::GetCursorScreenPos();
+            
+            ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(texInfo.id)), thumb_size);
+            
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+            draw_list->AddRect(image_pos, ImVec2(image_pos.x + thumb_size.x, image_pos.y + thumb_size.y), 
+                              IM_COL32(128, 128, 128, 255), 0.0f, 0, 1.0f);
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("ID: %u (%dx%d)", texInfo.id, texInfo.width, texInfo.height);
+                
+                ImVec2 preview_size = { 256.0f * aspect, 256.0f };
+                ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(texInfo.id)), preview_size);
+                ImGui::EndTooltip();
+            }
+            ImGui::Separator();
+        }
+        
         ImGui::End();
 
         ImGui::Render();

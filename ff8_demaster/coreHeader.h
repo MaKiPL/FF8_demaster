@@ -111,3 +111,14 @@ inline DWORD* langIdent_ESI;
 inline int currentStage;
 
 inline server serverInst("127.0.0.1", 1337);
+
+
+struct CapturedTextureInfo {
+    GLuint id;
+    int width;
+    int height;
+    GLint internalFormat;
+};
+
+// A map to store all unique textures, using the GLuint ID as the key
+extern std::map<GLuint, CapturedTextureInfo> g_capturedTextures;

@@ -10,6 +10,7 @@
 #include "config.h"
 #include "opengl.h"
 
+std::map<GLuint, CapturedTextureInfo> g_capturedTextures;
 
 void* __stdcall HookGlBindTexture(GLenum target, GLuint texture)
 {
@@ -192,6 +193,16 @@ if(HASH_OUTPUT) //======OUTPUT OF HASHED TEXTURES======//
 		}
 	}
 }
+	// We only want to capture the main texture data (level 0) for 2D textures
+	if (target == GL_TEXTURE_2D && level == 0)
+	{
+		GLuint textureId = GetCurrentBoundTextureID();
+		if (textureId != 0 && width > 0 && height > 0)
+		{
+			// Add or update the texture in our map.
+			g_capturedTextures[textureId] = {.id = textureId, .width = width, .height = height, .internalFormat = internalformat };
+		}
+	}
 	//no hashing
 	serverInst.WriteLog(std::format("GLTexSubImage2D: ID: {} Width: {} Height: {}", GetCurrentBoundTextureID(), width, height));
 	return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
