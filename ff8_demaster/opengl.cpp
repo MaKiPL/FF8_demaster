@@ -55,7 +55,7 @@ void CreateImGuiImplementation()
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
     ImGui::StyleColorsDark();
-    if(!ImGui_ImplGlfw_InitForOpenGL(ffWindow, true))
+    if(!ImGui_ImplGlfw_InitForOpenGL(ffWindow, false))
     {
         OutputDebug("Error initializing ImGui");
         return;
@@ -186,8 +186,48 @@ void* __stdcall HookGlViewport(const GLint x, const GLint y, const GLsizei width
     if(IMGUI_DEBUG && !bStartedSwapBuffers)
     {
         glfwPollEvents();
+
+        // --- 1. Get HWND directly from the active OpenGL Device Context ---
+        HDC hdc = wglGetCurrentDC();
+        HWND hwnd = WindowFromDC(hdc);
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.DisplaySize = ImVec2(static_cast<float>(ffWindowWidth), static_cast<float>(ffWindowHeight));
+
+        // --- 2. Setup time step using Win32 ---
+        static INT64 g_Time = 0;
+        static INT64 g_TicksPerSecond = 0;
+        if (!g_TicksPerSecond)
+        {
+            QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(&g_TicksPerSecond));
+            QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&g_Time));
+        }
+        INT64 current_time;
+        QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&current_time));
+        io.DeltaTime = static_cast<float>(current_time - g_Time) / g_TicksPerSecond;
+        g_Time = current_time;
+
+        // --- 3. Read mouse input using Win32 (only if window is valid and focused) ---
+        if (hwnd && GetForegroundWindow() == hwnd)
+        {
+            POINT mouse_screen_pos;
+            GetCursorPos(&mouse_screen_pos);
+            ScreenToClient(hwnd, &mouse_screen_pos); // Converts screen coords to window-local coords
+            
+            io.AddMousePosEvent(static_cast<float>(mouse_screen_pos.x), static_cast<float>(mouse_screen_pos.y));
+
+            io.AddMouseButtonEvent(0, (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0);
+            io.AddMouseButtonEvent(1, (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0);
+            io.AddMouseButtonEvent(2, (GetAsyncKeyState(VK_MBUTTON) & 0x8000) != 0);
+        }
+        else
+        {
+            io.AddMousePosEvent(-FLT_MAX, -FLT_MAX);
+        }
+
+        
         ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
+        //ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
         ImGui::Begin("DEMASTER DEBUG WINDOW");
