@@ -49,6 +49,57 @@ GLFWwindow* HookGlfwWindow(const int width, const int height, const char* title,
     return ffWindow;
 }
 ImGuiContext * imguiContext;
+
+void UpdateImGuiIO(HDC hdc, float ffWindowWidth, float ffWindowHeight)
+{
+    glfwPollEvents();
+    
+    HWND hwnd = WindowFromDC(hdc);
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(ffWindowWidth, ffWindowHeight);
+    
+    static INT64 g_Time = 0;
+    static INT64 g_TicksPerSecond = 0;
+    if (!g_TicksPerSecond)
+    {
+        QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(&g_TicksPerSecond));
+        QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&g_Time));
+    }
+    INT64 current_time;
+    QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&current_time));
+    io.DeltaTime = static_cast<float>(current_time - g_Time) / g_TicksPerSecond;
+    g_Time = current_time;
+    
+    if (hwnd && GetForegroundWindow() == hwnd)
+    {
+        POINT mouse_screen_pos;
+        GetCursorPos(&mouse_screen_pos);
+        ScreenToClient(hwnd, &mouse_screen_pos);
+        
+        io.AddMousePosEvent(static_cast<float>(mouse_screen_pos.x), static_cast<float>(mouse_screen_pos.y));
+
+        io.AddMouseButtonEvent(0, (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0);
+        io.AddMouseButtonEvent(1, (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0);
+        io.AddMouseButtonEvent(2, (GetAsyncKeyState(VK_MBUTTON) & 0x8000) != 0);
+    }
+    else
+        io.AddMousePosEvent(-FLT_MAX, -FLT_MAX);
+}
+
+void DrawImGuiFrame()
+{
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::Begin("DEMASTER DEBUG WINDOW");
+    ImGui_DisplayDebugButtons(); // Critical: the user interacts with this to set bPaused = false
+    ImGui_DisplayTexturesSection();
+    ImGui::End();
+
+    ImGui::Render();
+}
+
 void CreateImGuiImplementation()
 {
     IMGUI_CHECKVERSION();
@@ -68,6 +119,65 @@ void CreateImGuiImplementation()
         return;
     }
     
+}
+
+void ImGui_DisplayDebugButtons()
+{
+    ImGui::Separator();
+    ImGui::Text("Debug Buttons");
+    ImGui::Separator();
+    ImGui::Text("FPS: %.2f", ImGui::GetIO().Framerate);
+    if (ImGui::Button("Pause"))
+    {
+        bPaused = !bPaused;
+    }
+}
+
+void ImGui_DisplayTexturesSection()
+{
+    if(ImGui::CollapsingHeader("Textures"))
+    {
+        ImGui::Text("Captured %zu textures", g_capturedTextures.size());
+        for (const auto& tex : g_capturedTextures)
+        {
+            const auto& texInfo = tex.second;
+            float aspect = static_cast<float>(texInfo.width) / static_cast<float>(texInfo.height);
+            ImVec2 thumb_size = { 128.0f * aspect, 128.0f };
+
+            ImGui::Text("ID: %u (%dx%d) [%s]", texInfo.id, texInfo.width, texInfo.height, InternalFormatToString(texInfo.internalFormat));
+
+            ImGui::SameLine();
+            ImGui::PushID(texInfo.id);
+            if(ImGui::Button("Dump"))
+            {
+                DumpTextureToDisk(texInfo.id);
+            }
+            
+            ImGui::SameLine();
+            if(ImGui::Button("Upload"))
+            {
+                ReuploadTexture(texInfo.id);
+            }
+            ImGui::PopID();
+            ImVec2 image_pos = ImGui::GetCursorScreenPos();
+            
+            ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(texInfo.id)), thumb_size);
+            
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+            draw_list->AddRect(image_pos, ImVec2(image_pos.x + thumb_size.x, image_pos.y + thumb_size.y), 
+                              IM_COL32(128, 128, 128, 255), 0.0f, 0, 1.0f);
+            if (ImGui::IsItemHovered())
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text("ID: %u (%dx%d)", texInfo.id, texInfo.width, texInfo.height);
+                
+                ImVec2 preview_size = { 256.0f * aspect, 256.0f };
+                ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(texInfo.id)), preview_size);
+                ImGui::EndTooltip();
+            }
+            ImGui::Separator();
+        }
+    }
 }
 
 GLuint GetCurrentBoundTextureID()
@@ -109,11 +219,9 @@ void DumpTextureToDisk(GLuint textureID)
 
     if (isCompressed)
     {
-        // --- NEW: Query the current internal format directly from the GPU ---
         GLint currentInternalFormat = 0;
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &currentInternalFormat);
-
-        // Optional: Log if the format has changed from what we initially captured
+        
         if (currentInternalFormat != texInfo.internalFormat)
         {
             OutputDebug("Texture %u format updated on GPU: %s -> %s", textureID,
@@ -126,8 +234,7 @@ void DumpTextureToDisk(GLuint textureID)
 
         std::vector<unsigned char> compressedData(compressedSize);
         glGetCompressedTexImage(GL_TEXTURE_2D, 0, compressedData.data());
-
-        // Use the NEWLY QUERIED format for decompression
+        
         bimg::TextureFormat::Enum srcFormat = GLFormatToBimgFormat(currentInternalFormat);
 
         if (srcFormat != bimg::TextureFormat::Unknown)
@@ -248,43 +355,41 @@ void CheckCreateImGuiTextureDumpDirectory(std::string& directoryPath)
     }
 }
 
-inline bool bStartedSwapBuffers = false;
-
-LPVOID swapBuffersTrampoline;
-
 /**
  * \brief This hook intercepts the wglSwapBuffers call for operations before the actual Windows API SwapBuffers(HDC)
  * \param hdc as in SwapBuffers(HDC)
  * \return as in SwapBuffers(HDC)
  */
-BOOL* __stdcall HookSwapBuffers(const HDC hdc)
+BOOL __stdcall HookSwapBuffers(const HDC hdc)
 {
-    if(IMGUI_DEBUG)
+    if (bPaused && IMGUI_DEBUG)
     {
-        bStartedSwapBuffers = true;
-        //glViewport(0, 0, ffWindowWidth, ffWindowHeight);
-        ImDrawData* drawData = ImGui::GetDrawData();
-        drawData->DisplaySize.x = static_cast<float>(ffWindowWidth);
-        drawData->DisplaySize.y = static_cast<float>(ffWindowHeight);
-
-        
-        for(int cmdListIdx=0; cmdListIdx<drawData->CmdListsCount; cmdListIdx++)
+        while (bPaused)
         {
-            for(ImDrawList* cmdList = drawData->CmdLists[cmdListIdx]; ImDrawCmd&drawCmd : cmdList->CmdBuffer)
-            {
-                drawCmd.ClipRect.z = static_cast<float>(ffWindowWidth);
-                drawCmd.ClipRect.w = static_cast<float>(ffWindowHeight);
-            }
+            UpdateImGuiIO(hdc, static_cast<float>(ffWindowWidth), static_cast<float>(ffWindowHeight));
+
+            DrawImGuiFrame();
+            
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            
+            swapBuffersTrampoline(hdc);
         }
+        return TRUE; // Continue the original SwapBuffers call
+    }
+    else
+    {
+        if (IMGUI_DEBUG)
+        {
+            UpdateImGuiIO(hdc, static_cast<float>(ffWindowWidth), static_cast<float>(ffWindowHeight));
         
+            DrawImGuiFrame();
         
-        ImGui_ImplOpenGL3_RenderDrawData(drawData);
-        bStartedSwapBuffers = false;
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        }
+    return swapBuffersTrampoline(hdc); //static_cast<BOOL (__stdcall*)(HDC)>(swapBuffersTrampoline)(hdc);
     }
 
-    //add your logic here
-    
-    return static_cast<BOOL* (__stdcall*)(HDC)>(swapBuffersTrampoline)(hdc);
+
 }
 
 LPVOID glewUseProgramTrampoline;
@@ -294,9 +399,6 @@ void HookGlUseProgram(const GLuint program)
     return static_cast<void(__stdcall*)(GLuint)>(glewUseProgramTrampoline)(program);
 }
 
-float testFloat = 0.0f;
-
-static GLsizei firstWidth, firstHeight;
 
 /**
  * \brief This works closely with glViewport. It's responsible for making additional openGL hooks and injections
@@ -318,7 +420,7 @@ void ViewportBackdoorInject(bool& backdoorUsed)
         MH_CreateHookApi(L"OPENGL32", "glTextureSubImage2D", HookGlTextureSubImage2D,
                          &ogl_subTextureImage2D);
     }
-    MH_CreateHook(&SwapBuffers, &HookSwapBuffers, &swapBuffersTrampoline);
+    MH_CreateHook(&SwapBuffers, &HookSwapBuffers, reinterpret_cast<LPVOID*>(&swapBuffersTrampoline));
     MH_EnableHook(MH_ALL_HOOKS);
 
     if(IMGUI_DEBUG)
@@ -352,99 +454,7 @@ void* __stdcall HookGlViewport(const GLint x, const GLint y, const GLsizei width
     CheckGlew();
     if (static bool backdoorUsed = false; glewInitialized && !backdoorUsed)
         ViewportBackdoorInject(backdoorUsed);
-
-
-    //GetBackBufferPixels(width, height);
     
-    if(IMGUI_DEBUG && !bStartedSwapBuffers)
-    {
-        glfwPollEvents();
-        
-        HDC hdc = wglGetCurrentDC();
-        HWND hwnd = WindowFromDC(hdc);
-
-        ImGuiIO& io = ImGui::GetIO();
-        io.DisplaySize = ImVec2(static_cast<float>(ffWindowWidth), static_cast<float>(ffWindowHeight));
-        
-        static INT64 g_Time = 0;
-        static INT64 g_TicksPerSecond = 0;
-        if (!g_TicksPerSecond)
-        {
-            QueryPerformanceFrequency(reinterpret_cast<LARGE_INTEGER*>(&g_TicksPerSecond));
-            QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&g_Time));
-        }
-        INT64 current_time;
-        QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&current_time));
-        io.DeltaTime = static_cast<float>(current_time - g_Time) / g_TicksPerSecond;
-        g_Time = current_time;
-        
-        if (hwnd && GetForegroundWindow() == hwnd)
-        {
-            POINT mouse_screen_pos;
-            GetCursorPos(&mouse_screen_pos);
-            ScreenToClient(hwnd, &mouse_screen_pos); // Converts screen coords to window-local coords
-            
-            io.AddMousePosEvent(static_cast<float>(mouse_screen_pos.x), static_cast<float>(mouse_screen_pos.y));
-
-            io.AddMouseButtonEvent(0, (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0);
-            io.AddMouseButtonEvent(1, (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0);
-            io.AddMouseButtonEvent(2, (GetAsyncKeyState(VK_MBUTTON) & 0x8000) != 0);
-        }
-        else
-        {
-            io.AddMousePosEvent(-FLT_MAX, -FLT_MAX);
-        }
-
-        
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui::NewFrame();
-
-        ImGui::Begin("DEMASTER TEXTURE WINDOW");
-        ImGui::Text("Captured %zu textures", g_capturedTextures.size());
-        for (const auto& tex : g_capturedTextures)
-        {
-            const auto& texInfo = tex.second;
-            float aspect = static_cast<float>(texInfo.width) / static_cast<float>(texInfo.height);
-            ImVec2 thumb_size = { 128.0f * aspect, 128.0f };
-
-            ImGui::Text("ID: %u (%dx%d) [%s]", texInfo.id, texInfo.width, texInfo.height, InternalFormatToString(texInfo.internalFormat));
-
-            ImGui::SameLine();
-            ImGui::PushID(texInfo.id);
-            if(ImGui::Button("Dump"))
-            {
-                DumpTextureToDisk(texInfo.id);
-            }
-            
-            ImGui::SameLine();
-            if(ImGui::Button("Upload"))
-            {
-                ReuploadTexture(texInfo.id);
-            }
-            ImGui::PopID();
-            ImVec2 image_pos = ImGui::GetCursorScreenPos();
-            
-            ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(texInfo.id)), thumb_size);
-            
-            ImDrawList* draw_list = ImGui::GetWindowDrawList();
-            draw_list->AddRect(image_pos, ImVec2(image_pos.x + thumb_size.x, image_pos.y + thumb_size.y), 
-                              IM_COL32(128, 128, 128, 255), 0.0f, 0, 1.0f);
-            if (ImGui::IsItemHovered())
-            {
-                ImGui::BeginTooltip();
-                ImGui::Text("ID: %u (%dx%d)", texInfo.id, texInfo.width, texInfo.height);
-                
-                ImVec2 preview_size = { 256.0f * aspect, 256.0f };
-                ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(texInfo.id)), preview_size);
-                ImGui::EndTooltip();
-            }
-            ImGui::Separator();
-        }
-        
-        ImGui::End();
-
-        ImGui::Render();
-    }
     GLsizei finalX = x;
     GLsizei finalY = y;
     GLsizei finalWidth = width;
@@ -457,7 +467,7 @@ void* __stdcall HookGlViewport(const GLint x, const GLint y, const GLsizei width
             finalWidth = ffWindowWidth;
             finalHeight = ffWindowHeight;
         }
-
+    
     return static_cast<void* (__stdcall*)(GLint, GLint, GLsizei, GLsizei)>(oglViewport)
     (finalX, finalY, finalWidth, finalHeight);
 }

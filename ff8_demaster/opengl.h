@@ -15,6 +15,9 @@ inline GLFWwindow* ffWindowSecond;
 int HookGlfwInit();
 inline void* glfwInitTrampoline;
 
+typedef BOOL (__stdcall* tSwapBuffers)(HDC hdc);
+inline tSwapBuffers swapBuffersTrampoline = nullptr;
+
 inline void* glfwWindowTrampoline;
 GLFWwindow* HookGlfwWindow(int width, int height, const char* title, GLFWmonitor* monitor, GLFWwindow* share);
 
@@ -46,7 +49,16 @@ typedef void(__stdcall* OglBufferData)(GLenum target, GLsizeiptr size, const voi
 static OglBufferData oglBufferData;
 
 
+void UpdateImGuiIO(HDC hdc, float ffWindowWidth, float ffWindowHeight);
+void DrawImGuiFrame();
+inline bool bPaused = false;
+
 void CreateImGuiImplementation();
+
+// IMGUI debug functions
+void ImGui_DisplayDebugButtons();
+void ImGui_DisplayTexturesSection();
+// End of IMGUI debug functions
 
 GLuint GetCurrentBoundTextureID();
 
