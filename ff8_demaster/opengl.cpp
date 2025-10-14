@@ -50,6 +50,25 @@ GLFWwindow* HookGlfwWindow(const int width, const int height, const char* title,
 }
 ImGuiContext * imguiContext;
 
+// int __fastcall HookGameClockUpdate(int a1, int a2)
+// {
+//     if (bPaused)
+//     {
+//         return 0;
+//     }
+//     return pGameClockUpdateTrampoline(a1,a2);
+// }
+
+void PumpMessages()
+{
+    MSG msg;
+    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+}
+
 void UpdateImGuiIO(HDC hdc, float ffWindowWidth, float ffWindowHeight)
 {
     glfwPollEvents();
@@ -130,6 +149,12 @@ void ImGui_DisplayDebugButtons()
     if (ImGui::Button("Pause"))
     {
         bPaused = !bPaused;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Advance one frame"))
+    {
+        bPaused = false;
+        bPauseAdvanceFrame = true;
     }
 }
 
@@ -368,11 +393,19 @@ BOOL __stdcall HookSwapBuffers(const HDC hdc)
         {
             UpdateImGuiIO(hdc, static_cast<float>(ffWindowWidth), static_cast<float>(ffWindowHeight));
 
+            PumpMessages();
+
             DrawImGuiFrame();
             
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
             
             swapBuffersTrampoline(hdc);
+        }
+        if (bPauseAdvanceFrame)
+        {
+            bPaused = true;
+            bPauseAdvanceFrame = false;
+            return swapBuffersTrampoline(hdc);
         }
         return TRUE; // Continue the original SwapBuffers call
     }
@@ -386,10 +419,9 @@ BOOL __stdcall HookSwapBuffers(const HDC hdc)
         
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
-    return swapBuffersTrampoline(hdc); //static_cast<BOOL (__stdcall*)(HDC)>(swapBuffersTrampoline)(hdc);
     }
-
-
+    
+    return swapBuffersTrampoline(hdc); //static_cast<BOOL (__stdcall*)(HDC)>(swapBuffersTrampoline)(hdc);
 }
 
 LPVOID glewUseProgramTrampoline;
@@ -421,6 +453,10 @@ void ViewportBackdoorInject(bool& backdoorUsed)
                          &ogl_subTextureImage2D);
     }
     MH_CreateHook(&SwapBuffers, &HookSwapBuffers, reinterpret_cast<LPVOID*>(&swapBuffersTrampoline));
+
+    //LPVOID pGameClockAddress = reinterpret_cast<LPVOID>(GetAddressBase(SUB_BATTLESWIRL_SLEEP));
+    //MH_CreateHook(pGameClockAddress, &HookGameClockUpdate, reinterpret_cast<LPVOID*>(&pGameClockUpdateTrampoline));
+    
     MH_EnableHook(MH_ALL_HOOKS);
 
     if(IMGUI_DEBUG)

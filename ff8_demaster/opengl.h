@@ -48,10 +48,17 @@ static OglClearColor oglClearColor;
 typedef void(__stdcall* OglBufferData)(GLenum target, GLsizeiptr size, const void* data, GLenum usage);
 static OglBufferData oglBufferData;
 
+// typedef int(__fastcall* tGameClockUpdate)(int a1, int a2);
+// static tGameClockUpdate pGameClockUpdateTrampoline = nullptr;
+//
+// int __fastcall HookGameClockUpdate(int a1, int a2);
+
+void PumpMessages();
 
 void UpdateImGuiIO(HDC hdc, float ffWindowWidth, float ffWindowHeight);
 void DrawImGuiFrame();
 inline bool bPaused = false;
+inline bool bPauseAdvanceFrame = false;
 
 void CreateImGuiImplementation();
 
