@@ -395,6 +395,39 @@ BOOL __stdcall HookSwapBuffers(const HDC hdc)
 
             PumpMessages();
 
+            // render texture slot ID=1 drawing fullscreen quad to prevent jumpings
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+            GLint last_program;
+            glGetIntegerv(GL_CURRENT_PROGRAM, &last_program);
+            glUseProgram(0);
+            glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_COLOR_BUFFER_BIT);
+            glMatrixMode(GL_PROJECTION);
+            glPushMatrix();
+            glMatrixMode(GL_MODELVIEW);
+            glPushMatrix();
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glOrtho(0, ffWindowWidth, 0, ffWindowHeight, -1, 1);
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            glDisable(GL_DEPTH_TEST);
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, 1);
+            glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+            glBegin(GL_QUADS);
+            glTexCoord2f(0.0f, 0.0f); glVertex2f(0.0f, 0.0f);
+            glTexCoord2f(1.0f, 0.0f); glVertex2f(static_cast<float>(ffWindowWidth), 0.0f);
+            glTexCoord2f(1.0f, 1.0f); glVertex2f(static_cast<float>(ffWindowWidth), static_cast<float>(ffWindowHeight));
+            glTexCoord2f(0.0f, 1.0f); glVertex2f(0.0f, static_cast<float>(ffWindowHeight));
+            glEnd();
+            glMatrixMode(GL_PROJECTION);
+            glPopMatrix();
+            glMatrixMode(GL_MODELVIEW);
+            glPopMatrix();
+            glPopAttrib();
+            glUseProgram(last_program);
+
             DrawImGuiFrame();
             
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
