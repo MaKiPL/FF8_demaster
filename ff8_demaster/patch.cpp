@@ -47,6 +47,12 @@ void InjectWORD(const DWORD address, const WORD value)
 	*reinterpret_cast<WORD*>(address) = value;
 }
 
+void InjectBYTE(const DWORD address, BYTE value)
+{
+	ModPage(address, 1);
+	*reinterpret_cast<BYTE*>(address) = value;
+}
+
 /****************************************************************************/
 //    Copyright (C) 2009 Aali132                                            //
 //    Copyright (C) 2018 quantumpencil                                      //

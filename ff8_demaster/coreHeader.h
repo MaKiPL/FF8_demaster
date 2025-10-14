@@ -25,6 +25,7 @@ BOOL ModPage(DWORD address, int size = 5);
 void ReplaceWithNOP(DWORD address, int instructionSize = 5);
 void InjectDWORD(DWORD address, DWORD value);
 void InjectWORD(DWORD address, WORD value);
+void InjectBYTE(DWORD address, BYTE value);
 
 
 /****************************************************************************/

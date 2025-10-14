@@ -206,11 +206,17 @@ BOOL WINAPI DllMain(
 	if (TEXTURE_PATCH && DIRECT_IO)
 		ReplaceTextureFunction();
 	if (DEBUG_PATCH)
-		InjectJMP(IMAGE_BASE + GetAddress(NULLSUB_DEBUG), reinterpret_cast<DWORD>(OutputDebug));
+		InjectJMP(GetAddressBase(NULLSUB_DEBUG), reinterpret_cast<DWORD>(OutputDebug));
 	if (LINEAR_PATCH)
 		ApplyFilteringPatch();
 
     hextPatcher.ApplyAll(std::string());
+
+	if (SKIP_SPLASH)
+	{
+		OutputDebug("Skipping splash screen\n");
+		InjectBYTE(GetAddressBase(SKIP_SLASHSCREEN), 0x01);
+	}
 
 	
 	MH_EnableHook(MH_ALL_HOOKS);
