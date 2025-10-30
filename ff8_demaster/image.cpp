@@ -115,10 +115,17 @@ void RenderCompressedTexture(const bimg::ImageContainer* img, const TextureForma
 	}
 }
 
-void LoadAndRenderTexture(const char* const filename)
+void LoadAndRenderTexture(const char* const filename, const bool bAppendPath)
 {
-	std::string localPath = DIRECT_IO_EXPORT_DIR;
-	localPath.append(filename);
+	std::string localPath;
+	if (bAppendPath)
+	{
+		localPath = DIRECT_IO_EXPORT_DIR;
+		localPath.append(filename);
+	}
+	else
+		localPath = filename;
+
 	const SafeBimg img = LoadImageFromFile(localPath.c_str());
 	RenderTexture(img.get());
 }

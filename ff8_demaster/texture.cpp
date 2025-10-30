@@ -240,6 +240,15 @@ void __stdcall HookGlTexSubImage2D( 	GLenum target,
 				return;
 				//do nothing
 			}
+			std::string localTexturePath = LastFilePath;
+			localTexturePath.replace(localTexturePath.end() - 4, localTexturePath.end(), ".dds");
+			if (std::filesystem::exists(localTexturePath))
+			{
+				OutputDebug("GlTexSubImage2D: Found DDS. Using DDS for %s\n", localTexturePath.c_str());
+				//const Vector2Di resolution = GetImageResolutionFast(localTexturePath.c_str());
+				LoadAndRenderTexture(localTexturePath.c_str(), false);
+				return;
+			}
 			const Vector2Di resolution = GetImageResolutionFast(LastFilePath.c_str());
 			static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
 										  GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
