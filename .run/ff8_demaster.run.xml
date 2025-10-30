@@ -1,0 +1,58 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="ff8_demaster" type="CppProject" factoryName="C++ Project">
+    <configuration_1 setup="1">
+      <option name="CONFIGURATION" value="Debug_JP" />
+      <option name="PLATFORM" value="x86" />
+      <option name="CURRENT_LAUNCH_PROFILE" value="Local" />
+      <option name="EXE_PATH" value="$(LocalDebuggerCommand)" />
+      <option name="PROGRAM_PARAMETERS" value="$(LocalDebuggerCommandArguments)" />
+      <option name="WORKING_DIRECTORY" value="$(LocalDebuggerWorkingDirectory)" />
+      <option name="PASS_PARENT_ENVS" value="1" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+      <option name="TERMINAL_INTERACTION_BEHAVIOR" value="FORCE_CONSOLE" />
+      <option name="PROJECT_FILE_PATH" value="$PROJECT_DIR$/ff8_demaster/ff8_demaster.vcxproj" />
+    </configuration_1>
+    <configuration_2 setup="1">
+      <option name="CONFIGURATION" value="Debug" />
+      <option name="PLATFORM" value="x86" />
+      <option name="CURRENT_LAUNCH_PROFILE" value="Local" />
+      <option name="EXE_PATH" value="N:\BACKUP\BORYS_HDD\FINAL FANTASY VIII REMASTERED\FFVIII.exe" />
+      <option name="PROGRAM_PARAMETERS" value="$(LocalDebuggerCommandArguments)" />
+      <option name="WORKING_DIRECTORY" value="N:\BACKUP\BORYS_HDD\FINAL FANTASY VIII REMASTERED" />
+      <option name="PASS_PARENT_ENVS" value="1" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+      <option name="TERMINAL_INTERACTION_BEHAVIOR" value="FORCE_CONSOLE" />
+      <option name="PROJECT_FILE_PATH" value="$PROJECT_DIR$/ff8_demaster/ff8_demaster.vcxproj" />
+    </configuration_2>
+    <configuration_3 setup="1">
+      <option name="CONFIGURATION" value="Debug_MinimalLog" />
+      <option name="PLATFORM" value="x86" />
+      <option name="CURRENT_LAUNCH_PROFILE" value="Local" />
+      <option name="EXE_PATH" value="$(LocalDebuggerCommand)" />
+      <option name="PROGRAM_PARAMETERS" value="$(LocalDebuggerCommandArguments)" />
+      <option name="WORKING_DIRECTORY" value="$(LocalDebuggerWorkingDirectory)" />
+      <option name="PASS_PARENT_ENVS" value="1" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+      <option name="TERMINAL_INTERACTION_BEHAVIOR" value="FORCE_CONSOLE" />
+      <option name="PROJECT_FILE_PATH" value="$PROJECT_DIR$/ff8_demaster/ff8_demaster.vcxproj" />
+    </configuration_3>
+    <configuration_4 setup="1">
+      <option name="CONFIGURATION" value="Release" />
+      <option name="PLATFORM" value="x86" />
+      <option name="CURRENT_LAUNCH_PROFILE" value="Local" />
+      <option name="EXE_PATH" value="$(TargetPath)" />
+      <option name="PROGRAM_PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="$(ProjectDir)" />
+      <option name="PASS_PARENT_ENVS" value="1" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+      <option name="TERMINAL_INTERACTION_BEHAVIOR" value="FORCE_CONSOLE" />
+      <option name="PROJECT_FILE_PATH" value="$PROJECT_DIR$/ff8_demaster/ff8_demaster.vcxproj" />
+    </configuration_4>
+    <option name="DEFAULT_PROJECT_PATH" value="$PROJECT_DIR$/ff8_demaster/ff8_demaster.vcxproj" />
+    <option name="PROJECT_FILE_PATH" value="$PROJECT_DIR$/ff8_demaster/ff8_demaster.vcxproj" />
+    <option name="AUTO_SELECT_PRIORITY" value="0" />
+    <method v="2">
+      <option name="Build" />
+    </method>
+  </configuration>
+</component>

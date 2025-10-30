@@ -73,7 +73,7 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 	GLenum type,
 	const void* data);
 inline LPVOID ogl_subTexImage2D;
-void* __stdcall HookGlTexSubImage2D( 	GLenum target,
+void __stdcall HookGlTexSubImage2D( 	GLenum target,
 	  GLint level,
 	  GLint xoffset,
 	  GLint yoffset,

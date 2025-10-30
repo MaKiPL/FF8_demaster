@@ -146,7 +146,7 @@ BYTE _bhpVoid()
 
 		const DWORD gfTexResolution = GetImageResolutionFast(localPath).width;
 		OutputDebug("_bhpVoid::Injecting MAG/GFs atlas resolution of: %d\n", gfTexResolution);
-		InjectMonsterAtlasResolution(gfTexResolution);
+		InjectMonsterAtlasResolution(gfTexResolution/2);
 		
 		return 1;
 	}
@@ -230,8 +230,10 @@ __declspec(naked) void _bhp()
 
 DWORD * GetAtlasResolutionGfs(const uint32_t battleId, const int32_t a2, DWORD* width, DWORD* height)
 {
-	DWORD *result = nullptr; // eax
 	OutputDebug("GetAtlasResolutionGfs: battleId: %d, a2: %d. (Resolution: %dx%d)\n", battleId, a2, *width, *height);
+	DWORD *result = nullptr; // eax
+	result = height;
+	return result;
 
 	if ( battleId > 0x386 )
 	{
@@ -292,9 +294,9 @@ DWORD * GetAtlasResolutionGfs(const uint32_t battleId, const int32_t a2, DWORD* 
 			{
 				*width = lastGetImageResolution.width;
 				result = height;
-				*height = lastGetImageResolution.height*2; //because there's _1 texture, so we double the height
+				*height = lastGetImageResolution.height; //because there's _1 texture, so we double the height
 				//We now need to override what InjectAtlas function did, but this is offset, so we have to adjust it to the base image height instead
-				InjectWORD(IMAGE_BASE + GetAddress(LOAD_BATTLE_EXT)+0xBC1+1, static_cast<WORD>(lastGetImageResolution.height));
+				//InjectWORD(IMAGE_BASE + GetAddress(LOAD_BATTLE_EXT)+0xBC1+1, static_cast<WORD>(lastGetImageResolution.height));
 			}
 		}
 	}

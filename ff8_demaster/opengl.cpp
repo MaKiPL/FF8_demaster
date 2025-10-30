@@ -298,7 +298,7 @@ void DumpTextureToDisk(GLuint textureID)
 
         glPixelStorei(GL_PACK_ALIGNMENT, previous_alignment);
 
-        bimg::imageWritePng(&writer, width, height, width * channels, pixels.data(), bimg::TextureFormat::RGBA8, true);
+        bimg::imageWritePng(&writer, width, height, width * channels, pixels.data(), bimg::TextureFormat::RGBA8, false);
     }
 
     bx::close(&writer);
@@ -333,26 +333,15 @@ void ReuploadTexture(GLuint textureID)
             const int height = imageContainer->m_height;
             const void* data = imageContainer->m_data;
 
-            // Flip the image vertically to correct the orientation
-            const int channels = 4; // RGBA
-            const int rowSize = width * channels;
-            std::vector<unsigned char> flippedData(width * height * channels);
-            const unsigned char* srcData = static_cast<const unsigned char*>(data);
-            
-            for (int y = 0; y < height; ++y)
-            {
-                const unsigned char* srcRow = srcData + y * rowSize;
-                unsigned char* dstRow = flippedData.data() + (height - 1 - y) * rowSize;
-                std::memcpy(dstRow, srcRow, rowSize);
-            }
-
             GLint previous_alignment;
             glGetIntegerv(GL_UNPACK_ALIGNMENT, &previous_alignment);
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
             glBindTexture(GL_TEXTURE_2D, textureID);
 
-            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, flippedData.data());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+            //glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, flippedData.data());
             glBindTexture(GL_TEXTURE_2D, 0);
 
             glPixelStorei(GL_UNPACK_ALIGNMENT, previous_alignment);

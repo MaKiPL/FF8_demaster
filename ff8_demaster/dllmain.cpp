@@ -109,6 +109,22 @@ void ApplyFilteringPatch()
 	InjectDWORD(IMAGE_BASE + GetAddress(FILTERPATCH4) + 1, GL_NEAREST);
 }
 
+/* This is some fake-ass shit from porting company (or something I don't understand). The real modes are:
+	FF8_MODE_0 = 0,
+	FF8_MODE_1,
+	FF8_MODE_WORLDMAP,
+	FF8_MODE_SWIRL,
+	FF8_MODE_4,
+	FF8_MODE_5,
+	FF8_MODE_MENU,
+	FF8_MODE_7,
+	FF8_MODE_CARDGAME,
+	FF8_MODE_9,
+	FF8_MODE_10,
+	FF8_MODE_11,
+	FF8_MODE_INTRO,
+	FF8_MODE_100 = 100,
+*/
 const char * GetModeName(const int mode)
 {
 	const char *result; // eax
@@ -161,6 +177,24 @@ const char * GetModeName(const int mode)
 	currentModeStr = result;
 	OutputDebug("Mode changed to %s\n", result);
 	return result;
+}
+
+
+void __cdecl MoreDebugLog(DWORD* a1, const char* pFormat, ...)
+{
+	va_list args;
+	va_start(args, pFormat);
+	va_list args_copy;
+	va_copy(args_copy, args);
+	int length = vsnprintf(nullptr, 0, pFormat, args_copy);
+	va_end(args_copy);
+	if (length > 0)
+	{
+		std::vector<char> buffer(length + 1);
+		vsnprintf(buffer.data(), buffer.size(), pFormat, args);
+		OutputDebug("%d %s", a1, buffer.data());
+	}
+	va_end(args);
 }
 
 BOOL WINAPI DllMain(
@@ -218,7 +252,8 @@ BOOL WINAPI DllMain(
 		InjectBYTE(GetAddressBase(SKIP_SLASHSCREEN), 0x01);
 	}
 
-	
+	//InjectJMP(GetAddressBase(MORE_DEBUG_LOG), reinterpret_cast<DWORD>(&MoreDebugLog));
+	//MH_CreateHook(reinterpret_cast<LPVOID>(GetAddressBase(MORE_DEBUG_LOG)), &MoreDebugLog, reinterpret_cast<LPVOID*>(&oLogFunction));
 	MH_EnableHook(MH_ALL_HOOKS);
 	return 1; //all success
 }

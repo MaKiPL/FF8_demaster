@@ -3,7 +3,6 @@
 #include "GLFW/include/GLFW/glfw3.h"
 #include "imgui/imgui.h"
 
-
 void CheckGlew();
 inline bool glewInitialized = false;
 

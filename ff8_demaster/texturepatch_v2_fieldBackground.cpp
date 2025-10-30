@@ -244,7 +244,6 @@ void FbgGl()
 }
 
 
-
 //Maki: This gets checked at first- so we have actually ready .PNG path here- change it so we use one method, not three times getting path lol
 //			this checks if replacement exists for 0_0 for either DDS or PNG and sets fieldReplacementFound
 /// <summary>

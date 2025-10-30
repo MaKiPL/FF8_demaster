@@ -41,6 +41,9 @@ __declspec(naked) void directIO_fopenReroute()
 	strcpy(IO_backlogFilePath, DIRECT_IO_EXPORT_DIR); //VS automatically does the ESP math
 	strcpy(IO_backlogFilePath + DIRECT_IO_EXPORT_DIR_LEN, (char*)filePathBuffer); //same for this, no local vars so no ESP--
 
+	LastFilePath.clear();
+	LastFilePath = IO_backlogFilePath;
+
 	if (GetFileAttributesA(IO_backlogFilePath) == INVALID_FILE_ATTRIBUTES)
 	{
 		OutputDebug("%s: %s, %s\n", __func__, IO_backlogFilePath, "file not found");

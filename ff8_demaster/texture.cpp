@@ -5,10 +5,12 @@
 #include <filesystem>
 #define XXH_INLINE_ALL
 #include <fstream>
+#include <regex>
 #include <xxhash.h>
 
 #include "config.h"
 #include "opengl.h"
+
 
 std::map<GLuint, CapturedTextureInfo> g_capturedTextures;
 
@@ -193,6 +195,7 @@ if(HASH_OUTPUT) //======OUTPUT OF HASHED TEXTURES======//
 		}
 	}
 }
+	
 	// We only want to capture the main texture data (level 0) for 2D textures
 	if (target == GL_TEXTURE_2D && level == 0)
 	{
@@ -211,7 +214,7 @@ if(HASH_OUTPUT) //======OUTPUT OF HASHED TEXTURES======//
 			, border, format, type, data);
 }
 
-void* __stdcall HookGlTexSubImage2D( 	GLenum target,
+void __stdcall HookGlTexSubImage2D( 	GLenum target,
 	  GLint level,
 	  GLint xoffset,
 	  GLint yoffset,
@@ -221,8 +224,35 @@ void* __stdcall HookGlTexSubImage2D( 	GLenum target,
 	  GLenum type,
 	  const void * pixels)
 {
+	OutputDebug("GlTexSubImage2D: ID: %d Width: %d Height: %d. Last path: %s\n", GetCurrentBoundTextureID(),
+		width, height, LastFilePath.c_str());
+	
+	if (LastFilePath.contains("mag"))
+	{
+		const std::regex regexPattern("_(\\d+)\\."); //fuck my life. Mark "_0." and etc.
+		std::smatch regexMatch;
+		if (std::regex_search(LastFilePath, regexMatch, regexPattern))
+		{
+			int chunkIndex = std::stoi(regexMatch[1].str());
+			if (chunkIndex % 2 != 0)
+			{
+				OutputDebug("Skipping MAG chunk %d\n", chunkIndex);
+				return;
+				//do nothing
+			}
+			const Vector2Di resolution = GetImageResolutionFast(LastFilePath.c_str());
+			static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
+										  GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
+		(target, level, format, resolution.width, resolution.height
+			, 0, format, type, pixels);
+			//ogl_tex_image2d(target, level, 0, 0, resolution.width, resolution.height, format, type, pixels);
+		}
+		
+	}
+	
 	OutputDebug("Hooked glTexSubImage2D width: %d height: %d\n", width, height);
-	return static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei,
+	
+	static_cast<void (__stdcall*)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei,
 									  GLenum, GLenum, const void*)>(ogl_subTexImage2D)
 	(target, level, xoffset, yoffset, width, height, format, type, pixels);
 }

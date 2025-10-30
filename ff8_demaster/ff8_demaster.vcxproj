@@ -112,7 +112,7 @@
       </PrecompiledHeaderFile>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp23</LanguageStandard>
       <CallingConvention>Cdecl</CallingConvention>
       <EnableEnhancedInstructionSet>
       </EnableEnhancedInstructionSet>

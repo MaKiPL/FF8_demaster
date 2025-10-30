@@ -83,6 +83,8 @@ inline DWORD TEX_TYPE;
 inline int currentMode;
 inline std::string currentModeStr;
 
+inline std::string LastFilePath;
+
 static enum Modes
 {
     MODE_NONE,
@@ -113,6 +115,9 @@ inline int currentStage;
 
 inline server serverInst("127.0.0.1", 1337);
 
+void MoreDebugLog(DWORD* a1, const char* pFormat, ...);
+using oLogFunctionSig = void(__cdecl*)(DWORD*, const char*, ...);
+inline oLogFunctionSig oLogFunction;
 
 struct CapturedTextureInfo {
     GLuint id;
