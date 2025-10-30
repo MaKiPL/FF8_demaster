@@ -37,6 +37,7 @@ void ReadConfigFile()
     HASH_LOAD_HD_EXT = conf.GetInteger("", "HASH_LOAD_HD_EXT", 1);
     IMGUI_DEBUG = conf.GetInteger("", "IMGUI_DEBUG", 0);
     SKIP_SPLASH = conf.GetInteger("", "SKIP_SPLASH", 0);
+    DEBUG_GLTEXIMAGE2D = conf.GetInteger("", "DEBUG_GLTEXIMAGE2D", 0);
     
     WINDOW_OVERWRITE = conf.GetInteger("", "WINDOW_OVERWRITE", 0);
 }

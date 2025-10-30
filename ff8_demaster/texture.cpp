@@ -193,7 +193,8 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 	const void* data)
 {
 	GLuint boundId = GetCurrentBoundTextureID();
-	OutputDebug("glTexImage2D (%d): format: %d, %dx%d, void: %08x\n",boundId, internalformat, width, height, data);
+	if (DEBUG_GLTEXIMAGE2D)
+		OutputDebug("glTexImage2D (%d): format: %d, %dx%d, void: %08x\n",boundId, internalformat, width, height, data);
 	int lengthModifier = 0;
 	if (internalformat == GL_RGBA || internalformat == GL_BGRA
 		|| internalformat == GL_RGBA8)

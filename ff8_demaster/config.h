@@ -28,4 +28,6 @@ inline int HASH_LOAD_HD_EXT;
 
 inline int WINDOW_OVERWRITE;
 
+inline int DEBUG_GLTEXIMAGE2D;
+
 void ReadConfigFile();
