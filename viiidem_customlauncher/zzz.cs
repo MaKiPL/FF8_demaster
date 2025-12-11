@@ -29,8 +29,27 @@ namespace viiidem_customlauncher
 
             zzzWatcher zzzWatcher = new zzzWatcher(outDirectory);
             zzzWatcher.ShowDialog();
+        }
 
-
+        public static void UnpackAllDetached(string inDirectory, string outDirectory)
+        {
+            localIndex = localIndex2 = 0;
+            Directory.SetCurrentDirectory(inDirectory);
+            if (!File.Exists("main.zzz") || !File.Exists("other.zzz"))
+            {
+                MessageBox.Show("Either main.zzz or other.zzz was not found in specified directory! Did you forget to supply the path with game?", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            
+            if(!Directory.Exists(outDirectory))
+                Directory.CreateDirectory(outDirectory);
+            
+            zzzWatcher zzzWatcher = new zzzWatcher(outDirectory);
+            zzzWatcher.ShowDialog();
+            
+            // UnpackFile("main.zzz", outDirectory, null);
+            // UnpackFile("other.zzz", outDirectory, null);
+            // File.Create($"{outDirectory}\\data\\disk\\wrong_disk");
         }
 
         private struct zzzEntry
@@ -64,10 +83,19 @@ namespace viiidem_customlauncher
 
                     foreach(var lst in zzzzzzzEntries)
                     {
-                        if(path == "other.zzz")
-                            watcher.UpdateStatus(localIndex, localIndex2, localIndex, zzzzzzzEntries.Count, lst.string_);
+                        if(watcher != null)
+                        {
+                            if (path == "other.zzz")
+                                watcher.UpdateStatus(localIndex, localIndex2, localIndex, zzzzzzzEntries.Count,
+                                    lst.string_);
+                            else
+                                watcher.UpdateStatus(localIndex, localIndex2, zzzzzzzEntries.Count, 1, lst.string_);
+                        }
                         else
-                            watcher.UpdateStatus(localIndex, localIndex2, zzzzzzzEntries.Count, 1, lst.string_);
+                        {
+                            Console.WriteLine($"Extracting {lst.string_}");
+                        }
+                        
                         string outPath = Path.Combine(outDirectory, lst.string_);
                         string dirPath = Path.GetDirectoryName(outPath);
                         if (!Directory.Exists(dirPath))
