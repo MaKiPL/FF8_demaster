@@ -219,7 +219,8 @@ void* __stdcall HookGlTexImage2D(GLenum target,
 		if (boundId != 0 && width > 0 && height > 0)
 		{
 			// Add or update the texture in our map.
-			g_capturedTextures[boundId] = {.id = boundId, .width = width, .height = height, .internalFormat = internalformat };
+			g_capturedTextures[boundId] = {.id = boundId, .width = width, .height = height, .internalFormat = internalformat,
+			.estimatedFilename = LastFilePath};
 		}
 	}
 	

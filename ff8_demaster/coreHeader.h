@@ -124,6 +124,7 @@ struct CapturedTextureInfo {
     int width;
     int height;
     GLint internalFormat;
+    std::string estimatedFilename;
 };
 
 // A map to store all unique textures, using the GLuint ID as the key

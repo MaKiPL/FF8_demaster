@@ -186,6 +186,9 @@ void ImGui_DisplayTexturesSection()
                 ReuploadTexture(texInfo.id);
             }
             ImGui::PopID();
+
+            ImGui::Text("%s", texInfo.estimatedFilename.c_str());
+            
             ImVec2 image_pos = ImGui::GetCursorScreenPos();
             
             ImGui::Image(reinterpret_cast<void*>(static_cast<intptr_t>(texInfo.id)), thumb_size);
