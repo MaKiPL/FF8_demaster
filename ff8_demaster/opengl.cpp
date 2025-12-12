@@ -50,14 +50,52 @@ GLFWwindow* HookGlfwWindow(const int width, const int height, const char* title,
 }
 ImGuiContext * imguiContext;
 
-// int __fastcall HookGameClockUpdate(int a1, int a2)
-// {
-//     if (bPaused)
-//     {
-//         return 0;
-//     }
-//     return pGameClockUpdateTrampoline(a1,a2);
-// }
+void* __stdcall HookGlVertexPointer(GLint size, GLenum type, GLsizei stride, const void* pointer)
+{
+    LastVerticesPointer = {.size = size, .stride = stride, .pointer = pointer};
+    return static_cast<void* (__stdcall*)(GLint, GLenum, GLsizei, const void*)>(ogl_vertex_pointer)(size,type, stride, pointer);
+}
+
+void* __stdcall HookGlTexCoordPointer(GLint size, GLenum type, GLsizei stride, const void* pointer)
+{
+    LastTexCoordPointer = {.size = size, .stride = stride, .pointer = pointer};
+    return static_cast<void* (__stdcall*)(GLint, GLenum, GLsizei, const void*)>(ogl_tex_coord_pointer)(size, type, stride, pointer);
+}
+
+void __stdcall HookGlDrawElements(GLenum mode, GLsizei count, GLenum type, const void* indices)
+{
+    // read LastVerticesPointer and LastTexCoordPointer, then obtain respective Vector2f and 3f for UV and Verts
+    // TODO - although, unsure why I'm even doing this. It's all pre-rasterized anyway
+
+    // test - enable/disable drawing
+#if 0 //Set to 1- right now I don't want to put pressure on renderer
+    int effectiveStride = LastVerticesPointer.stride;
+    if (effectiveStride == 0)
+        effectiveStride = LastVerticesPointer.size * sizeof(float);
+    DrawVerticesBuffer.clear();
+    DrawVerticesBuffer.resize(count);
+    const char* bytePtr = static_cast<const char*>(LastVerticesPointer.pointer);
+    for (int i = 0; i < count; ++i)
+    {
+        const char* currentVertexAddr = bytePtr + (i * effectiveStride);
+
+        // 2. Cast to float* to read values
+        const float* fPtr = reinterpret_cast<const float*>(currentVertexAddr);
+
+        // 3. Store
+        DrawVerticesBuffer[i].x = fPtr[0];
+        DrawVerticesBuffer[i].y = fPtr[1];
+        DrawVerticesBuffer[i].z = (LastVerticesPointer.size > 2) ? fPtr[2] : 0.0f;
+        if (lastBoundTexture == TestTextureID)
+        {
+            return;
+        }
+    }
+#endif
+    
+    static_cast<void (__stdcall*)(GLenum, GLsizei, GLenum, const void*)>(ogl_draw_elements)
+    (mode,count, type, indices);
+}
 
 void PumpMessages()
 {
@@ -184,6 +222,11 @@ void ImGui_DisplayTexturesSection()
             if(ImGui::Button("Upload"))
             {
                 ReuploadTexture(texInfo.id);
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Test"))
+            {
+                TestTextureID = texInfo.id;
             }
             ImGui::PopID();
 
@@ -451,13 +494,6 @@ BOOL __stdcall HookSwapBuffers(const HDC hdc)
     return swapBuffersTrampoline(hdc); //static_cast<BOOL (__stdcall*)(HDC)>(swapBuffersTrampoline)(hdc);
 }
 
-LPVOID glewUseProgramTrampoline;
-void HookGlUseProgram(const GLuint program)
-{
-    OutputDebug("\nglUseProgram: %d", program);
-    return static_cast<void(__stdcall*)(GLuint)>(glewUseProgramTrampoline)(program);
-}
-
 
 /**
  * \brief This works closely with glViewport. It's responsible for making additional openGL hooks and injections
@@ -478,6 +514,9 @@ void ViewportBackdoorInject(bool& backdoorUsed)
         MH_CreateHookApi(L"OPENGL32", "glTexSubImage2D", HookGlTexSubImage2D, &ogl_subTexImage2D);
         MH_CreateHookApi(L"OPENGL32", "glTextureSubImage2D", HookGlTextureSubImage2D,
                          &ogl_subTextureImage2D);
+        MH_CreateHookApi(L"OPENGL32", "glDrawElements", HookGlDrawElements, &ogl_draw_elements);
+        MH_CreateHookApi(L"OPENGL32", "glVertexPointer", HookGlVertexPointer, &ogl_vertex_pointer);
+        MH_CreateHookApi(L"OPENGL32", "glTexCoordPointer", HookGlTexCoordPointer, &ogl_tex_coord_pointer);
     }
     MH_CreateHook(&SwapBuffers, &HookSwapBuffers, reinterpret_cast<LPVOID*>(&swapBuffersTrampoline));
 

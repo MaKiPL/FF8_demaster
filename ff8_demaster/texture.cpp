@@ -16,6 +16,7 @@ std::map<GLuint, CapturedTextureInfo> g_capturedTextures;
 
 void* __stdcall HookGlBindTexture(GLenum target, GLuint texture)
 {
+	lastBoundTexture = texture;
 	return static_cast<void* (__stdcall*)(GLenum, GLuint)>(ogl_bind_texture)(target, texture);
 }
 
