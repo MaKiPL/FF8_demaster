@@ -111,9 +111,14 @@ void DrawImGuiFrame()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Begin("DEMASTER DEBUG WINDOW");
+    ImGui::Begin("DEMASTER DEBUG");
     ImGui_DisplayDebugButtons(); // Critical: the user interacts with this to set bPaused = false
-    ImGui_DisplayTexturesSection();
+    ImGui::Separator();
+    if (ImGui::BeginChild("Demaster::Textures" ,ImVec2(0,0), true))
+    {
+        ImGui_DisplayTexturesSection();
+        ImGui::EndChild();
+    }
     ImGui::End();
 
     ImGui::Render();
@@ -142,9 +147,6 @@ void CreateImGuiImplementation()
 
 void ImGui_DisplayDebugButtons()
 {
-    ImGui::Separator();
-    ImGui::Text("Debug Buttons");
-    ImGui::Separator();
     ImGui::Text("FPS: %.2f", ImGui::GetIO().Framerate);
     if (ImGui::Button("Pause"))
     {

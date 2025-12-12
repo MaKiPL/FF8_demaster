@@ -242,8 +242,10 @@ void __stdcall HookGlTexSubImage2D( 	GLenum target,
 {
 	OutputDebug("GlTexSubImage2D: ID: %d Width: %d Height: %d. Last path: %s\n", GetCurrentBoundTextureID(),
 		width, height, LastFilePath.c_str());
+
+	bool tryToReplace = false;
 	
-	if (LastFilePath.contains("mag"))
+	if (LastFilePath.contains("mag")) //MAG files
 	{
 		const std::regex regexPattern("_(\\d+)\\."); //fuck my life. Mark "_0." and etc.
 		std::smatch regexMatch;
@@ -256,23 +258,45 @@ void __stdcall HookGlTexSubImage2D( 	GLenum target,
 				return;
 				//do nothing
 			}
-			std::string localTexturePath = LastFilePath;
-			localTexturePath.replace(localTexturePath.end() - 4, localTexturePath.end(), ".dds");
-			if (std::filesystem::exists(localTexturePath))
-			{
-				OutputDebug("GlTexSubImage2D: Found DDS. Using DDS for %s\n", localTexturePath.c_str());
-				//const Vector2Di resolution = GetImageResolutionFast(localTexturePath.c_str());
-				LoadAndRenderTexture(localTexturePath.c_str(), false);
-				return;
-			}
-			const Vector2Di resolution = GetImageResolutionFast(LastFilePath.c_str());
-			static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
-										  GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
-		(target, level, format, resolution.width, resolution.height
-			, 0, format, type, pixels);
-			//ogl_tex_image2d(target, level, 0, 0, resolution.width, resolution.height, format, type, pixels);
+			tryToReplace = true;
 		}
-		
+	}
+	else if (LastFilePath.contains("c0m")) //Monster files
+	{
+		const std::regex regexPattern("c0m(\\d+)_(\\d+)");
+		std::smatch regexMatch;
+		if (std::regex_search(LastFilePath, regexMatch, regexPattern))
+		{
+			int monsterIndex = std::stoi(regexMatch[1].str()); //c0mXXX_Y.ZZZ -> X
+			int textureIndex = std::stoi(regexMatch[2].str()); //c0mXXX_Y.ZZZ -> Y
+			//There's probably not going to be need for more monsters textures, so let's make it simple IF
+			if (monsterIndex == 121 || monsterIndex == 122 || monsterIndex == 126) //LastBattle
+			{
+				if (textureIndex % 2 != 0)
+					return;
+				tryToReplace = true;
+			}
+			if (monsterIndex == 123) //Skip Griever balls. c0m123_0 should be on the bottom of _4 textures for 121 and 122
+				return;
+		}
+	}
+
+	if (tryToReplace)
+	{
+		std::string localTexturePath = LastFilePath;
+		localTexturePath.replace(localTexturePath.end() - 4, localTexturePath.end(), ".dds");
+		if (std::filesystem::exists(localTexturePath))
+		{
+			OutputDebug("GlTexSubImage2D: Found DDS. Using DDS for %s\n", localTexturePath.c_str());
+			LoadAndRenderTexture(localTexturePath.c_str(), false);
+			return;
+		}
+		const Vector2Di resolution = GetImageResolutionFast(LastFilePath.c_str());
+		static_cast<void* (__stdcall*)(GLenum, GLint, GLint, GLsizei, GLsizei,
+									  GLint, GLenum, GLenum, const void*)>(ogl_tex_image2d)
+	(target, level, format, resolution.width, resolution.height
+		, 0, format, type, pixels);
+		return;
 	}
 	
 	OutputDebug("Hooked glTexSubImage2D width: %d height: %d\n", width, height);
